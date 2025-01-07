@@ -20,6 +20,16 @@ class Application(Frame):
 
         self.f = open("recipes.JSON", "r")
         self.recipes = json.load(self.f)
+
+        garnishes = set([])
+        for recipe in self.recipes['recipies']:
+            for garnish in str(recipe['garnish']).replace(" or ", " , ").replace("\na ").split(','):
+                garnishes.add(str(garnish).strip(' ') + "\n")
+
+        self.f2 = open("garnishes.txt", "w")
+        for garnish in garnishes:
+            self.f2.write(garnish)
+        self.f2.close()
         
         self.currentPageIndex = 0
         self.pages = [self.Page0, self.Page1, self.Page2]
