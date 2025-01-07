@@ -15,7 +15,7 @@ class Application(Frame):
     scrollPos = 0;
 
     def __init__(self, root):
-        super().__init__(root, bg='#111111')
+        super().__init__(root, bg='#0000ff')
 
         self.f = open("recipes.JSON", "r")
         self.recipes = json.load(self.f)
