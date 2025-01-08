@@ -1,40 +1,84 @@
-from ast import Str
+import ast
 import json
 from tkinter import *
+from tkinter import ttk 
 import os
 import tkinter
 from tkinter.messagebox import showerror
 from tkinter.font import Font
 dirname = os.path.dirname(__file__)
 from functools import partial
+from datetime import datetime
+
+root = Tk()
+
+mainBGColour = '#111111'
+secondaryBGColour = '#444444'
+mainFGColour = '#CCCCCC'
+
+font = Font(family="Courier new", size=13)
+titleFont = Font(family="Courier new", size=40, weight="bold")
+subTitleFont = Font(family="Courier new", size=15, weight="bold")
+
+categories = set([])
 
 def on_escape(event=None):
     root.destroy()
 
+def findCategories(recipes):
+    for recipe in recipes['recipies']:
+        temp = recipe['colour']
+        if len(temp) <= 1:
+            break
+        categories.add(temp)
+
+def findGarnishes(recipes):
+    garnishes = set([])
+    for recipe in recipes['recipies']:
+        for garnish in ast.Constant(recipe['garnish']).replace(" or ", " , ").split(','):
+            temp = ast.Constant(garnish).strip(' ').lower() + "\n"
+            if len(temp) <= 1:
+                break
+            if (temp[0] == 'a') & (temp[1] == ' '):
+                temp = temp[2:]
+            garnishes.add(temp)
+
+    f2 = open("garnishes.txt", "w")
+    for garnish in garnishes:
+        f2.write(garnish)
+    f2.close()
+
+def findGlasses(recipes):
+    glasses = set([])
+    for recipe in recipes['recipies']:
+        for glass in ast.Constant(recipe['glassType']).replace(" or ", " , ").split(','):
+            temp = ast.Constant(glass).strip(' ').lower() + "\n"
+            if len(temp) <= 1:
+                break
+            if (temp[0] == 'a') & (temp[1] == ' '):
+                temp = temp[2:]
+            glasses.add(temp)
+
+    f2 = open("glasses.txt", "w")
+    for glass in glasses:
+        f2.write(glass)
+    f2.close()
+
 class Application(Frame):
 
     scrollPos = 0;
-
     def __init__(self, root):
-        super().__init__(root, bg='#111111')
+        super().__init__(root, bg=mainBGColour)
 
         self.f = open("recipes.JSON", "r")
         self.recipes = json.load(self.f)
 
-        garnishes = set([])
-        for recipe in self.recipes['recipies']:
-            for garnish in str(recipe['garnish']).replace(" or ", " , ").replace("\na ").split(','):
-                garnishes.add(str(garnish).strip(' ') + "\n")
+        #findGarnishes(self.recipes)
+        #findGlasses(self.recipes)
+        findCategories(self.recipes)
 
-        self.f2 = open("garnishes.txt", "w")
-        for garnish in garnishes:
-            self.f2.write(garnish)
-        self.f2.close()
-        
         self.currentPageIndex = 0
         self.pages = [self.Page0, self.Page1, self.Page2]
-
-        self.font = Font(family="Courier new", size=13, weight="bold")
 
         self.mainFrame = self
         self.mainFrame.pack(fill=BOTH, expand=True)
@@ -43,20 +87,17 @@ class Application(Frame):
         
         self.pages[self.currentPageIndex]()
 
+    def getRecipes(self, colour):
+        recipeList = []
+        for recipe in self.recipes['recipies']:
+            if (recipe['colour'] == colour) | (colour == 'None'):
+                recipeList.append(recipe)
 
-    def Page0(self):
+        self.addRecipeButtons(recipeList)
 
-        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg='red', width=1024, height=50);
-        self.topPayne.pack()
-
-        self.midPayneContainer = Frame(self.mainFrame)
-        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg='green', scrollregion="0 0 2000 1000", width=805, height=450)
-        self.midPayne.bind("<MouseWheel>", self.scrollMainPageRecipes)
-        self.vbar=Scrollbar(self.midPayneContainer, orient=VERTICAL)
-        self.vbar.pack(side=RIGHT, fill=Y)
-        self.vbar.config(command=self.midPayne.yview)
-        self.midPayne.config(yscrollcommand=self.vbar.set)
-        
+    def addRecipeButtons(self, recipes):
+        for child in self.midPayne.winfo_children():
+            child.destroy()
         self.totalButtons = 501
         self.w = 190
         self.h = 100
@@ -65,7 +106,7 @@ class Application(Frame):
         self.left = 5
         self.buttonImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
         x = 0
-        for recipe in self.recipes['recipies']:
+        for recipe in recipes:
             if (x % 4 == 0) & (x > 0):
                 self.left=5
                 self.top = self.top + self.h + 10
@@ -77,13 +118,64 @@ class Application(Frame):
             self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
             self.left = self.left+self.w+10;
             x = x + 1
+        self.midPayne.configure(scrollregion=(0, 0, ((self.w * 4) + 25), max((((self.h * self.rows) + (10 * (self.rows + 1)))-5), self.midPayneContainer.winfo_height())))
 
+    def setTimeString(self, timeString):
+        if self.currentPageIndex == 0:
+            self.dateTimeLabel.configure(text=timeString)
+            self.dateTimeLabel.update()
+    
+
+    def Page0(self):
+
+        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=70);
+        self.titleFrame = Frame(self.topPayne, bg=mainBGColour)
+        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Cocktails 'n shit", bg=mainBGColour, fg=mainFGColour)
+        self.titleLabel.pack(side=BOTTOM)
+        self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
+        self.dateTimeFrame = Frame(self.topPayne, bg=mainBGColour)
+        self.dateTimeLabel = Label(self.dateTimeFrame, font=subTitleFont, anchor='n', bg=mainBGColour, fg=mainFGColour, text="00/00/0000 00:00:00")
+        self.dateTimeLabel.pack(side=TOP)
+        self.dateTimeFrame.pack(side=RIGHT, fill='y', padx=10, pady=10)
+        self.topPayne.pack(fill='x')
+        self.topPayne.pack_propagate(0)
+
+        self.midPayneContainerContainer = Frame(self.mainFrame, bg=secondaryBGColour)
+        self.midPayneContainer = Frame(self.midPayneContainerContainer)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=secondaryBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
+        self.midPayne.bind("<MouseWheel>", self.scrollMainPageRecipes)
+        self.vbar=Scrollbar(self.midPayneContainer, orient=VERTICAL)
+        self.vbar.pack(side=RIGHT, fill=Y)
+        self.vbar.config(command=self.midPayne.yview)
+        self.midPayne.config(yscrollcommand=self.vbar.set)
+        self.getRecipes('None')
         self.midPayne.pack()
-        self.midPayne.configure(scrollregion=(0, 0, ((self.w * 4) + 25), (((self.h * self.rows) + (10 * (self.rows + 1)))-5)))
-        self.midPayneContainer.pack(pady=25)
-        
 
-        self.bottomPayne = Canvas(self.mainFrame, highlightthickness=0, bg='blue', width=1024, height=50);
+        self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=secondaryBGColour)
+        action_with_arg2 = partial(self.recipesMove, -1)
+        self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, padx=0, pady=0, image=self.buttonImage, compound="center", text='up', command=action_with_arg2)
+        self.upBtn.pack(side=TOP, pady=10)
+        action_with_arg3 = partial(self.recipesMove, 1)
+        self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, padx=0, pady=0, image=self.buttonImage, compound="center", text='down', command=action_with_arg3)
+        self.downBtn.pack(side=BOTTOM, pady=10)
+        self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
+
+        self.midPayneContainer.pack(side=LEFT)
+        self.midPayneContainerContainer.pack(pady=5)
+
+        self.bottomPayne = Canvas(self.mainFrame, highlightthickness=0, bg='blue', width=1024, height=75);
+
+        self.categoryString = StringVar() 
+        self.categoryBox = ttk.Combobox(self.bottomPayne, textvariable=self.categoryString)
+        self.categoryValues = set([])
+        for category in categories:
+            self.categoryValues.add(category)
+        self.categoryValues = sorted(self.categoryValues)
+        self.categoryBox['values'] = list(self.categoryValues)
+        self.categoryBox.pack()
+        self.categoryBox.bind('<<ComboboxSelected>>', self.pickCategory)
+        self.categoryBox.current(0)
+
         self.bottomPayne.pack()
 
 
@@ -110,7 +202,7 @@ class Application(Frame):
         self.vbar2.pack(side=RIGHT, fill=Y)
         self.vbar2.config(command=self.bottomLeftPayne.yview)
         self.bottomLeftPayne.config(yscrollcommand=self.vbar2.set)
-        self.cocktailIngredients = Text(self.bottomLeftPayne, font=self.font, width=31, bg='gray50', borderwidth=0, wrap=WORD)
+        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg='gray50', borderwidth=0, wrap=WORD)
         self.cocktailIngredients.bind("<MouseWheel>", self.scrollRecipeIngredients)
         self.bottomLeftPayne.create_window((5, 5), anchor=NW, window=self.cocktailIngredients)
         self.bottomLeftPayne.pack()
@@ -139,7 +231,7 @@ class Application(Frame):
         self.vbar3.pack(side=RIGHT, fill=Y)
         self.vbar3.config(command=self.bottomRightPayne.yview)
         self.bottomRightPayne.config(yscrollcommand=self.vbar3.set)
-        self.cocktailSteps = Text(self.bottomRightPayne, font=self.font, width=63, bg='gray50', borderwidth=0, wrap=WORD)
+        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=63, bg='gray50', borderwidth=0, wrap=WORD)
         self.cocktailSteps.bind("<MouseWheel>", self.scrollRecipeSteps)
         self.bottomRightPayne.create_window((5, 5), anchor=NW, window=self.cocktailSteps)
         self.bottomRightPayne.pack()
@@ -158,7 +250,6 @@ class Application(Frame):
     def Page2(self):
         pass
 
-
     def homepage(self):
         self.currentPageIndex = 0
         for child in self.mainFrame.winfo_children():
@@ -166,6 +257,9 @@ class Application(Frame):
         self.pages[self.currentPageIndex]()
         self.midPayne.yview_moveto(self.scrollPos)
 
+    def recipesMove(self, direction):
+        self.midPayne.yview_scroll(int(direction*7), "units")
+        
 
     def scrollMainPageRecipes(self, event):
         self.midPayne.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -175,6 +269,9 @@ class Application(Frame):
 
     def scrollRecipeSteps(self, event):
         self.bottomRightPayne.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def pickCategory(self, event):
+        self.getRecipes(self.categoryString.get())
 
     def openRecipe(self, recipe):
         self.scrollPos = self.vbar.get()[0]
@@ -187,8 +284,6 @@ class Application(Frame):
         
         self.cocktailIngredients.delete(1.0, END)
 
-        
-
         for ingredient in recipe['ingredients']:
             dots = ""
             for x in range(28 - (len(ingredient['name']) + len(ingredient['quantity']) + len(ingredient['unit']))):
@@ -197,7 +292,7 @@ class Application(Frame):
         self.cocktailIngredients.delete('end-2c', END)
         root.update()
         root.update_idletasks()
-        line_height = self.font.metrics("linespace")
+        line_height = font.metrics("linespace")
         num_lines = self.cocktailIngredients.count('1.0', END, 'displaylines')[0]
         total_height = line_height * num_lines + 10
         self.cocktailIngredients.config(height=(num_lines))
@@ -209,7 +304,7 @@ class Application(Frame):
         self.cocktailSteps.delete('end-2c', END)
         root.update()
         root.update_idletasks()
-        line_height = self.font.metrics("linespace")
+        line_height = font.metrics("linespace")
         num_lines = self.cocktailSteps.count('1.0', END, 'displaylines')[0]
         total_height = line_height * num_lines + 10
         self.cocktailSteps.config(height=(num_lines))
@@ -221,9 +316,6 @@ class Application(Frame):
         self.cocktailGarnish.config(text=recipe['garnish'])
         self.cocktailGlass.config(text=recipe['glassType'])
 
-
-root = Tk()
-
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 #root.attributes("-fullscreen", True)
@@ -231,21 +323,13 @@ screen_height = root.winfo_screenheight()
 root.bind("<Escape>", on_escape)
 root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
-
 applicationInstance = Application(root)
 
+def update():
+    now = datetime.now()
+    dtString = now.strftime("%d/%m/%Y %H:%M:%S")
+    applicationInstance.setTimeString(dtString)
+    root.after(1000, update)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+root.after(1000, update)
 root.mainloop()
