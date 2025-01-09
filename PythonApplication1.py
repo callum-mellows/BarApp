@@ -178,8 +178,6 @@ class Application(Frame):
 
         self.bottomPayne.pack()
 
-
-
     def Page1(self):
 
         self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg='gray30', width=1024, height=100);
