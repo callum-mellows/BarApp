@@ -9,6 +9,7 @@ from tkinter.font import Font
 dirname = os.path.dirname(__file__)
 from functools import partial
 from datetime import datetime
+from difflib import SequenceMatcher
 
 root = Tk()
 
@@ -17,20 +18,12 @@ secondaryBGColour = '#444444'
 mainFGColour = '#CCCCCC'
 
 font = Font(family="Courier new", size=13)
+smallFont = Font(family="Courier new", size=8)
 titleFont = Font(family="Courier new", size=40, weight="bold")
 subTitleFont = Font(family="Courier new", size=15, weight="bold")
 
-categories = set([])
-
 def on_escape(event=None):
     root.destroy()
-
-def findCategories(recipes):
-    for recipe in recipes['recipies']:
-        temp = recipe['colour']
-        if len(temp) <= 1:
-            break
-        categories.add(temp)
 
 def findGarnishes(recipes):
     garnishes = set([])
@@ -48,25 +41,41 @@ def findGarnishes(recipes):
         f2.write(garnish)
     f2.close()
 
-def findGlasses(recipes):
-    glasses = set([])
-    for recipe in recipes['recipies']:
-        for glass in ast.Constant(recipe['glassType']).replace(" or ", " , ").split(','):
-            temp = ast.Constant(glass).strip(' ').lower() + "\n"
-            if len(temp) <= 1:
-                break
-            if (temp[0] == 'a') & (temp[1] == ' '):
-                temp = temp[2:]
-            glasses.add(temp)
-
-    f2 = open("glasses.txt", "w")
-    for glass in glasses:
-        f2.write(glass)
-    f2.close()
-
 class Application(Frame):
 
     scrollPos = 0;
+    categories = set([])
+    names = set([])
+    ingredients = set([])
+    glassTypes = set([])
+    
+    def getSearchables(self, recipes):
+        categories2 = set([])
+        names2 = set([])
+        ingredients2 = set([])
+        glassTypes2 = set([])
+        for recipe in recipes['recipies']:
+            temp = recipe['colour']
+            if len(temp) > 1:
+                categories2.add(temp)
+
+            temp = recipe['name']
+            if len(temp) > 1:
+                names2.add(temp)
+
+            temp = recipe['glassType']
+            if len(temp) > 1:
+                glassTypes2.add(temp)
+
+            if len(recipe['ingredients']) > 1:
+                for ingredient in recipe['ingredients']:
+                    ingredients2.add(ingredient['name'])
+       
+            self.categories = sorted(categories2)
+            self.names = sorted(names2)
+            self.ingredients = sorted(ingredients2)
+            self.glassTypes = sorted(glassTypes2)
+    
     def __init__(self, root):
         super().__init__(root, bg=mainBGColour)
 
@@ -74,8 +83,7 @@ class Application(Frame):
         self.recipes = json.load(self.f)
 
         #findGarnishes(self.recipes)
-        #findGlasses(self.recipes)
-        findCategories(self.recipes)
+        self.getSearchables(self.recipes)
 
         self.currentPageIndex = 0
         self.pages = [self.Page0, self.Page1, self.Page2]
@@ -87,12 +95,28 @@ class Application(Frame):
         
         self.pages[self.currentPageIndex]()
 
-    def getRecipes(self, colour):
+    def getRecipesByCategory(self, colour):
         recipeList = []
         for recipe in self.recipes['recipies']:
-            if (recipe['colour'] == colour) | (colour == 'None'):
+            if (recipe['colour'] == colour) | (colour == 'None') | (colour == 'Any'):
                 recipeList.append(recipe)
+        self.addRecipeButtons(recipeList)
 
+    def getRecipesByIngredient(self, ingredient):
+        recipeList = []
+        for recipe in self.recipes['recipies']:
+            for ing in recipe['ingredients']:
+                if SequenceMatcher(a=ing['name'],b=ingredient).ratio() > 0.75:
+                    recipeList.append(recipe)
+                    break
+        self.addRecipeButtons(recipeList)
+
+
+    def getRecipesByGlassType(self, glassType):
+        recipeList = []
+        for recipe in self.recipes['recipies']:
+            if (recipe['glassType'] == glassType):
+                recipeList.append(recipe)
         self.addRecipeButtons(recipeList)
 
     def addRecipeButtons(self, recipes):
@@ -148,7 +172,7 @@ class Application(Frame):
         self.vbar.pack(side=RIGHT, fill=Y)
         self.vbar.config(command=self.midPayne.yview)
         self.midPayne.config(yscrollcommand=self.vbar.set)
-        self.getRecipes('None')
+        self.getRecipesByCategory('Any')
         self.midPayne.pack()
 
         self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=secondaryBGColour)
@@ -163,18 +187,40 @@ class Application(Frame):
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
 
-        self.bottomPayne = Canvas(self.mainFrame, highlightthickness=0, bg='blue', width=1024, height=75);
+        self.bottomPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=75);
 
-        self.categoryString = StringVar() 
-        self.categoryBox = ttk.Combobox(self.bottomPayne, textvariable=self.categoryString)
-        self.categoryValues = set([])
-        for category in categories:
-            self.categoryValues.add(category)
-        self.categoryValues = sorted(self.categoryValues)
-        self.categoryBox['values'] = list(self.categoryValues)
-        self.categoryBox.pack()
-        self.categoryBox.bind('<<ComboboxSelected>>', self.pickCategory)
-        self.categoryBox.current(0)
+        self.categoryFrame = Frame(self.bottomPayne, bg=mainBGColour)
+        self.categoryLabel = Label(self.categoryFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Season:')
+        self.categoryLabel.pack(side=TOP)
+        if self.categories.__contains__('Any') == False:
+            self.categories.insert(0, 'Any')
+        self.categoryString = StringVar(self.categoryFrame) 
+        self.categoryBox = ttk.OptionMenu(self.categoryFrame, self.categoryString, list(self.categories)[0], *self.categories, command=self.pickCategory)
+        self.categoryBox.configure(width=25)
+        self.categoryBox.pack(ipadx=20, ipady=10, side=BOTTOM)
+        self.categoryFrame.pack(side=LEFT, padx = 25, pady=5)
+
+        self.ingredientsFrame = Frame(self.bottomPayne, bg=mainBGColour)
+        self.ingredientsLabel = Label(self.ingredientsFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Ingredient:')
+        self.ingredientsLabel.pack(side=TOP)
+        if self.ingredients.__contains__('Any') == False:
+            self.ingredients.insert(0, 'Any')
+        self.ingredientsString = StringVar(self.ingredientsFrame) 
+        self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.ingredients)[0], *self.ingredients, command=self.pickIngredient)
+        self.ingredientsBox.configure(width=25)
+        self.ingredientsBox.pack(ipadx=20, ipady=10, side=BOTTOM)
+        self.ingredientsFrame.pack(side=LEFT, padx = 25, pady=5)
+
+        self.glassFrame = Frame(self.bottomPayne, bg=mainBGColour)
+        self.glassLabel = Label(self.glassFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Glass Type:')
+        self.glassLabel.pack(side=TOP)
+        if self.glassTypes.__contains__('Any') == False:
+            self.glassTypes.insert(0, 'Any')
+        self.glassTypeString = StringVar(self.glassFrame) 
+        self.glassTypeBox = ttk.OptionMenu(self.glassFrame, self.glassTypeString, list(self.glassTypes)[0], *self.glassTypes, command=self.pickGlassType)
+        self.glassTypeBox.configure(width=25)
+        self.glassTypeBox.pack(ipadx=20, ipady=10, side=BOTTOM)
+        self.glassFrame.pack(side=LEFT, padx = 25, pady=5)
 
         self.bottomPayne.pack()
 
@@ -184,10 +230,10 @@ class Application(Frame):
         self.topPayne.pack(side=TOP)
         self.topPayne.pack_propagate(0)
 
-        self.btn = Button(self.topPayne, text="Return", font=('Arial', 36), command=self.homepage)
+        self.btn = Button(self.topPayne, text="Return", font=subTitleFont, command=self.homepage)
         self.btn.pack(side=LEFT, padx=25, pady=25)
 
-        self.cocktailName = Label(self.topPayne, bg='gray30', text="name", font=('Arial', 36))
+        self.cocktailName = Label(self.topPayne, bg='gray30', text="name", font=titleFont)
         self.cocktailName.pack(side=LEFT, padx=25, pady=25)
 
 
@@ -269,7 +315,13 @@ class Application(Frame):
         self.bottomRightPayne.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def pickCategory(self, event):
-        self.getRecipes(self.categoryString.get())
+        self.getRecipesByCategory(self.categoryString.get())
+
+    def pickIngredient(self, event):
+        self.getRecipesByIngredient(self.ingredientsString.get())
+
+    def pickGlassType(self, event):
+        self.getRecipesByGlassType(self.glassTypeString.get())
 
     def openRecipe(self, recipe):
         self.scrollPos = self.vbar.get()[0]
