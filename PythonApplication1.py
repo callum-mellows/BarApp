@@ -10,11 +10,14 @@ dirname = os.path.dirname(__file__)
 from functools import partial
 from datetime import datetime
 from difflib import SequenceMatcher
+from PIL import Image
+from PIL import ImageTk
 
 root = Tk()
 
+transparentColour = '#FF00E8'
 mainBGColour = '#111111'
-secondaryBGColour = '#444444'
+secondaryBGColour = '#595959'
 mainFGColour = '#CCCCCC'
 
 font = Font(family="Courier new", size=13)
@@ -55,7 +58,7 @@ class Application(Frame):
         ingredients2 = set([])
         glassTypes2 = set([])
         for recipe in recipes['recipies']:
-            temp = recipe['colour']
+            temp = recipe['season']
             if len(temp) > 1:
                 categories2.add(temp)
 
@@ -89,16 +92,17 @@ class Application(Frame):
         self.pages = [self.Page0, self.Page1, self.Page2]
 
         self.mainFrame = self
+        self.mainFrame.configure(bg=mainBGColour)
         self.mainFrame.pack(fill=BOTH, expand=True)
         self.mainFrame.columnconfigure(0, weight=1)
         self.mainFrame.rowconfigure(0, weight=1)
         
         self.pages[self.currentPageIndex]()
 
-    def getRecipesByCategory(self, colour):
+    def getRecipesByCategory(self, season):
         recipeList = []
         for recipe in self.recipes['recipies']:
-            if (recipe['colour'] == colour) | (colour == 'None') | (colour == 'Any'):
+            if (recipe['season'] == season) | (season == 'None') | (season == 'Any'):
                 recipeList.append(recipe)
         self.addRecipeButtons(recipeList)
 
@@ -128,7 +132,7 @@ class Application(Frame):
         self.rows = 1
         self.top = 5
         self.left = 5
-        self.buttonImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
+        self.buttonImages = {};
         x = 0
         for recipe in recipes:
             if (x % 4 == 0) & (x > 0):
@@ -137,7 +141,8 @@ class Application(Frame):
                 self.rows = self.rows + 1
 
             action_with_arg = partial(self.openRecipe, recipe)
-            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, borderwidth=0, padx=0, pady=0, image=self.buttonImage, compound="center", text=recipe['name'], command=action_with_arg)
+            self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images\\cocktails\\buttons\\"+recipe['ID']+".jpg"))
+            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg='#ffffff', font=font, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
             self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
             self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
             self.left = self.left+self.w+10;
@@ -177,10 +182,12 @@ class Application(Frame):
 
         self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=secondaryBGColour)
         action_with_arg2 = partial(self.recipesMove, -1)
-        self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, padx=0, pady=0, image=self.buttonImage, compound="center", text='up', command=action_with_arg2)
+        self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
+        self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
         self.upBtn.pack(side=TOP, pady=10)
         action_with_arg3 = partial(self.recipesMove, 1)
-        self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, padx=0, pady=0, image=self.buttonImage, compound="center", text='down', command=action_with_arg3)
+        self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
+        self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='down', command=action_with_arg3)
         self.downBtn.pack(side=BOTTOM, pady=10)
         self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
 
@@ -195,7 +202,7 @@ class Application(Frame):
         if self.categories.__contains__('Any') == False:
             self.categories.insert(0, 'Any')
         self.categoryString = StringVar(self.categoryFrame) 
-        self.categoryBox = ttk.OptionMenu(self.categoryFrame, self.categoryString, list(self.categories)[0], *self.categories, command=self.pickCategory)
+        self.categoryBox = ttk.OptionMenu(self.categoryFrame, self.categoryString, list(self.categories)[0], *self.categories, command=self.pickCategory, direction='above')
         self.categoryBox.configure(width=25)
         self.categoryBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.categoryFrame.pack(side=LEFT, padx = 25, pady=5)
@@ -206,7 +213,7 @@ class Application(Frame):
         if self.ingredients.__contains__('Any') == False:
             self.ingredients.insert(0, 'Any')
         self.ingredientsString = StringVar(self.ingredientsFrame) 
-        self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.ingredients)[0], *self.ingredients, command=self.pickIngredient)
+        self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.ingredients)[0], *self.ingredients, command=self.pickIngredient, direction='above')
         self.ingredientsBox.configure(width=25)
         self.ingredientsBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.ingredientsFrame.pack(side=LEFT, padx = 25, pady=5)
@@ -217,7 +224,7 @@ class Application(Frame):
         if self.glassTypes.__contains__('Any') == False:
             self.glassTypes.insert(0, 'Any')
         self.glassTypeString = StringVar(self.glassFrame) 
-        self.glassTypeBox = ttk.OptionMenu(self.glassFrame, self.glassTypeString, list(self.glassTypes)[0], *self.glassTypes, command=self.pickGlassType)
+        self.glassTypeBox = ttk.OptionMenu(self.glassFrame, self.glassTypeString, list(self.glassTypes)[0], *self.glassTypes, command=self.pickGlassType, direction='above')
         self.glassTypeBox.configure(width=25)
         self.glassTypeBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.glassFrame.pack(side=LEFT, padx = 25, pady=5)
@@ -226,43 +233,46 @@ class Application(Frame):
 
     def Page1(self):
 
-        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg='gray30', width=1024, height=100);
+        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=100);
+
         self.topPayne.pack(side=TOP)
         self.topPayne.pack_propagate(0)
 
         self.btn = Button(self.topPayne, text="Return", font=subTitleFont, command=self.homepage)
-        self.btn.pack(side=LEFT, padx=25, pady=25)
+        self.btn.pack(side=RIGHT, padx=25, pady=25)
 
-        self.cocktailName = Label(self.topPayne, bg='gray30', text="name", font=titleFont)
-        self.cocktailName.pack(side=LEFT, padx=25, pady=25)
+        #self.cocktailName = Canvas(self.topPayne)
+        #self.cocktailName.pack(side=LEFT, padx=25, pady=25)
 
 
-        self.leftPaynesContainer = Frame(self.mainFrame)
+        self.leftPaynesContainer = Frame(self.mainFrame, bg=mainBGColour)
 
-        self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer)
-        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg='gray30', scrollregion="0 0 2000 1000", width=324, height=230)
+        self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
+        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=341, height=258)
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
-        self.vbar2=Scrollbar(self.bottomLeftPayneContainer, orient=VERTICAL)
-        self.vbar2.pack(side=RIGHT, fill=Y)
-        self.vbar2.config(command=self.bottomLeftPayne.yview)
-        self.bottomLeftPayne.config(yscrollcommand=self.vbar2.set)
-        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg='gray50', borderwidth=0, wrap=WORD)
+        #self.vbar2=Scrollbar(self.bottomLeftPayneContainer, orient=VERTICAL)
+        #self.vbar2.pack(side=LEFT, fill=Y)
+        #self.vbar2.config(command=self.bottomLeftPayne.yview)
+        #self.bottomLeftPayne.config(yscrollcommand=self.vbar2.set)
+        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD)
         self.cocktailIngredients.bind("<MouseWheel>", self.scrollRecipeIngredients)
         self.bottomLeftPayne.create_window((5, 5), anchor=NW, window=self.cocktailIngredients)
-        self.bottomLeftPayne.pack()
+        self.bottomLeftPayne.pack(pady=5)
         self.bottomLeftPayneContainer.pack(side=TOP, padx=0, pady=0)
 
 
-        self.underLeftPayneContainer = Frame(self.leftPaynesContainer)
-        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg='gray30', scrollregion="0 0 2000 1000", width=342, height=260)
+        self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
+        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=mainBGColour, width=341, height=230)
 
-        self.image = PhotoImage(file=os.path.join(dirname, "images\\glasses\\None.png"))
-        self.glassImage = Label(self.underLeftPayne, image=self.image, width=32, height=32)
-        self.glassImage.pack(side=RIGHT, anchor="n")
+        #self.image = PhotoImage(file=os.path.join(dirname, "images\\glasses\\None.png"))
+        #self.glassImage = Label(self.underLeftPayne, image=self.image, width=32, height=32)
+        #self.glassImage.pack(side=RIGHT, anchor="n")
 
+        #self.image = PhotoImage(file=os.path.join(dirname, "images\\cocktails\\none.jpg"))
+        #self.cocktailImage = Canvas(width=256, height=256, bg='#ffffff')
+        #self.cocktailImage.pack(side=LEFT)
 
-
-        self.underLeftPayne.pack()
+        self.underLeftPayne.pack(side=LEFT, pady=10)
         self.underLeftPayne.pack_propagate(0)
         self.underLeftPayneContainer.pack(side=BOTTOM, padx=0, pady=0)
 
@@ -330,7 +340,23 @@ class Application(Frame):
             child.destroy()
         self.pages[self.currentPageIndex]()
 
-        self.cocktailName.config(text=recipe['name'])
+        width = self.winfo_width()
+        height = self.winfo_height()
+        (r1,g1,b1) = self.winfo_rgb(recipe['colour'])
+        (r2,g2,b2) = self.winfo_rgb('#000000')
+        r_ratio = float(r2-r1) / width
+        g_ratio = float(g2-g1) / width
+        b_ratio = float(b2-b1) / width
+        for i in range(width):
+            nr = int(r1 + (r_ratio * i))
+            ng = int(g1 + (g_ratio * i))
+            nb = int(b1 + (b_ratio * i))
+            color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
+            self.topPayne.create_line(i, 0, i, height, tags=("gradient",), fill=color)
+        self.topPayne.lower("gradient")
+
+        #self.cocktailName.config(text=recipe['name'])
+        self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
         
         self.cocktailIngredients.delete(1.0, END)
 
@@ -338,7 +364,7 @@ class Application(Frame):
             dots = ""
             for x in range(28 - (len(ingredient['name']) + len(ingredient['quantity']) + len(ingredient['unit']))):
                 dots = dots + "."
-            self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'] + dots + ingredient['quantity'] + ingredient['unit'] + "\n\n")
+            self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'] + dots + ingredient['quantity'] + ingredient['unit'] + "\n")
         self.cocktailIngredients.delete('end-2c', END)
         root.update()
         root.update_idletasks()
@@ -360,7 +386,11 @@ class Application(Frame):
         self.cocktailSteps.config(height=(num_lines))
         self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
 
+        self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 75), Image.BICUBIC))
+        self.underLeftPayne.create_image(0, 0, anchor='nw', image=self.imgGlass,)
         
+        self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 225), Image.BICUBIC))
+        self.underLeftPayne.create_image(85, 0, anchor='nw', image=self.imgCocktail)
         
 
         self.cocktailGarnish.config(text=recipe['garnish'])
