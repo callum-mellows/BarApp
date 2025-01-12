@@ -1,4 +1,5 @@
 import ast
+from genericpath import isfile
 import json
 from tkinter import *
 from tkinter import ttk 
@@ -12,6 +13,7 @@ from datetime import datetime
 from difflib import SequenceMatcher
 from PIL import Image
 from PIL import ImageTk
+from pathlib import Path
 
 root = Tk()
 
@@ -25,24 +27,32 @@ smallFont = Font(family="Courier new", size=8)
 titleFont = Font(family="Courier new", size=40, weight="bold")
 subTitleFont = Font(family="Courier new", size=15, weight="bold")
 
+spiritList = ("whisky", "whiskey", "vodka", "rum", "brandy", "gin", "tequila")
+
 def on_escape(event=None):
     root.destroy()
 
-def findGarnishes(recipes):
-    garnishes = set([])
+def checkGarnishImagesExist(recipes):
     for recipe in recipes['recipies']:
-        for garnish in ast.Constant(recipe['garnish']).replace(" or ", " , ").split(','):
-            temp = ast.Constant(garnish).strip(' ').lower() + "\n"
+        for garnish in str(recipe['garnish']).replace(" or ", " , ").split(','):
+            temp = str(garnish).strip(' ').lstrip(' ').lower()
             if len(temp) <= 1:
                 break
             if (temp[0] == 'a') & (temp[1] == ' '):
                 temp = temp[2:]
-            garnishes.add(temp)
+            path = os.path.join(dirname, "images\\garnishes\\" + temp + ".png")
+            if Path(path).is_file() == False:
+                showerror("", "missing file: " + path)
+                return False
+    return True
 
-    f2 = open("garnishes.txt", "w")
-    for garnish in garnishes:
-        f2.write(garnish)
-    f2.close()
+def checkGlassImagesExist(recipes):
+    for recipe in recipes['recipies']:
+        path = os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")
+        if Path(path).is_file() == False:
+                showerror("", "missing file: " + path)
+                return False
+    return True
 
 class Application(Frame):
 
@@ -52,10 +62,18 @@ class Application(Frame):
     ingredients = set([])
     glassTypes = set([])
     
+    def getIfIngredientIsSpirit(self, ing):
+        for word in str(ing).split(' '):
+            for spirit in spiritList:
+                if spirit.__contains__(str(word).lower()):
+                    return spirit
+        return ""
+
     def getSearchables(self, recipes):
         categories2 = set([])
         names2 = set([])
         ingredients2 = set([])
+        spirits = set([])
         glassTypes2 = set([])
         for recipe in recipes['recipies']:
             temp = recipe['season']
@@ -73,10 +91,15 @@ class Application(Frame):
             if len(recipe['ingredients']) > 1:
                 for ingredient in recipe['ingredients']:
                     ingredients2.add(ingredient['name'])
-       
+                    
+                    temp = self.getIfIngredientIsSpirit(ingredient['name'])
+                    if temp != "":
+                        spirits.add(temp)
+            
             self.categories = sorted(categories2)
             self.names = sorted(names2)
             self.ingredients = sorted(ingredients2)
+            self.spirits = sorted(spirits)
             self.glassTypes = sorted(glassTypes2)
     
     def __init__(self, root):
@@ -85,7 +108,10 @@ class Application(Frame):
         self.f = open("recipes.JSON", "r")
         self.recipes = json.load(self.f)
 
-        #findGarnishes(self.recipes)
+        checkGarnishImagesExist(self.recipes)
+        checkGlassImagesExist(self.recipes)
+
+        #self.garnishes = findGarnishes(self.recipes)
         self.getSearchables(self.recipes)
 
         self.currentPageIndex = 0
@@ -106,11 +132,12 @@ class Application(Frame):
                 recipeList.append(recipe)
         self.addRecipeButtons(recipeList)
 
-    def getRecipesByIngredient(self, ingredient):
+ #if (SequenceMatcher(a=ing['name'],b=spirit).ratio() > 0.75) | (spirit == 'Any'):
+    def getRecipesBySpirit(self, spirit):
         recipeList = []
         for recipe in self.recipes['recipies']:
             for ing in recipe['ingredients']:
-                if SequenceMatcher(a=ing['name'],b=ingredient).ratio() > 0.75:
+                if str(ing['name']).lower().__contains__(spirit) | (spirit == 'Any'):
                     recipeList.append(recipe)
                     break
         self.addRecipeButtons(recipeList)
@@ -119,7 +146,7 @@ class Application(Frame):
     def getRecipesByGlassType(self, glassType):
         recipeList = []
         for recipe in self.recipes['recipies']:
-            if (recipe['glassType'] == glassType):
+            if (recipe['glassType'] == glassType) | (glassType == 'Any'):
                 recipeList.append(recipe)
         self.addRecipeButtons(recipeList)
 
@@ -208,12 +235,12 @@ class Application(Frame):
         self.categoryFrame.pack(side=LEFT, padx = 25, pady=5)
 
         self.ingredientsFrame = Frame(self.bottomPayne, bg=mainBGColour)
-        self.ingredientsLabel = Label(self.ingredientsFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Ingredient:')
+        self.ingredientsLabel = Label(self.ingredientsFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Spirit:')
         self.ingredientsLabel.pack(side=TOP)
-        if self.ingredients.__contains__('Any') == False:
-            self.ingredients.insert(0, 'Any')
+        if self.spirits.__contains__('Any') == False:
+            self.spirits.insert(0, 'Any')
         self.ingredientsString = StringVar(self.ingredientsFrame) 
-        self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.ingredients)[0], *self.ingredients, command=self.pickIngredient, direction='above')
+        self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.spirits)[0], *self.spirits, command=self.pickSpirit, direction='above')
         self.ingredientsBox.configure(width=25)
         self.ingredientsBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.ingredientsFrame.pack(side=LEFT, padx = 25, pady=5)
@@ -245,10 +272,10 @@ class Application(Frame):
         #self.cocktailName.pack(side=LEFT, padx=25, pady=25)
 
 
-        self.leftPaynesContainer = Frame(self.mainFrame, bg=mainBGColour)
+        self.leftPaynesContainer = Frame(self.mainFrame)
 
         self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
-        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=341, height=258)
+        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", height=150, width=315)
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
         #self.vbar2=Scrollbar(self.bottomLeftPayneContainer, orient=VERTICAL)
         #self.vbar2.pack(side=LEFT, fill=Y)
@@ -260,37 +287,31 @@ class Application(Frame):
         self.bottomLeftPayne.pack(pady=5)
         self.bottomLeftPayneContainer.pack(side=TOP, padx=0, pady=0)
 
-
         self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
-        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=mainBGColour, width=341, height=230)
+        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=mainBGColour, height=700, width=315)
 
-        #self.image = PhotoImage(file=os.path.join(dirname, "images\\glasses\\None.png"))
-        #self.glassImage = Label(self.underLeftPayne, image=self.image, width=32, height=32)
-        #self.glassImage.pack(side=RIGHT, anchor="n")
-
-        #self.image = PhotoImage(file=os.path.join(dirname, "images\\cocktails\\none.jpg"))
-        #self.cocktailImage = Canvas(width=256, height=256, bg='#ffffff')
-        #self.cocktailImage.pack(side=LEFT)
-
-        self.underLeftPayne.pack(side=LEFT, pady=10)
+        self.underLeftPayne.pack(pady=10)
         self.underLeftPayne.pack_propagate(0)
         self.underLeftPayneContainer.pack(side=BOTTOM, padx=0, pady=0)
 
         self.leftPaynesContainer.pack(side=LEFT, padx=5, pady=5)
 
-        self.bottomRightPayneContainer = Frame(self.mainFrame)
-        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg='gray30', scrollregion="0 0 2000 1000", width=700, height=500)
+        self.bottomRightPayneContainer = Frame(self.mainFrame, bg=mainBGColour)
+        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=460)
         self.bottomRightPayne.bind("<MouseWheel>", self.scrollRecipeSteps)
-        self.vbar3=Scrollbar(self.bottomRightPayneContainer, orient=VERTICAL)
-        self.vbar3.pack(side=RIGHT, fill=Y)
-        self.vbar3.config(command=self.bottomRightPayne.yview)
-        self.bottomRightPayne.config(yscrollcommand=self.vbar3.set)
-        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=63, bg='gray50', borderwidth=0, wrap=WORD)
+        #self.vbar3=Scrollbar(self.bottomRightPayneContainer, orient=VERTICAL)
+        #self.vbar3.pack(side=RIGHT, fill=Y)
+        #self.vbar3.config(command=self.bottomRightPayne.yview)
+        #self.bottomRightPayne.config(yscrollcommand=self.vbar3.set)
+        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD)
         self.cocktailSteps.bind("<MouseWheel>", self.scrollRecipeSteps)
         self.bottomRightPayne.create_window((5, 5), anchor=NW, window=self.cocktailSteps)
-        self.bottomRightPayne.pack()
-        self.bottomRightPayneContainer.pack(side=RIGHT, padx=5, pady=5)
+        self.bottomRightPayne.pack(padx=8, side=TOP)
 
+        self.overFlowContainer = Canvas(self.bottomRightPayneContainer, bg=mainBGColour, width=700, height=40, highlightthickness=0)
+        self.overFlowContainer.pack(padx=8, side=BOTTOM)
+
+        self.bottomRightPayneContainer.pack(side=RIGHT, padx=5, pady=5)
 
 
 
@@ -325,12 +346,18 @@ class Application(Frame):
         self.bottomRightPayne.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def pickCategory(self, event):
+        self.ingredientsString.set("Any")
+        self.glassTypeString.set("Any")
         self.getRecipesByCategory(self.categoryString.get())
 
-    def pickIngredient(self, event):
-        self.getRecipesByIngredient(self.ingredientsString.get())
+    def pickSpirit(self, event):
+        self.categoryString.set("Any")
+        self.glassTypeString.set("Any")
+        self.getRecipesBySpirit(self.ingredientsString.get())
 
     def pickGlassType(self, event):
+        self.categoryString.set("Any")
+        self.ingredientsString.set("Any")
         self.getRecipesByGlassType(self.glassTypeString.get())
 
     def openRecipe(self, recipe):
@@ -352,8 +379,10 @@ class Application(Frame):
             ng = int(g1 + (g_ratio * i))
             nb = int(b1 + (b_ratio * i))
             color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
-            self.topPayne.create_line(i, 0, i, height, tags=("gradient",), fill=color)
+            self.topPayne.create_line(i, 0, i, 100, tags=("gradient",), fill=color)
         self.topPayne.lower("gradient")
+        self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
+        
 
         #self.cocktailName.config(text=recipe['name'])
         self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
@@ -386,12 +415,27 @@ class Application(Frame):
         self.cocktailSteps.config(height=(num_lines))
         self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
 
+        if num_lines > 22:
+            self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
+            self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
+
         self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 75), Image.BICUBIC))
-        self.underLeftPayne.create_image(0, 0, anchor='nw', image=self.imgGlass,)
+        self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
         
         self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 225), Image.BICUBIC))
         self.underLeftPayne.create_image(85, 0, anchor='nw', image=self.imgCocktail)
-        
+
+        self.imgGarnishes = []
+        x = 0
+        for garnish in str(recipe['garnish']).replace(" or ", " , ").split(','):
+            temp = str(garnish).strip(' ').lstrip(' ').lower()
+            if len(temp) <= 1:
+                break
+            if (temp[0] == 'a') & (temp[1] == ' '):
+                temp = temp[2:]
+            self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 75), Image.BICUBIC)))
+            self.underLeftPayne.create_image((235 - (x * 75)) , 225, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
+            x = x + 1
 
         self.cocktailGarnish.config(text=recipe['garnish'])
         self.cocktailGlass.config(text=recipe['glassType'])
