@@ -196,18 +196,18 @@ class Application(Frame):
         self.topPayne.pack(fill='x')
         self.topPayne.pack_propagate(0)
 
-        self.midPayneContainerContainer = Frame(self.mainFrame, bg=secondaryBGColour)
+        self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
-        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=secondaryBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
         self.midPayne.bind("<MouseWheel>", self.scrollMainPageRecipes)
-        self.vbar=Scrollbar(self.midPayneContainer, orient=VERTICAL)
-        self.vbar.pack(side=RIGHT, fill=Y)
-        self.vbar.config(command=self.midPayne.yview)
-        self.midPayne.config(yscrollcommand=self.vbar.set)
+        #self.vbar=Scrollbar(self.midPayneContainer, orient=VERTICAL)
+        #self.vbar.pack(side=RIGHT, fill=Y)
+        #self.vbar.config(command=self.midPayne.yview)
+        #self.midPayne.config(yscrollcommand=self.vbar.set)
         self.getRecipesByCategory('Any')
         self.midPayne.pack()
 
-        self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=secondaryBGColour)
+        self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
         action_with_arg2 = partial(self.recipesMove, -1)
         self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
         self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
@@ -268,12 +268,9 @@ class Application(Frame):
         self.btn = Button(self.topPayne, text="Return", font=subTitleFont, command=self.homepage)
         self.btn.pack(side=RIGHT, padx=25, pady=25)
 
-        #self.cocktailName = Canvas(self.topPayne)
-        #self.cocktailName.pack(side=LEFT, padx=25, pady=25)
+        self.middleContainer = Frame(self.mainFrame, bg=mainBGColour)
 
-
-        self.leftPaynesContainer = Frame(self.mainFrame)
-
+        self.leftPaynesContainer = Frame(self.middleContainer)
         self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
         self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", height=150, width=315)
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
@@ -288,7 +285,7 @@ class Application(Frame):
         self.bottomLeftPayneContainer.pack(side=TOP, padx=0, pady=0)
 
         self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
-        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=mainBGColour, height=700, width=315)
+        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=mainBGColour, height=285, width=315)
 
         self.underLeftPayne.pack(pady=10)
         self.underLeftPayne.pack_propagate(0)
@@ -296,8 +293,8 @@ class Application(Frame):
 
         self.leftPaynesContainer.pack(side=LEFT, padx=5, pady=5)
 
-        self.bottomRightPayneContainer = Frame(self.mainFrame, bg=mainBGColour)
-        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=460)
+        self.bottomRightPayneContainer = Frame(self.middleContainer, bg=mainBGColour)
+        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=435)
         self.bottomRightPayne.bind("<MouseWheel>", self.scrollRecipeSteps)
         #self.vbar3=Scrollbar(self.bottomRightPayneContainer, orient=VERTICAL)
         #self.vbar3.pack(side=RIGHT, fill=Y)
@@ -308,18 +305,24 @@ class Application(Frame):
         self.bottomRightPayne.create_window((5, 5), anchor=NW, window=self.cocktailSteps)
         self.bottomRightPayne.pack(padx=8, side=TOP)
 
-        self.overFlowContainer = Canvas(self.bottomRightPayneContainer, bg=mainBGColour, width=700, height=40, highlightthickness=0)
+        self.overFlowContainer = Canvas(self.bottomRightPayneContainer, bg=mainBGColour, width=700, height=30, highlightthickness=0)
         self.overFlowContainer.pack(padx=8, side=BOTTOM)
 
-        self.bottomRightPayneContainer.pack(side=RIGHT, padx=5, pady=5)
+        self.bottomRightPayneContainer.pack(side=RIGHT, padx=5, pady=0)
 
+        self.middleContainer.pack(side=TOP)
 
+        #self.cocktailGarnish = Label(self.mainFrame, text="garnish")
+        #self.cocktailGarnish.pack()
 
-        self.cocktailGarnish = Label(self.mainFrame, text="garnish")
-        self.cocktailGarnish.pack()
+        #self.cocktailGlass = Label(self.mainFrame, text="glass")
+        #self.cocktailGlass.pack()
 
-        self.cocktailGlass = Label(self.mainFrame, text="glass")
-        self.cocktailGlass.pack()
+        self.bottomPayneContainer = Frame(self.mainFrame, bg='#0000cc', width=1024, height=15)
+        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg='#cc0000', width=1024, height=20);
+        self.bottomPayne.pack()
+        self.bottomPayneContainer.pack(side=BOTTOM)
+
 
 
     def Page2(self):
@@ -361,7 +364,7 @@ class Application(Frame):
         self.getRecipesByGlassType(self.glassTypeString.get())
 
     def openRecipe(self, recipe):
-        self.scrollPos = self.vbar.get()[0]
+        #self.scrollPos = self.vbar.get()[0]
         self.currentPageIndex = 1
         for child in self.mainFrame.winfo_children():
             child.destroy()
@@ -380,9 +383,11 @@ class Application(Frame):
             nb = int(b1 + (b_ratio * i))
             color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
             self.topPayne.create_line(i, 0, i, 100, tags=("gradient",), fill=color)
+            self.bottomPayne.create_line(i, 0, i, 20, tags=("gradient",), fill=color)
         self.topPayne.lower("gradient")
+        self.bottomPayne.lower("gradient")
         self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
-        
+        self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
         #self.cocktailName.config(text=recipe['name'])
         self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
@@ -391,9 +396,9 @@ class Application(Frame):
 
         for ingredient in recipe['ingredients']:
             dots = ""
-            for x in range(28 - (len(ingredient['name']) + len(ingredient['quantity']) + len(ingredient['unit']))):
+            for x in range(28 - (len(ingredient['name'][:18]) + len(ingredient['quantity']) + len(ingredient['unit']))):
                 dots = dots + "."
-            self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'] + dots + ingredient['quantity'] + ingredient['unit'] + "\n")
+            self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n")
         self.cocktailIngredients.delete('end-2c', END)
         root.update()
         root.update_idletasks()
@@ -415,7 +420,7 @@ class Application(Frame):
         self.cocktailSteps.config(height=(num_lines))
         self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
 
-        if num_lines > 22:
+        if num_lines > 21:
             self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
             self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
@@ -437,8 +442,8 @@ class Application(Frame):
             self.underLeftPayne.create_image((235 - (x * 75)) , 225, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
             x = x + 1
 
-        self.cocktailGarnish.config(text=recipe['garnish'])
-        self.cocktailGlass.config(text=recipe['glassType'])
+        #self.cocktailGarnish.config(text=recipe['garnish'])
+        #self.cocktailGlass.config(text=recipe['glassType'])
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
