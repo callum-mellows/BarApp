@@ -63,6 +63,7 @@ class Application(Frame):
     categories = set([])
     names = set([])
     ingredients = set([])
+    ingredientsInStock = dict()
     glassTypes = set([])
 
     scrolling = root
@@ -166,6 +167,15 @@ class Application(Frame):
 
         self.f = open("recipes.JSON", "r")
         self.recipes = json.load(self.f)
+
+        self.f = open("ingredients.JSON", "r")
+        tempIngredients = json.load(self.f)
+
+        for ingredient in tempIngredients['ingredients']:
+            print(ingredient['name'])
+            print(ingredient['inStock'])
+            self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
+            
 
         checkGarnishImagesExist(self.recipes)
         checkGlassImagesExist(self.recipes)
@@ -324,6 +334,13 @@ class Application(Frame):
         self.glassTypeBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.glassFrame.pack(side=LEFT, padx = 25, pady=5)
 
+        self.ingredientsButtonFrame = Frame(self.bottomPayne, bg=mainBGColour)
+        self.ingredientsButtonLabel = Label(self.ingredientsButtonFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Ingredients manager:')
+        self.ingredientsButtonLabel.pack(side=TOP)
+        self.ingredientsButton = Button(self.ingredientsButtonFrame, text='Open', command=self.openIngredientsManager)
+        self.ingredientsButton.pack(ipadx=20, ipady=10, side=BOTTOM)
+        self.ingredientsButtonFrame.pack(side=LEFT, padx = 25, pady=5)
+
         self.bottomPayne.pack()
 
     def Page1(self):
@@ -402,7 +419,58 @@ class Application(Frame):
 
 
     def Page2(self):
-        pass
+        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=100);
+        self.titleFrame = Frame(self.topPayne, bg=mainBGColour)
+        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=mainBGColour, fg=mainFGColour)
+        self.titleLabel.pack(side=BOTTOM)
+        self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
+        self.btn = Button(self.topPayne, text="Return", font=subTitleFont, command=self.homepage)
+        self.btn.pack(side=RIGHT, padx=25, pady=25)
+        self.topPayne.pack(fill='x')
+        self.topPayne.pack_propagate(0)
+
+        self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
+        self.midPayneContainer = Frame(self.midPayneContainerContainer)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
+        self.midPayne.configure(yscrollincrement='1')
+        mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+        self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
+        self.midPayne.bind('<Leave>', self.mouseUp)
+       
+        x = 0
+        itemHeight = 50
+        for ingredient in self.ingredients:
+            self.ingFrameContainer = Frame(self.midPayne, bg='#00cc00')
+            self.ingFrame = Frame(self.ingFrameContainer, bg='#cc0000', height=itemHeight, width=800)
+            self.ingLabel = Label(self.ingFrame,text=ingredient, bg='#0000cc', fg=mainFGColour, font=subTitleFont)
+            self.ingLabel.pack(side=LEFT, padx=10)
+            self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
+
+            self.ingCheck = Checkbutton(self.ingFrame, onvalue=1, offvalue=0, height=5, width=5)
+            self.ingCheck.pack(side=RIGHT)
+
+            self.ingFrame.pack()
+            self.ingFrame.pack_propagate(False)
+            self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
+
+            self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
+            x = x + 1
+        self.midPayne.configure(scrollregion=(0, 0, 500, max(itemHeight*(x+1), self.midPayneContainer.winfo_height())))
+        self.midPayne.pack()
+
+        self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
+        action_with_arg2 = partial(self.recipesMove, -1)
+        self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
+        self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
+        self.upBtn.pack(side=TOP, pady=10)
+        action_with_arg3 = partial(self.recipesMove, 1)
+        self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
+        self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='down', command=action_with_arg3)
+        self.downBtn.pack(side=BOTTOM, pady=10)
+        self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
+
+        self.midPayneContainer.pack(side=LEFT)
+        self.midPayneContainerContainer.pack(pady=5)
 
     def homepage(self):
         self.currentPageIndex = 0
@@ -524,6 +592,13 @@ class Application(Frame):
 
             #self.cocktailGarnish.config(text=recipe['garnish'])
             #self.cocktailGlass.config(text=recipe['glassType'])
+
+    def openIngredientsManager(self):
+        self.currentPageIndex = 2
+        for child in self.mainFrame.winfo_children():
+            child.destroy()
+        self.pages[self.currentPageIndex]()
+
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
