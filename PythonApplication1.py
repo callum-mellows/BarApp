@@ -81,13 +81,15 @@ class Application(Frame):
             self.initialMouseY = root.winfo_pointery()
             self.scrolling.yview_scroll(int(scrollOffset)*-1, "units")
 
-    def mouseDown(self, widget, event):
+    def mouseDown(self, widget, isText, event):
         self.mouseIsDown = True
         self.scrolling = widget
         self.initialMouseY = root.winfo_pointery()
         self.scrollVelocity = 0
         self.hasScrolled = False
         root.after(150, self.setHasScrolled)
+        if isText == True:
+            return "break"
 
     def setHasScrolled(self):
         if self.mouseIsDown == True:
@@ -227,7 +229,7 @@ class Application(Frame):
                 self.rows = self.rows + 1
 
             action_with_arg = partial(self.openRecipe, recipe)
-            mouse_action_with_arg = partial(self.mouseDown, self.midPayne)
+            mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
             self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images\\cocktails\\buttons\\"+recipe['ID']+".jpg"))
             self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg='#ffffff', font=font, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
             self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
@@ -261,7 +263,7 @@ class Application(Frame):
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
         self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
         self.midPayne.configure(yscrollincrement='1')
-        mouse_action_with_arg = partial(self.mouseDown, self.midPayne)
+        mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.midPayne.bind('<Leave>', self.mouseUp)
 
@@ -339,12 +341,16 @@ class Application(Frame):
         self.leftPaynesContainer = Frame(self.middleContainer)
         self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
         self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", height=150, width=315)
+        self.bottomLeftPayne.configure(yscrollincrement='1')
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
         #self.vbar2=Scrollbar(self.bottomLeftPayneContainer, orient=VERTICAL)
         #self.vbar2.pack(side=LEFT, fill=Y)
         #self.vbar2.config(command=self.bottomLeftPayne.yview)
         #self.bottomLeftPayne.config(yscrollcommand=self.vbar2.set)
-        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD)
+        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD, cursor='arrow')
+        mouse_action_with_arg = partial(self.mouseDown, self.bottomLeftPayne, True)
+        self.cocktailIngredients.bind('<ButtonPress-1>', mouse_action_with_arg)
+        self.cocktailIngredients.bind('<Leave>', self.mouseUp)
         self.cocktailIngredients.bind("<MouseWheel>", self.scrollRecipeIngredients)
         self.bottomLeftPayne.create_window((5, 5), anchor=NW, window=self.cocktailIngredients)
         self.bottomLeftPayne.pack(pady=5)
@@ -361,12 +367,16 @@ class Application(Frame):
 
         self.bottomRightPayneContainer = Frame(self.middleContainer, bg=mainBGColour)
         self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=435)
+        self.bottomRightPayne.configure(yscrollincrement='1')
         self.bottomRightPayne.bind("<MouseWheel>", self.scrollRecipeSteps)
         #self.vbar3=Scrollbar(self.bottomRightPayneContainer, orient=VERTICAL)
         #self.vbar3.pack(side=RIGHT, fill=Y)
         #self.vbar3.config(command=self.bottomRightPayne.yview)
         #self.bottomRightPayne.config(yscrollcommand=self.vbar3.set)
-        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD)
+        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD, cursor='arrow')
+        mouse_action_with_arg = partial(self.mouseDown, self.bottomRightPayne, True)
+        self.cocktailSteps.bind('<ButtonPress-1>', mouse_action_with_arg)
+        self.cocktailSteps.bind('<Leave>', self.mouseUp)
         self.cocktailSteps.bind("<MouseWheel>", self.scrollRecipeSteps)
         self.bottomRightPayne.create_window((5, 5), anchor=NW, window=self.cocktailSteps)
         self.bottomRightPayne.pack(padx=8, side=TOP)
