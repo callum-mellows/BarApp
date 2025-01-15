@@ -1,1 +1,1334 @@
-{"recipies":[{"ID":"b20afd9b-6724-4501-ba5b-5b88793c487e","name":"Margarita on-the-rocks","season":"spring","garnish":"","glassType":"Lowball / rocks glass","colour":"#FFDEA5","ingredients":[{"name":"Tequila Reposado","quantity":"1","unit":"oz"},{"name":"Agave syrup","quantity":"0.17","unit":"oz"},{"name":"Saline solution","quantity":"2 drops","unit":""},{"name":"Margarita Bitters","quantity":"4 drops","unit":""},{"name":"Lime juice","quantity":"\u00BE","unit":"oz"},{"name":"Triple Sec","quantity":"\u00BE","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Start by adding all the ingredients into a cocktail shaker filled with ice"},{"name":"Step: 2","text":"Give it a good shake for about 10-15 seconds, or until the exterior of the shaker feels cold and frosted"},{"name":"Step: 3","text":"Then, carefully strain the mixture into a glass that\u0027s been filled with fresh ice, ensuring no ice shards or pulp make it through"},{"name":"Step: 4","text":"This method helps to blend the flavors well while chilling the drink perfectly"},{"name":"Step: 5","text":"Enjoy your freshly prepared cocktail right away for the best taste"},{"name":"Step: 6","text":"Use a quality Tequila Reposado to add depth and character to the drink. The aging process of reposado tequila provides a smoother and more complex flavor profile."},{"name":"Step: 7","text":"Prepare a homemade saline solution by dissolving 1 part kosher salt in 4 parts warm water. This helps to enhance and balance the flavors without making the cocktail noticeably salty."}]},{"ID":"4f6404d4-9ac9-4140-9c86-7be5f04f6aaf","name":"Dry Martini  Montgomery\u0026#039;s","season":"autumn","garnish":"","glassType":"Cocktail glass","colour":"#FFECB3","ingredients":[{"name":"Dry gin","quantity":"2","unit":"oz"},{"name":"Orange Bitters","quantity":"1 dash","unit":""},{"name":"White vermouth","quantity":"0.17","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Start off by adding all the ingredients into a cocktail shaker filled with ice"},{"name":"Step: 2","text":"Shake the mixture vigorously for about 10-15 seconds or until the shaker feels frosty on the outside"},{"name":"Step: 3","text":"Then, use a fine strainer to pour the cocktail into a glass that has been pre-chilled in the freezer or refrigerator to keep your drink extra cold"},{"name":"Step: 4","text":"Use freshly opened bottles of vermouth to ensure the best flavor, as vermouth can oxidize quickly once opened."},{"name":"Step: 5","text":"Express and discard an orange zest over the glass to release its oils, intensifying the orange bitters\u0027 contribution."}]},{"ID":"3438bcd5-3ef2-4dff-970a-7b8ad6853ac9","name":"Champagne Snowball","season":"spring","garnish":"","glassType":"Champagne glass","colour":"#FFCF85","ingredients":[{"name":"Advocaat","quantity":"2","unit":"oz"},{"name":"Lime Cordial","quantity":"\u00BD","unit":"oz"},{"name":"Sherry (Dry)","quantity":"1","unit":"oz"},{"name":"Champagne / prosecco","quantity":"2","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Start by pouring champagne into a glass that has been chilled, ensuring the perfect refreshing temperature for your drink"},{"name":"Step: 2","text":"Next, grab your shaker and fill it with ice, which will help chill the other three ingredients effectively"},{"name":"Step: 3","text":"Add the remaining three ingredients into the shaker with the ice"},{"name":"Step: 4","text":"Give everything a vigorous shake for about 10-15 seconds, or until the exterior of the shaker feels frosted to the touch, ensuring the flavors are well-blended and chilled"},{"name":"Step: 5","text":"Finally, carefully strain the shaken mixture over the champagne in your glass, creating a beautifully layered and complex cocktail experience"},{"name":"Step: 6","text":"Opt for a high-quality, dry Champagne or Prosecco to maintain the balance between the sweet Advocaat and tangy lime cordial."},{"name":"Step: 7","text":"Consider lightly stirring the champagne and Advocaat mixture right before serving to ensure even distribution of flavors."}]},{"ID":"6fb909e2-1392-462a-ba8a-45098d6ce247","name":"Bahia","season":"summer","garnish":"Pineapple, cocktail cherry, mint","glassType":"Lowball / rocks glass","colour":"#FFDDA4","ingredients":[{"name":"Pineapple Juice","quantity":"3.04","unit":"oz"},{"name":"White rum","quantity":"2\u00BD","unit":"oz"},{"name":"Coconut Cream","quantity":"\u00BD","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Add all ingredients to a blender with ice and blend until smooth"},{"name":"Step: 2","text":"Pour into a highball glass"},{"name":"Step: 3","text":"Garnish with a pineapple wedge, a maraschino cherry and a mint sprig, and serve"},{"name":"Step: 4","text":"Use fresh, cold pineapples to make your own pineapple juice for a more vibrant and authentic flavor. This simple alteration can elevate the cocktail significantly."},{"name":"Step: 5","text":"Float a touch of dark rum on top before serving. This adds a beautiful color gradient and an additional layer of complexity to the drink."}]},{"ID":"15c2e4aa-032f-4c57-909d-fbb6f56011a9","name":"Metropole","season":"autumn","garnish":"","glassType":"Cocktail glass","colour":"#FFCF91","ingredients":[{"name":"Orange Bitters","quantity":"1 dash","unit":""},{"name":"Gomme syrup","quantity":"0.1","unit":"oz"},{"name":"White vermouth","quantity":"1","unit":"oz"},{"name":"Cognac","quantity":"1","unit":"oz"},{"name":"Peychaud\u0027s Aromatic Bitters","quantity":"2 dashes","unit":""}],"steps":[{"name":"Step: 1","text":"Begin by stirring all the ingredients together with ice in a mixing glass, ensuring they\u0027re fully combined"},{"name":"Step: 2","text":"Aim to stir for about 10-15 seconds"},{"name":"Step: 3","text":"Once the ingredients are well mixed and chilled, strain the mixture into a glass that has been pre-chilled in the freezer or fridge"},{"name":"Step: 4","text":"This helps keep your cocktail cold for a longer period"},{"name":"Step: 5","text":"Enjoy your expertly mixed drink right away for the best taste and experience"},{"name":"Step: 6","text":"Use aged Cognac for a deeper, richer flavor profile that enhances the cocktail\u0027s sophistication."},{"name":"Step: 7","text":"Gently stir with ice for exactly 15 seconds; over-stirring can dilute the refined balance of the ingredients."}]},{"ID":"c4391e97-9e89-4246-85f4-d275ba376e98","name":"Scorpion","season":"spring","garnish":"","glassType":"Hurricane glass","colour":"#FFE3AD","ingredients":[{"name":"Orange juice","quantity":"2","unit":"oz"},{"name":"Cognac","quantity":"\u00BE","unit":"oz"},{"name":"Gold rum","quantity":"1","unit":"oz"},{"name":"Lemon Juice","quantity":"1","unit":"oz"},{"name":"Orgeat Syrup","quantity":"\u00BD","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Begin by blending all the ingredients together, adding a 6oz scoop of crushed ice into the mixer for a smooth consistency"},{"name":"Step: 2","text":"Once blended to perfection, pour your delightful concoction into a chilled glass, enhancing the overall drinking experience"},{"name":"Step: 3","text":"To be environmentally friendly, serve your freshly made cocktail with sustainable straws, supporting eco-friendly practices"},{"name":"Step: 4","text":"Savor the moment and enjoy the fruits of your mixology skills with each sip"},{"name":"Step: 5","text":"Cheers to a well-crafted beverage that not only tastes great but also respects our planet!"},{"name":"Step: 6","text":"Use freshly squeezed citrus juices to ensure the best flavor. The freshness of the juices will significantly elevate the drink."},{"name":"Step: 7","text":"Add a dash of aromatic bitters for an extra layer of complexity and a slight herbal note to round out the sweetness."}]},{"ID":"6bab89a5-bd30-4580-8cfc-cb08006b3747","name":"Widow\u0026#039;s Kiss","season":"autumn","garnish":"","glassType":"Cocktail glass","colour":"#FFE7B3","ingredients":[{"name":"DOM Benedictine","quantity":"\u2153","unit":"oz"},{"name":"Yellow Chartreuse","quantity":"\u2153","unit":"oz"},{"name":"Angostura Bitters","quantity":"2 dashes","unit":""},{"name":"Calvados","quantity":"1","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Begin by combining all the ingredients in a mixing glass (for stirring ) or a shaker (if you prefer your drink shaken) filled halfway with ice"},{"name":"Step: 2","text":"If you\u0027re stirring , use a long spoon to do so gently for about 10-15 seconds, ensuring the mixture is well-cooled but not overly diluted"},{"name":"Step: 3","text":"On the other hand, if shaking is more your style, give it a vigorous shake for 10-15 seconds or until the exterior of the shaker feels frosty to the touch, indicating the drink is nicely chilled"},{"name":"Step: 4","text":"Next, take a chilled glass, ensuring it\u0027s been kept in the freezer for a bit or filled with ice water for a few minutes to get that perfect chill"},{"name":"Step: 5","text":"Finally, strain the mixture into your prepared glass, capturing the ice and any undissolved ingredients, leaving you with a smooth, refreshing cocktail ready to enjoy"},{"name":"Step: 6","text":"Focus on the quality of your DOM Benedictine and Yellow Chartreuse as these herbs-centric liquors define the cocktail\u0027s complexity."},{"name":"Step: 7","text":"If shaking, consider using large ice cubes to minimize dilution while effectively chilling the cocktail."}]},{"ID":"3f2fccf0-1dab-45e8-94eb-b3b548b01a03","name":"Caipiroska","season":"spring","garnish":"","glassType":"Lowball / rocks glass","colour":"#E1FF8F","ingredients":[{"name":"Vodka","quantity":"2","unit":"oz"},{"name":"Lime","quantity":"1","unit":""},{"name":"Sugar","quantity":"4 teaspoons","unit":""}],"steps":[{"name":"Step: 1","text":"First cut up the lime in roughly eight equal sections, removing some of the central white pith and ends"},{"name":"Step: 2","text":"Muddle the wedges with the sugar in the bottom of a lowball glass"},{"name":"Step: 3","text":"Fill the glass with crushed ice before pouring in the vodka"},{"name":"Step: 4","text":"Stir to combine and serve"},{"name":"Step: 5","text":"Use superfine sugar to ensure it dissolves completely when muddling with the lime, which will result in a more balanced flavor."},{"name":"Step: 6","text":"Experiment with flavored vodkas, such as citrus or vanilla, to add a new dimension to the Caipiroska."}]},{"ID":"da7e48c7-a267-460a-b0ea-ea08f8a7faf1","name":"Dry Martini  Wet","season":"autumn","garnish":"","glassType":"Cocktail glass","colour":"#FFECB3","ingredients":[{"name":"Dry gin","quantity":"2","unit":"oz"},{"name":"White vermouth","quantity":"1","unit":"oz"},{"name":"Orange Bitters","quantity":"2 dashes","unit":""}],"steps":[{"name":"Step: 1","text":"Begin by mixing all the ingredients together with ice in a mixing glass, ensuring they blend well"},{"name":"Step: 2","text":"Stir the mixture gently but thoroughly for about 10-15 seconds to properly cool and dilute the mix"},{"name":"Step: 3","text":"Once mixed, strain the concoction into a glass that has been pre-chilled, to maintain the cocktail\u0027s temperature"},{"name":"Step: 4","text":"Use a high-quality gin and vermouth to accentuate the balanced flavors of a Dry Martini Wet."},{"name":"Step: 5","text":"Pre-chill your mixing glass and all utensils to maintain the cocktail\u0027s cold temperature throughout preparation."}]},{"ID":"95d898ba-d5e6-4111-afe6-85126e572c0e","name":"Garibaldi","season":"spring","garnish":"","glassType":"Cocktail glass","colour":"#FFBB77","ingredients":[{"name":"Orange juice","quantity":"4.06","unit":"oz"},{"name":"Sugar Syrup","quantity":"0.1","unit":"oz"},{"name":"Aperol","quantity":"1","unit":"oz"}],"steps":[{"name":"Step: 1","text":"First, squeeze orange juice using a pillar or elbow press, then fine strain it to eliminate any pulp, ensuring a smooth texture"},{"name":"Step: 2","text":"Next, blend the freshly squeezed juice at high speed (without ice) until it achieves a \u0022fluffy\u0022 consistency, creating a light and airy texture"},{"name":"Step: 3","text":"After that, add bitter liqueur, sugar syrup, and half of the orange juice into a glass containing two ice cubes, then stir well to combine the flavors evenly"},{"name":"Step: 4","text":"Proceed by adding three more cubes of ice to the glass to chill it further without diluting the drink too quickly"},{"name":"Step: 5","text":"Finally, gently top off the glass with the remaining fluffy orange juice, creating a visually appealing layer"},{"name":"Step: 6","text":"For the fluffiest texture, use a blender rather than a shaker to aerate the orange juice, ensuring a delightful lightness in each sip."},{"name":"Step: 7","text":"Add a touch of sea salt to the orange juice before blending. This will enhance the natural sweetness and balance the flavors."}]},{"ID":"650c9ca7-9d3f-4952-beb4-f4fa775c7609","name":"White Lady","season":"spring","garnish":"","glassType":"Cocktail glass","colour":"#FFDDA2","ingredients":[{"name":"Triple Sec","quantity":"1","unit":"oz"},{"name":"Lemon Juice","quantity":"\u2154","unit":"oz"},{"name":"Gin","quantity":"1.35","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Add all ingredients to a cocktail shaker with ice"},{"name":"Step: 2","text":"Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"},{"name":"Step: 3","text":"Strain into a chilled cocktail glass and serve"},{"name":"Step: 4","text":"For an extra silky texture, double-strain the cocktail by using a fine mesh strainer in addition to your usual cocktail strainer to remove any small ice shards."},{"name":"Step: 5","text":"Add an egg white to the shaker for a velvety mouthfeel and a glossy, frothy top. This will create an even more luxurious and smooth experience."}]},{"ID":"9c361d69-1e62-426d-9e4e-a3e0ffdaffc4","name":"Vodka Sour","season":"spring","garnish":"Lemon, cocktail cherry","glassType":"Lowball / rocks glass","colour":"#B3E6FF","ingredients":[{"name":"Vodka","quantity":"2","unit":"oz"},{"name":"Lemon Juice","quantity":"1","unit":"oz"},{"name":"Sugar Syrup","quantity":"\u00BD","unit":"oz"},{"name":"Angostura Bitters","quantity":"2 dashes","unit":""},{"name":"Egg","quantity":"1 egg white","unit":""}],"steps":[{"name":"Step: 1","text":"Add all ingredients to a cocktail shaker with ice"},{"name":"Step: 2","text":"Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"},{"name":"Step: 3","text":"Strain into the glass, garnish with a lemon slice and a maraschino cherry and serve"},{"name":"Step: 4","text":"Perform a \u0027reverse dry shake\u0027 by first shaking all the ingredients with ice, then removing the ice and shaking again. This method increases the frothiness of the egg white."},{"name":"Step: 5","text":"Use a bar spoon to gently stir the Angostura bitters on top of the egg white foam after pouring. This will create a beautiful visual effect and an aromatic layer."}]},{"ID":"f85d5b06-e349-45ab-955c-c2ef7f14201a","name":"Grasshopper","season":"autumn","garnish":"Mint","glassType":"Cocktail glass","colour":"#FFEEB9","ingredients":[{"name":"Cream","quantity":"\u2154","unit":"oz"},{"name":"Creme De Cacao","quantity":"\u2154","unit":"oz"},{"name":"Creme De Menthe","quantity":"\u2154","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Add all ingredients to a cocktail shaker with ice"},{"name":"Step: 2","text":"Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"},{"name":"Step: 3","text":"Strain into a chilled cocktail glass"},{"name":"Step: 4","text":"Garnish with some mint leaves and serve"},{"name":"Step: 5","text":"Chill the cocktail glass beforehand in the freezer to ensure your Grasshopper stays cold longer, preserving its creamy texture."},{"name":"Step: 6","text":"For an indulgent treat, blend the ingredients with a scoop of high-quality vanilla ice cream instead of shaking them with ice."}]},{"ID":"c17723b4-41cd-4979-8a33-160009d171e4","name":"Sazerac","season":"autumn","garnish":"Lemon","glassType":"Lowball / rocks glass","colour":"#FFC989","ingredients":[{"name":"Absinthe","quantity":"\u2153","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Take a chilled lowball glass and swirl the absinthe around the sides to coat the glass, and fill with ice"},{"name":"Step: 2","text":"In a mixing glass muddle the bitters and sugar, then add the cognac and stir to combine"},{"name":"Step: 3","text":"Disgard the ice and excess liquid from the glass and pour in the mixed drink"},{"name":"Step: 4","text":"Garnish with a lemon peel and serve"},{"name":"Step: 5","text":"Always use high-quality, well-chilled cognac to enhance the overall flavor profile of the Sazerac. This will ensure a smoother and more refined sipping experience."},{"name":"Step: 6","text":"For an authentic finish, express the oils from the lemon peel over the drink before garnishing. This adds a subtle yet fragrant citrus aroma that complements the other flavors beautifully."}]},{"ID":"fd8d2150-3137-4867-a616-9c18664d8f7c","name":"Amaretto Sour","season":"spring","garnish":"Lemon, cocktail cherry","glassType":"Whisky glass","colour":"#FFC576","ingredients":[{"name":"Lemon Juice","quantity":"1","unit":"oz"},{"name":"Amaretto","quantity":"2","unit":"oz"},{"name":"Egg","quantity":"1 egg white","unit":""},{"name":"Angostura Bitters","quantity":"Dash","unit":""}],"steps":[{"name":"Step: 1","text":"Add the amaretto, lemon juice, egg white and bitters to a cocktail shaker together with ice"},{"name":"Step: 2","text":"Shake until the outside of the shaker is frosted, then strain into an old fashioned glass with ice"},{"name":"Step: 3","text":"Garnish with a lemon slice and a maraschino cherry and serve"},{"name":"Step: 4","text":"Dry-shake the cocktail (shake without ice) first to fully emulsify the egg white with the other ingredients. Then, shake again with ice to chill and dilute properly."},{"name":"Step: 5","text":"Consider using a premium or handcrafted amaretto. The enhanced almond and vanilla notes will bring more depth and complexity to the cocktail."}]},{"ID":"339ac48c-b890-479a-89f1-7d0a026bdb0b","name":"Mexican Margarita","season":"spring","garnish":"Lime","glassType":"Cocktail glass","colour":"#FFDFA6","ingredients":[{"name":"Cointreau","quantity":"4.06","unit":"oz"},{"name":"Lime juice","quantity":"4.06","unit":"oz"},{"name":"Tequila Blanco","quantity":"4.06","unit":"oz"},{"name":"Salt","quantity":"Pinch","unit":""}],"steps":[{"name":"Step: 1","text":"Moisten the rim of a chilled cocktail glass with lime juice and roll it in salt"},{"name":"Step: 2","text":"Add all the liquid ingredients into a blender with crushed ice"},{"name":"Step: 3","text":"Blend until it is very slushy then pour into the salt-rimmed cocktail glass"},{"name":"Step: 4","text":"Garnish with a lime wedge and serve"},{"name":"Step: 5","text":"Use premium 100% agave tequila for a more authentic and flavorful margarita. The smoother profile will make a noticeable difference."},{"name":"Step: 6","text":"For a more aromatic experience, zest the lime before juicing it, and run the lime zest around the rim of the glass before salting it."}]},{"ID":"92382c35-3eca-4699-9a85-aac1f2e8c000","name":"New York Sour","season":"winter","garnish":"Orange, cocktail cherry","glassType":"Lowball / rocks glass","colour":"#FFE6AB","ingredients":[{"name":"Lemon Juice","quantity":"1","unit":"oz"},{"name":"Sugar Syrup","quantity":"\u00BE","unit":"oz"},{"name":"Red Wine","quantity":"\u00BD","unit":"oz"},{"name":"Bourbon","quantity":"2","unit":"oz"},{"name":"Egg","quantity":"1 egg white","unit":""}],"steps":[{"name":"Step: 1","text":"Add the egg white, bourbon, lemon juice and sugar syrup to a cocktail shaker with ice"},{"name":"Step: 2","text":"Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"},{"name":"Step: 3","text":"Strain into a lowball glass and carefully pour the red wine on top so that it floats"},{"name":"Step: 4","text":"Garnish with an orange peel and a cherry and serve"},{"name":"Step: 5","text":"Choose a dry red wine such as a Cabernet Sauvignon or Merlot for the float to balance the sweetness."},{"name":"Step: 6","text":"Perform a dry shake (shake the ingredients without ice) first to emulsify the egg white, then add ice and shake again for a frothier texture."}]},{"ID":"c77a5da6-d5c6-4606-b716-3a27efd6ca1c","name":"Ritz","season":"spring","garnish":"Orange","glassType":"Champagne glass","colour":"#C0C0BF","ingredients":[{"name":"Cointreau","quantity":"\u00BC","unit":"oz"},{"name":"Orange juice","quantity":"\u00BE","unit":"oz"},{"name":"Cognac","quantity":"\u00BE","unit":"oz"},{"name":"Champagne / prosecco","quantity":"4.06","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Add all ingredients except the champagne to a cocktail shaker with ice"},{"name":"Step: 2","text":"Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"},{"name":"Step: 3","text":"Strain into a champagne flute and top up with the champagne"},{"name":"Step: 4","text":"Garnish with an orange slice and serve"},{"name":"Step: 5","text":"Opt for a high-quality Champagne or Prosecco to top off the Ritz cocktail, as the effervescence and flavor will significantly impact the final taste."},{"name":"Step: 6","text":"Use freshly squeezed orange juice for the best, most refreshing citrus flavor."}]},{"ID":"fadf90fb-bd85-48a9-ada8-16d218adb577","name":"Bloody Mary","season":"winter","garnish":"Celery","glassType":"Lowball / rocks glass","colour":"#FFB580","ingredients":[{"name":"Vodka","quantity":"1\u00BD","unit":"oz"},{"name":"Lemon Juice","quantity":"\u00BD","unit":"oz"},{"name":"Pepper","quantity":"Sprinkle","unit":""},{"name":"Tabasco Sauce","quantity":"Dash","unit":""},{"name":"Tomato Juice","quantity":"3.04","unit":"oz"},{"name":"Worcestershire Sauce","quantity":"2 dashes","unit":""},{"name":"Salt","quantity":"Sprinkle","unit":""}],"steps":[{"name":"Step: 1","text":"In a mixing glass with ice add all the ingredients"},{"name":"Step: 2","text":"Stir gently to mix before pouring into a lowball glass"},{"name":"Step: 3","text":"Garnish with a stick of celery and serve"},{"name":"Step: 4","text":"Consider using a freshly grated horseradish instead of pepper for an extra kick and unique depth of flavor."},{"name":"Step: 5","text":"Experiment with adding a splash of pickle or olive brine for a savory twist on the classic Bloody Mary profile."}]},{"ID":"834f6088-1a84-4a8a-afa4-013bfdbb2a32","name":"Hot Toddy","season":"winter","garnish":"Lemon, clove, Cinnamon","glassType":"Irish glass","colour":"#FFE9BA","ingredients":[{"name":"Honey","quantity":"\u00BC","unit":"oz"},{"name":"Sugar Syrup","quantity":"1 teaspoon","unit":""},{"name":"Lemon Juice","quantity":"\u00BC","unit":"oz"},{"name":"Whiskey","quantity":"1\u00BD","unit":"oz"},{"name":"Cloves","quantity":"3","unit":""}],"steps":[{"name":"Step: 1","text":"Warm a heatproof glass"},{"name":"Step: 2","text":"Add the whisky, lemon juice, syrup, cloves and honey"},{"name":"Step: 3","text":"Top up with boiling water and garnish with a lemon skewered with cloves and a cinnamon stick"},{"name":"Step: 4","text":"Give it a quick stir and serve immediately"},{"name":"Step: 5","text":"Infuse your honey with a small amount of ginger for added warmth and depth of flavor."},{"name":"Step: 6","text":"Warm your whiskey slightly (just above room temperature) before adding it to the drink to enhance its aromatic properties."}]},{"ID":"5c09a949-19c6-430f-9026-869ea9a25509","name":"Pi\u00F1a colada","season":"summer","garnish":"Pineapple, cocktail cherry","glassType":"Hurricane glass","colour":"#FFCA97","ingredients":[{"name":"Pineapple Juice","quantity":"1\u2154","unit":"oz"},{"name":"White rum","quantity":"1\u2154","unit":"oz"},{"name":"Coconut Cream","quantity":"1","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Add all ingredients to a blender with ice and blend until smooth"},{"name":"Step: 2","text":"Pour into a hurricane glass"},{"name":"Step: 3","text":"Garnish with a slice of pineapple and a cocktail cherry before serving"},{"name":"Step: 4","text":"Use freshly extracted pineapple juice to elevate the natural sweetness and tropical aroma of the Pi\u00F1a Colada."},{"name":"Step: 5","text":"Lightly toast the coconut cream in a skillet before blending to enhance its natural sweetness and add a deeper flavor profile."}]},{"ID":"6c720802-63fb-4f98-94c4-25ed9ed574eb","name":"Martinez","season":"autumn","garnish":"Lemon","glassType":"Cocktail glass","colour":"#FFCD84","ingredients":[{"name":"Orange Bitters","quantity":"2 dashes","unit":""},{"name":"Red vermouth","quantity":"1\u00BD","unit":"oz"},{"name":"Dry gin","quantity":"1\u00BD","unit":"oz"},{"name":"Maraschino cherry liqueur","quantity":"1 teaspoon","unit":""}],"steps":[{"name":"Step: 1","text":"Add all the ingredients into a mixing glass with ice and stir to combine and chill the ingredients"},{"name":"Step: 2","text":"Strain into a chilled cocktail glass, garnish with a lemon peel and serve"},{"name":"Step: 3","text":"Use a high-quality Maraschino cherry liqueur for a more intense and authentic flavor, as cheaper versions may alter the cocktail\u0027s balance."},{"name":"Step: 4","text":"Employ a bar spoon to gently stir the drink in a mixing glass for at least 30-45 seconds to achieve the perfect chill and dilution."}]},{"ID":"915daec6-29cd-4d5b-8bca-ce4ff5019297","name":"Ramos Fizz","season":"spring","garnish":"","glassType":"Highball glass","colour":"#FFD992","ingredients":[{"name":"Lime juice","quantity":"\u00BD","unit":"oz"},{"name":"Lemon Juice","quantity":"\u00BD","unit":"oz"},{"name":"Gin","quantity":"1\u00BD","unit":"oz"},{"name":"Soda water","quantity":"Top up","unit":""},{"name":"Sugar Syrup","quantity":"1","unit":"oz"},{"name":"Cream","quantity":"2","unit":"oz"},{"name":"Egg","quantity":"1 egg white","unit":""},{"name":"Orange Flower Water","quantity":"3 dashes","unit":""},{"name":"Vanilla Essence","quantity":"2 drops","unit":""}],"steps":[{"name":"Step: 1","text":"Add all ingredients except the soda water to a cocktail shaker with ice"},{"name":"Step: 2","text":"Shake well for two minutes, then strain the cocktail into a glass, remove the ice from the shaker, and dry shake the cocktail again for a further minute"},{"name":"Step: 3","text":"Strain into a chilled highball glass, top up with soda water and serve"},{"name":"Step: 4","text":"Dry shake the ingredients without ice first to emulsify the egg white, then add ice for a second shake to chill and dilute the cocktail perfectly."},{"name":"Step: 5","text":"Use freshly squeezed lemon and lime juice to ensure the most vibrant and authentic citrus flavor in the cocktail."}]},{"ID":"9e30cae1-c07a-4edb-b25c-680bfa84364f","name":"Whisky Mac","season":"winter","garnish":"","glassType":"Wine glass","colour":"#FFECAC","ingredients":[{"name":"Ginger wine","quantity":"1\u00BD","unit":"oz"},{"name":"Whiskey","quantity":"1\u00BD","unit":"oz"}],"steps":[{"name":"Step: 1","text":"Carefully pour the Scotch whisky into a wine glass without ice"},{"name":"Step: 2","text":"Add the ginger wine"},{"name":"Step: 3","text":"Allow them to mix but don\u0027t stir , then serve"},{"name":"Step: 4","text":"Choose a high-quality single malt Scotch whisky to emphasize the drink\u0027s smoky, complex character."},{"name":"Step: 5","text":"Chill the wine glass before serving to maintain the integrity of the cocktail\u0027s temperature and slow down dilution."}]}]}
+{
+  "recipies": [
+    {
+      "ID": "b20afd9b-6724-4501-ba5b-5b88793c487e",
+      "name": "Margarita on-the-rocks",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#FFDEA5",
+      "ingredients": [
+        {
+          "name": "Tequila Reposado",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Agave syrup",
+          "quantity": "0.17",
+          "unit": "oz"
+        },
+        {
+          "name": "Saline solution",
+          "quantity": "2 drops",
+          "unit": ""
+        },
+        {
+          "name": "Margarita Bitters",
+          "quantity": "4 drops",
+          "unit": ""
+        },
+        {
+          "name": "Lime juice",
+          "quantity": "\u00BE",
+          "unit": "oz"
+        },
+        {
+          "name": "Triple Sec",
+          "quantity": "\u00BE",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Start by adding all the ingredients into a cocktail shaker filled with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Give it a good shake for about 10-15 seconds, or until the exterior of the shaker feels cold and frosted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Then, carefully strain the mixture into a glass that\u0027s been filled with fresh ice, ensuring no ice shards or pulp make it through"
+        },
+        {
+          "name": "Step: 4",
+          "text": "This method helps to blend the flavors well while chilling the drink perfectly"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Enjoy your freshly prepared cocktail right away for the best taste"
+        },
+        {
+          "name": "Step: 6",
+          "text": "Use a quality Tequila Reposado to add depth and character to the drink. The aging process of reposado tequila provides a smoother and more complex flavor profile."
+        },
+        {
+          "name": "Step: 7",
+          "text": "Prepare a homemade saline solution by dissolving 1 part kosher salt in 4 parts warm water. This helps to enhance and balance the flavors without making the cocktail noticeably salty."
+        }
+      ]
+    },
+    {
+      "ID": "4f6404d4-9ac9-4140-9c86-7be5f04f6aaf",
+      "name": "Dry Martini  Montgomery\u0026#039;s",
+      "season": "autumn",
+      "garnish": "",
+      "glassType": "Cocktail glass",
+      "colour": "#FFECB3",
+      "ingredients": [
+        {
+          "name": "Dry gin",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Orange Bitters",
+          "quantity": "1 dash",
+          "unit": ""
+        },
+        {
+          "name": "White vermouth",
+          "quantity": "0.17",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Start off by adding all the ingredients into a cocktail shaker filled with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake the mixture vigorously for about 10-15 seconds or until the shaker feels frosty on the outside"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Then, use a fine strainer to pour the cocktail into a glass that has been pre-chilled in the freezer or refrigerator to keep your drink extra cold"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Use freshly opened bottles of vermouth to ensure the best flavor, as vermouth can oxidize quickly once opened."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Express and discard an orange zest over the glass to release its oils, intensifying the orange bitters\u0027 contribution."
+        }
+      ]
+    },
+    {
+      "ID": "3438bcd5-3ef2-4dff-970a-7b8ad6853ac9",
+      "name": "Champagne Snowball",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Champagne glass",
+      "colour": "#FFCF85",
+      "ingredients": [
+        {
+          "name": "Advocaat",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Lime Cordial",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Sherry (Dry)",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Champagne / prosecco",
+          "quantity": "2",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Start by pouring champagne into a glass that has been chilled, ensuring the perfect refreshing temperature for your drink"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Next, grab your shaker and fill it with ice, which will help chill the other three ingredients effectively"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Add the remaining three ingredients into the shaker with the ice"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Give everything a vigorous shake for about 10-15 seconds, or until the exterior of the shaker feels frosted to the touch, ensuring the flavors are well-blended and chilled"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Finally, carefully strain the shaken mixture over the champagne in your glass, creating a beautifully layered and complex cocktail experience"
+        },
+        {
+          "name": "Step: 6",
+          "text": "Opt for a high-quality, dry Champagne or Prosecco to maintain the balance between the sweet Advocaat and tangy lime cordial."
+        },
+        {
+          "name": "Step: 7",
+          "text": "Consider lightly stirring the champagne and Advocaat mixture right before serving to ensure even distribution of flavors."
+        }
+      ]
+    },
+    {
+      "ID": "6fb909e2-1392-462a-ba8a-45098d6ce247",
+      "name": "Bahia",
+      "season": "summer",
+      "garnish": "Pineapple, cocktail cherry, mint",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#FFDDA4",
+      "ingredients": [
+        {
+          "name": "Pineapple Juice",
+          "quantity": "3.04",
+          "unit": "oz"
+        },
+        {
+          "name": "White rum",
+          "quantity": "2\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Coconut Cream",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients to a blender with ice and blend until smooth"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Pour into a highball glass"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Garnish with a pineapple wedge, a maraschino cherry and a mint sprig, and serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Use fresh, cold pineapples to make your own pineapple juice for a more vibrant and authentic flavor. This simple alteration can elevate the cocktail significantly."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Float a touch of dark rum on top before serving. This adds a beautiful color gradient and an additional layer of complexity to the drink."
+        }
+      ]
+    },
+    {
+      "ID": "15c2e4aa-032f-4c57-909d-fbb6f56011a9",
+      "name": "Metropole",
+      "season": "autumn",
+      "garnish": "",
+      "glassType": "Cocktail glass",
+      "colour": "#FFCF91",
+      "ingredients": [
+        {
+          "name": "Orange Bitters",
+          "quantity": "1 dash",
+          "unit": ""
+        },
+        {
+          "name": "Gomme syrup",
+          "quantity": "0.1",
+          "unit": "oz"
+        },
+        {
+          "name": "White vermouth",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Cognac",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Peychaud\u0027s Aromatic Bitters",
+          "quantity": "2 dashes",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Begin by stirring all the ingredients together with ice in a mixing glass, ensuring they\u0027re fully combined"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Aim to stir for about 10-15 seconds"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Once the ingredients are well mixed and chilled, strain the mixture into a glass that has been pre-chilled in the freezer or fridge"
+        },
+        {
+          "name": "Step: 4",
+          "text": "This helps keep your cocktail cold for a longer period"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Enjoy your expertly mixed drink right away for the best taste and experience"
+        },
+        {
+          "name": "Step: 6",
+          "text": "Use aged Cognac for a deeper, richer flavor profile that enhances the cocktail\u0027s sophistication."
+        },
+        {
+          "name": "Step: 7",
+          "text": "Gently stir with ice for exactly 15 seconds; over-stirring can dilute the refined balance of the ingredients."
+        }
+      ]
+    },
+    {
+      "ID": "c4391e97-9e89-4246-85f4-d275ba376e98",
+      "name": "Scorpion",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Hurricane glass",
+      "colour": "#FFE3AD",
+      "ingredients": [
+        {
+          "name": "Orange juice",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Cognac",
+          "quantity": "\u00BE",
+          "unit": "oz"
+        },
+        {
+          "name": "Gold rum",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon Juice",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Orgeat Syrup",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Begin by blending all the ingredients together, adding a 6oz scoop of crushed ice into the mixer for a smooth consistency"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Once blended to perfection, pour your delightful concoction into a chilled glass, enhancing the overall drinking experience"
+        },
+        {
+          "name": "Step: 3",
+          "text": "To be environmentally friendly, serve your freshly made cocktail with sustainable straws, supporting eco-friendly practices"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Savor the moment and enjoy the fruits of your mixology skills with each sip"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Cheers to a well-crafted beverage that not only tastes great but also respects our planet!"
+        },
+        {
+          "name": "Step: 6",
+          "text": "Use freshly squeezed citrus juices to ensure the best flavor. The freshness of the juices will significantly elevate the drink."
+        },
+        {
+          "name": "Step: 7",
+          "text": "Add a dash of aromatic bitters for an extra layer of complexity and a slight herbal note to round out the sweetness."
+        }
+      ]
+    },
+    {
+      "ID": "6bab89a5-bd30-4580-8cfc-cb08006b3747",
+      "name": "Widow\u0026#039;s Kiss",
+      "season": "autumn",
+      "garnish": "",
+      "glassType": "Cocktail glass",
+      "colour": "#FFE7B3",
+      "ingredients": [
+        {
+          "name": "DOM Benedictine",
+          "quantity": "\u2153",
+          "unit": "oz"
+        },
+        {
+          "name": "Yellow Chartreuse",
+          "quantity": "\u2153",
+          "unit": "oz"
+        },
+        {
+          "name": "Angostura Bitters",
+          "quantity": "2 dashes",
+          "unit": ""
+        },
+        {
+          "name": "Calvados",
+          "quantity": "1",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Begin by combining all the ingredients in a mixing glass (for stirring ) or a shaker (if you prefer your drink shaken) filled halfway with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "If you\u0027re stirring , use a long spoon to do so gently for about 10-15 seconds, ensuring the mixture is well-cooled but not overly diluted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "On the other hand, if shaking is more your style, give it a vigorous shake for 10-15 seconds or until the exterior of the shaker feels frosty to the touch, indicating the drink is nicely chilled"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Next, take a chilled glass, ensuring it\u0027s been kept in the freezer for a bit or filled with ice water for a few minutes to get that perfect chill"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Finally, strain the mixture into your prepared glass, capturing the ice and any undissolved ingredients, leaving you with a smooth, refreshing cocktail ready to enjoy"
+        },
+        {
+          "name": "Step: 6",
+          "text": "Focus on the quality of your DOM Benedictine and Yellow Chartreuse as these herbs-centric liquors define the cocktail\u0027s complexity."
+        },
+        {
+          "name": "Step: 7",
+          "text": "If shaking, consider using large ice cubes to minimize dilution while effectively chilling the cocktail."
+        }
+      ]
+    },
+    {
+      "ID": "3f2fccf0-1dab-45e8-94eb-b3b548b01a03",
+      "name": "Caipiroska",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#E1FF8F",
+      "ingredients": [
+        {
+          "name": "Vodka",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Lime",
+          "quantity": "1",
+          "unit": ""
+        },
+        {
+          "name": "Sugar",
+          "quantity": "4 teaspoons",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "First cut up the lime in roughly eight equal sections, removing some of the central white pith and ends"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Muddle the wedges with the sugar in the bottom of a lowball glass"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Fill the glass with crushed ice before pouring in the vodka"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Stir to combine and serve"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Use superfine sugar to ensure it dissolves completely when muddling with the lime, which will result in a more balanced flavor."
+        },
+        {
+          "name": "Step: 6",
+          "text": "Experiment with flavored vodkas, such as citrus or vanilla, to add a new dimension to the Caipiroska."
+        }
+      ]
+    },
+    {
+      "ID": "da7e48c7-a267-460a-b0ea-ea08f8a7faf1",
+      "name": "Dry Martini  Wet",
+      "season": "autumn",
+      "garnish": "",
+      "glassType": "Cocktail glass",
+      "colour": "#FFECB3",
+      "ingredients": [
+        {
+          "name": "Dry gin",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "White vermouth",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Orange Bitters",
+          "quantity": "2 dashes",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Begin by mixing all the ingredients together with ice in a mixing glass, ensuring they blend well"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Stir the mixture gently but thoroughly for about 10-15 seconds to properly cool and dilute the mix"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Once mixed, strain the concoction into a glass that has been pre-chilled, to maintain the cocktail\u0027s temperature"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Use a high-quality gin and vermouth to accentuate the balanced flavors of a Dry Martini Wet."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Pre-chill your mixing glass and all utensils to maintain the cocktail\u0027s cold temperature throughout preparation."
+        }
+      ]
+    },
+    {
+      "ID": "95d898ba-d5e6-4111-afe6-85126e572c0e",
+      "name": "Garibaldi",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Cocktail glass",
+      "colour": "#FFBB77",
+      "ingredients": [
+        {
+          "name": "Orange juice",
+          "quantity": "4.06",
+          "unit": "oz"
+        },
+        {
+          "name": "Sugar Syrup",
+          "quantity": "0.1",
+          "unit": "oz"
+        },
+        {
+          "name": "Aperol",
+          "quantity": "1",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "First, squeeze orange juice using a pillar or elbow press, then fine strain it to eliminate any pulp, ensuring a smooth texture"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Next, blend the freshly squeezed juice at high speed (without ice) until it achieves a \u0022fluffy\u0022 consistency, creating a light and airy texture"
+        },
+        {
+          "name": "Step: 3",
+          "text": "After that, add bitter liqueur, sugar syrup, and half of the orange juice into a glass containing two ice cubes, then stir well to combine the flavors evenly"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Proceed by adding three more cubes of ice to the glass to chill it further without diluting the drink too quickly"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Finally, gently top off the glass with the remaining fluffy orange juice, creating a visually appealing layer"
+        },
+        {
+          "name": "Step: 6",
+          "text": "For the fluffiest texture, use a blender rather than a shaker to aerate the orange juice, ensuring a delightful lightness in each sip."
+        },
+        {
+          "name": "Step: 7",
+          "text": "Add a touch of sea salt to the orange juice before blending. This will enhance the natural sweetness and balance the flavors."
+        }
+      ]
+    },
+    {
+      "ID": "650c9ca7-9d3f-4952-beb4-f4fa775c7609",
+      "name": "White Lady",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Cocktail glass",
+      "colour": "#FFDDA2",
+      "ingredients": [
+        {
+          "name": "Triple Sec",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon Juice",
+          "quantity": "\u2154",
+          "unit": "oz"
+        },
+        {
+          "name": "Gin",
+          "quantity": "1.35",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients to a cocktail shaker with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Strain into a chilled cocktail glass and serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "For an extra silky texture, double-strain the cocktail by using a fine mesh strainer in addition to your usual cocktail strainer to remove any small ice shards."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Add an egg white to the shaker for a velvety mouthfeel and a glossy, frothy top. This will create an even more luxurious and smooth experience."
+        }
+      ]
+    },
+    {
+      "ID": "9c361d69-1e62-426d-9e4e-a3e0ffdaffc4",
+      "name": "Vodka Sour",
+      "season": "spring",
+      "garnish": "Lemon, cocktail cherry",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#B3E6FF",
+      "ingredients": [
+        {
+          "name": "Vodka",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon Juice",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Sugar Syrup",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Angostura Bitters",
+          "quantity": "2 dashes",
+          "unit": ""
+        },
+        {
+          "name": "Egg",
+          "quantity": "1 egg white",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients to a cocktail shaker with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Strain into the glass, garnish with a lemon slice and a maraschino cherry and serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Perform a \u0027reverse dry shake\u0027 by first shaking all the ingredients with ice, then removing the ice and shaking again. This method increases the frothiness of the egg white."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Use a bar spoon to gently stir the Angostura bitters on top of the egg white foam after pouring. This will create a beautiful visual effect and an aromatic layer."
+        }
+      ]
+    },
+    {
+      "ID": "f85d5b06-e349-45ab-955c-c2ef7f14201a",
+      "name": "Grasshopper",
+      "season": "autumn",
+      "garnish": "Mint",
+      "glassType": "Cocktail glass",
+      "colour": "#FFEEB9",
+      "ingredients": [
+        {
+          "name": "Cream",
+          "quantity": "\u2154",
+          "unit": "oz"
+        },
+        {
+          "name": "Creme De Cacao",
+          "quantity": "\u2154",
+          "unit": "oz"
+        },
+        {
+          "name": "Creme De Menthe",
+          "quantity": "\u2154",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients to a cocktail shaker with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Strain into a chilled cocktail glass"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Garnish with some mint leaves and serve"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Chill the cocktail glass beforehand in the freezer to ensure your Grasshopper stays cold longer, preserving its creamy texture."
+        },
+        {
+          "name": "Step: 6",
+          "text": "For an indulgent treat, blend the ingredients with a scoop of high-quality vanilla ice cream instead of shaking them with ice."
+        }
+      ]
+    },
+    {
+      "ID": "c17723b4-41cd-4979-8a33-160009d171e4",
+      "name": "Sazerac",
+      "season": "autumn",
+      "garnish": "Lemon",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#FFC989",
+      "ingredients": [
+        {
+          "name": "Absinthe",
+          "quantity": "\u2153",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Take a chilled lowball glass and swirl the absinthe around the sides to coat the glass, and fill with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "In a mixing glass muddle the bitters and sugar, then add the cognac and stir to combine"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Disgard the ice and excess liquid from the glass and pour in the mixed drink"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Garnish with a lemon peel and serve"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Always use high-quality, well-chilled cognac to enhance the overall flavor profile of the Sazerac. This will ensure a smoother and more refined sipping experience."
+        },
+        {
+          "name": "Step: 6",
+          "text": "For an authentic finish, express the oils from the lemon peel over the drink before garnishing. This adds a subtle yet fragrant citrus aroma that complements the other flavors beautifully."
+        }
+      ]
+    },
+    {
+      "ID": "fd8d2150-3137-4867-a616-9c18664d8f7c",
+      "name": "Amaretto Sour",
+      "season": "spring",
+      "garnish": "Lemon, cocktail cherry",
+      "glassType": "Whisky glass",
+      "colour": "#FFC576",
+      "ingredients": [
+        {
+          "name": "Lemon Juice",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Amaretto",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Egg",
+          "quantity": "1 egg white",
+          "unit": ""
+        },
+        {
+          "name": "Angostura Bitters",
+          "quantity": "Dash",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add the amaretto, lemon juice, egg white and bitters to a cocktail shaker together with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake until the outside of the shaker is frosted, then strain into an old fashioned glass with ice"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Garnish with a lemon slice and a maraschino cherry and serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Dry-shake the cocktail (shake without ice) first to fully emulsify the egg white with the other ingredients. Then, shake again with ice to chill and dilute properly."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Consider using a premium or handcrafted amaretto. The enhanced almond and vanilla notes will bring more depth and complexity to the cocktail."
+        }
+      ]
+    },
+    {
+      "ID": "339ac48c-b890-479a-89f1-7d0a026bdb0b",
+      "name": "Mexican Margarita",
+      "season": "spring",
+      "garnish": "Lime",
+      "glassType": "Cocktail glass",
+      "colour": "#FFDFA6",
+      "ingredients": [
+        {
+          "name": "Cointreau",
+          "quantity": "4.06",
+          "unit": "oz"
+        },
+        {
+          "name": "Lime juice",
+          "quantity": "4.06",
+          "unit": "oz"
+        },
+        {
+          "name": "Tequila Blanco",
+          "quantity": "4.06",
+          "unit": "oz"
+        },
+        {
+          "name": "Salt",
+          "quantity": "Pinch",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Moisten the rim of a chilled cocktail glass with lime juice and roll it in salt"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Add all the liquid ingredients into a blender with crushed ice"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Blend until it is very slushy then pour into the salt-rimmed cocktail glass"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Garnish with a lime wedge and serve"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Use premium 100% agave tequila for a more authentic and flavorful margarita. The smoother profile will make a noticeable difference."
+        },
+        {
+          "name": "Step: 6",
+          "text": "For a more aromatic experience, zest the lime before juicing it, and run the lime zest around the rim of the glass before salting it."
+        }
+      ]
+    },
+    {
+      "ID": "92382c35-3eca-4699-9a85-aac1f2e8c000",
+      "name": "New York Sour",
+      "season": "winter",
+      "garnish": "Orange, cocktail cherry",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#FFE6AB",
+      "ingredients": [
+        {
+          "name": "Lemon Juice",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Sugar Syrup",
+          "quantity": "\u00BE",
+          "unit": "oz"
+        },
+        {
+          "name": "Red Wine",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Bourbon",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Egg",
+          "quantity": "1 egg white",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add the egg white, bourbon, lemon juice and sugar syrup to a cocktail shaker with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Strain into a lowball glass and carefully pour the red wine on top so that it floats"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Garnish with an orange peel and a cherry and serve"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Choose a dry red wine such as a Cabernet Sauvignon or Merlot for the float to balance the sweetness."
+        },
+        {
+          "name": "Step: 6",
+          "text": "Perform a dry shake (shake the ingredients without ice) first to emulsify the egg white, then add ice and shake again for a frothier texture."
+        }
+      ]
+    },
+    {
+      "ID": "c77a5da6-d5c6-4606-b716-3a27efd6ca1c",
+      "name": "Ritz",
+      "season": "spring",
+      "garnish": "Orange",
+      "glassType": "Champagne glass",
+      "colour": "#C0C0BF",
+      "ingredients": [
+        {
+          "name": "Cointreau",
+          "quantity": "\u00BC",
+          "unit": "oz"
+        },
+        {
+          "name": "Orange juice",
+          "quantity": "\u00BE",
+          "unit": "oz"
+        },
+        {
+          "name": "Cognac",
+          "quantity": "\u00BE",
+          "unit": "oz"
+        },
+        {
+          "name": "Champagne / prosecco",
+          "quantity": "4.06",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients except the champagne to a cocktail shaker with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake well for 10-15 seconds or until the outside of the shaker becomes frosted"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Strain into a champagne flute and top up with the champagne"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Garnish with an orange slice and serve"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Opt for a high-quality Champagne or Prosecco to top off the Ritz cocktail, as the effervescence and flavor will significantly impact the final taste."
+        },
+        {
+          "name": "Step: 6",
+          "text": "Use freshly squeezed orange juice for the best, most refreshing citrus flavor."
+        }
+      ]
+    },
+    {
+      "ID": "fadf90fb-bd85-48a9-ada8-16d218adb577",
+      "name": "Bloody Mary",
+      "season": "winter",
+      "garnish": "Celery",
+      "glassType": "Lowball / rocks glass",
+      "colour": "#FFB580",
+      "ingredients": [
+        {
+          "name": "Vodka",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon Juice",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Pepper",
+          "quantity": "Sprinkle",
+          "unit": ""
+        },
+        {
+          "name": "Tabasco Sauce",
+          "quantity": "Dash",
+          "unit": ""
+        },
+        {
+          "name": "Tomato Juice",
+          "quantity": "3.04",
+          "unit": "oz"
+        },
+        {
+          "name": "Worcestershire Sauce",
+          "quantity": "2 dashes",
+          "unit": ""
+        },
+        {
+          "name": "Salt",
+          "quantity": "Sprinkle",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "In a mixing glass with ice add all the ingredients"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Stir gently to mix before pouring into a lowball glass"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Garnish with a stick of celery and serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Consider using a freshly grated horseradish instead of pepper for an extra kick and unique depth of flavor."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Experiment with adding a splash of pickle or olive brine for a savory twist on the classic Bloody Mary profile."
+        }
+      ]
+    },
+    {
+      "ID": "834f6088-1a84-4a8a-afa4-013bfdbb2a32",
+      "name": "Hot Toddy",
+      "season": "winter",
+      "garnish": "Lemon, clove, Cinnamon",
+      "glassType": "Irish glass",
+      "colour": "#FFE9BA",
+      "ingredients": [
+        {
+          "name": "Honey",
+          "quantity": "\u00BC",
+          "unit": "oz"
+        },
+        {
+          "name": "Sugar Syrup",
+          "quantity": "1 teaspoon",
+          "unit": ""
+        },
+        {
+          "name": "Lemon Juice",
+          "quantity": "\u00BC",
+          "unit": "oz"
+        },
+        {
+          "name": "Whiskey",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Cloves",
+          "quantity": "3",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Warm a heatproof glass"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Add the whisky, lemon juice, syrup, cloves and honey"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Top up with boiling water and garnish with a lemon skewered with cloves and a cinnamon stick"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Give it a quick stir and serve immediately"
+        },
+        {
+          "name": "Step: 5",
+          "text": "Infuse your honey with a small amount of ginger for added warmth and depth of flavor."
+        },
+        {
+          "name": "Step: 6",
+          "text": "Warm your whiskey slightly (just above room temperature) before adding it to the drink to enhance its aromatic properties."
+        }
+      ]
+    },
+    {
+      "ID": "5c09a949-19c6-430f-9026-869ea9a25509",
+      "name": "Pi\u00F1a colada",
+      "season": "summer",
+      "garnish": "Pineapple, cocktail cherry",
+      "glassType": "Hurricane glass",
+      "colour": "#FFCA97",
+      "ingredients": [
+        {
+          "name": "Pineapple Juice",
+          "quantity": "1\u2154",
+          "unit": "oz"
+        },
+        {
+          "name": "White rum",
+          "quantity": "1\u2154",
+          "unit": "oz"
+        },
+        {
+          "name": "Coconut Cream",
+          "quantity": "1",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients to a blender with ice and blend until smooth"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Pour into a hurricane glass"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Garnish with a slice of pineapple and a cocktail cherry before serving"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Use freshly extracted pineapple juice to elevate the natural sweetness and tropical aroma of the Pi\u00F1a Colada."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Lightly toast the coconut cream in a skillet before blending to enhance its natural sweetness and add a deeper flavor profile."
+        }
+      ]
+    },
+    {
+      "ID": "6c720802-63fb-4f98-94c4-25ed9ed574eb",
+      "name": "Martinez",
+      "season": "autumn",
+      "garnish": "Lemon",
+      "glassType": "Cocktail glass",
+      "colour": "#FFCD84",
+      "ingredients": [
+        {
+          "name": "Orange Bitters",
+          "quantity": "2 dashes",
+          "unit": ""
+        },
+        {
+          "name": "Red vermouth",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Dry gin",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Maraschino cherry liqueur",
+          "quantity": "1 teaspoon",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all the ingredients into a mixing glass with ice and stir to combine and chill the ingredients"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Strain into a chilled cocktail glass, garnish with a lemon peel and serve"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Use a high-quality Maraschino cherry liqueur for a more intense and authentic flavor, as cheaper versions may alter the cocktail\u0027s balance."
+        },
+        {
+          "name": "Step: 4",
+          "text": "Employ a bar spoon to gently stir the drink in a mixing glass for at least 30-45 seconds to achieve the perfect chill and dilution."
+        }
+      ]
+    },
+    {
+      "ID": "915daec6-29cd-4d5b-8bca-ce4ff5019297",
+      "name": "Ramos Fizz",
+      "season": "spring",
+      "garnish": "",
+      "glassType": "Highball glass",
+      "colour": "#FFD992",
+      "ingredients": [
+        {
+          "name": "Lime juice",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon Juice",
+          "quantity": "\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Gin",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Soda water",
+          "quantity": "Top up",
+          "unit": ""
+        },
+        {
+          "name": "Sugar Syrup",
+          "quantity": "1",
+          "unit": "oz"
+        },
+        {
+          "name": "Cream",
+          "quantity": "2",
+          "unit": "oz"
+        },
+        {
+          "name": "Egg",
+          "quantity": "1 egg white",
+          "unit": ""
+        },
+        {
+          "name": "Orange Flower Water",
+          "quantity": "3 dashes",
+          "unit": ""
+        },
+        {
+          "name": "Vanilla Essence",
+          "quantity": "2 drops",
+          "unit": ""
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Add all ingredients except the soda water to a cocktail shaker with ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Shake well for two minutes, then strain the cocktail into a glass, remove the ice from the shaker, and dry shake the cocktail again for a further minute"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Strain into a chilled highball glass, top up with soda water and serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Dry shake the ingredients without ice first to emulsify the egg white, then add ice for a second shake to chill and dilute the cocktail perfectly."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Use freshly squeezed lemon and lime juice to ensure the most vibrant and authentic citrus flavor in the cocktail."
+        }
+      ]
+    },
+    {
+      "ID": "9e30cae1-c07a-4edb-b25c-680bfa84364f",
+      "name": "Whisky Mac",
+      "season": "winter",
+      "garnish": "",
+      "glassType": "Wine glass",
+      "colour": "#FFECAC",
+      "ingredients": [
+        {
+          "name": "Ginger wine",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        },
+        {
+          "name": "Whiskey",
+          "quantity": "1\u00BD",
+          "unit": "oz"
+        }
+      ],
+      "steps": [
+        {
+          "name": "Step: 1",
+          "text": "Carefully pour the Scotch whisky into a wine glass without ice"
+        },
+        {
+          "name": "Step: 2",
+          "text": "Add the ginger wine"
+        },
+        {
+          "name": "Step: 3",
+          "text": "Allow them to mix but don\u0027t stir , then serve"
+        },
+        {
+          "name": "Step: 4",
+          "text": "Choose a high-quality single malt Scotch whisky to emphasize the drink\u0027s smoky, complex character."
+        },
+        {
+          "name": "Step: 5",
+          "text": "Chill the wine glass before serving to maintain the integrity of the cocktail\u0027s temperature and slow down dilution."
+        }
+      ]
+    }
+  ]
+}

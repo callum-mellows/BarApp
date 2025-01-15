@@ -1,4 +1,5 @@
 import ast
+from asyncio.windows_events import NULL
 from genericpath import isfile
 import json
 from tkinter import *
@@ -14,6 +15,7 @@ from difflib import SequenceMatcher
 from PIL import Image
 from PIL import ImageTk
 from pathlib import Path
+import time
 
 root = Tk()
 
@@ -28,6 +30,7 @@ titleFont = Font(family="Courier new", size=40, weight="bold")
 subTitleFont = Font(family="Courier new", size=15, weight="bold")
 
 spiritList = ("whisky", "whiskey", "vodka", "rum", "brandy", "gin", "tequila")
+
 
 def on_escape(event=None):
     root.destroy()
@@ -61,6 +64,60 @@ class Application(Frame):
     names = set([])
     ingredients = set([])
     glassTypes = set([])
+
+    scrolling = root
+    mouseIsDown = False
+    initialMouseY = 0
+    scrollVelocity = 0
+    hasScrolled = False
+    def mouseMove(self, event):
+        if self.mouseIsDown == True:
+            scrollOffset = root.winfo_pointery() - self.initialMouseY
+            if scrollOffset > 0:
+                self.scrollVelocity = max(self.scrollVelocity, scrollOffset)
+            else:
+                self.scrollVelocity = min(self.scrollVelocity, scrollOffset)
+            
+            self.initialMouseY = root.winfo_pointery()
+            self.scrolling.yview_scroll(int(scrollOffset)*-1, "units")
+
+    def mouseDown(self, widget, event):
+        self.mouseIsDown = True
+        self.scrolling = widget
+        self.initialMouseY = root.winfo_pointery()
+        self.scrollVelocity = 0
+        self.hasScrolled = False
+        root.after(150, self.setHasScrolled)
+
+    def setHasScrolled(self):
+        if self.mouseIsDown == True:
+            self.hasScrolled = True
+
+    def mouseUp(self, event):
+        self.mouseIsDown = False
+
+    def update(self):
+        if self.scrollVelocity > 0:
+            self.scrollVelocity = max(0, self.scrollVelocity - 2)
+        elif self.scrollVelocity < 0:
+            self.scrollVelocity = min(0, self.scrollVelocity + 2)
+        now = datetime.now()
+        dtString = now.strftime("%d/%m/%Y %H:%M:%S")
+        applicationInstance.setTimeString(dtString)
+        root.after(16, self.update)
+
+        if self.mouseIsDown == False:
+            if self.scrolling != root:
+                
+                if (self.scrollVelocity == 0):
+                    self.scrolling = root
+                else:
+                    self.scrolling.yview_scroll(int(self.scrollVelocity)*-1, "units")
+
+                    
+        
+
+
     
     def getIfIngredientIsSpirit(self, ing):
         for word in str(ing).split(' '):
@@ -118,6 +175,8 @@ class Application(Frame):
         self.pages = [self.Page0, self.Page1, self.Page2]
 
         self.mainFrame = self
+        root.bind('<Motion>', self.mouseMove)
+        root.bind('<ButtonRelease-1>', self.mouseUp)
         self.mainFrame.configure(bg=mainBGColour)
         self.mainFrame.pack(fill=BOTH, expand=True)
         self.mainFrame.columnconfigure(0, weight=1)
@@ -168,8 +227,10 @@ class Application(Frame):
                 self.rows = self.rows + 1
 
             action_with_arg = partial(self.openRecipe, recipe)
+            mouse_action_with_arg = partial(self.mouseDown, self.midPayne)
             self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images\\cocktails\\buttons\\"+recipe['ID']+".jpg"))
             self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg='#ffffff', font=font, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
+            self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
             self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
             self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
             self.left = self.left+self.w+10;
@@ -179,7 +240,7 @@ class Application(Frame):
     def setTimeString(self, timeString):
         if self.currentPageIndex == 0:
             self.dateTimeLabel.configure(text=timeString)
-            self.dateTimeLabel.update()
+            #self.dateTimeLabel.update()
     
 
     def Page0(self):
@@ -199,6 +260,11 @@ class Application(Frame):
         self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
         self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
+        self.midPayne.configure(yscrollincrement='1')
+        mouse_action_with_arg = partial(self.mouseDown, self.midPayne)
+        self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
+        self.midPayne.bind('<Leave>', self.mouseUp)
+
         self.midPayne.bind("<MouseWheel>", self.scrollMainPageRecipes)
         #self.vbar=Scrollbar(self.midPayneContainer, orient=VERTICAL)
         #self.vbar.pack(side=RIGHT, fill=Y)
@@ -364,86 +430,90 @@ class Application(Frame):
         self.getRecipesByGlassType(self.glassTypeString.get())
 
     def openRecipe(self, recipe):
-        #self.scrollPos = self.vbar.get()[0]
-        self.currentPageIndex = 1
-        for child in self.mainFrame.winfo_children():
-            child.destroy()
-        self.pages[self.currentPageIndex]()
+        #self.scrolling = root
+        if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
+            #self.scrolledAmmount = 0
+            self.mouseIsDown = False
+            #self.scrollPos = self.vbar.get()[0]
+            self.currentPageIndex = 1
+            for child in self.mainFrame.winfo_children():
+                child.destroy()
+            self.pages[self.currentPageIndex]()
 
-        width = self.winfo_width()
-        height = self.winfo_height()
-        (r1,g1,b1) = self.winfo_rgb(recipe['colour'])
-        (r2,g2,b2) = self.winfo_rgb('#000000')
-        r_ratio = float(r2-r1) / width
-        g_ratio = float(g2-g1) / width
-        b_ratio = float(b2-b1) / width
-        for i in range(width):
-            nr = int(r1 + (r_ratio * i))
-            ng = int(g1 + (g_ratio * i))
-            nb = int(b1 + (b_ratio * i))
-            color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
-            self.topPayne.create_line(i, 0, i, 100, tags=("gradient",), fill=color)
-            self.bottomPayne.create_line(i, 0, i, 20, tags=("gradient",), fill=color)
-        self.topPayne.lower("gradient")
-        self.bottomPayne.lower("gradient")
-        self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
-        self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
+            width = self.winfo_width()
+            height = self.winfo_height()
+            (r1,g1,b1) = self.winfo_rgb(recipe['colour'])
+            (r2,g2,b2) = self.winfo_rgb('#000000')
+            r_ratio = float(r2-r1) / width
+            g_ratio = float(g2-g1) / width
+            b_ratio = float(b2-b1) / width
+            for i in range(width):
+                nr = int(r1 + (r_ratio * i))
+                ng = int(g1 + (g_ratio * i))
+                nb = int(b1 + (b_ratio * i))
+                color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
+                self.topPayne.create_line(i, 0, i, 100, tags=("gradient",), fill=color)
+                self.bottomPayne.create_line(i, 0, i, 20, tags=("gradient",), fill=color)
+            self.topPayne.lower("gradient")
+            self.bottomPayne.lower("gradient")
+            self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
+            self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-        #self.cocktailName.config(text=recipe['name'])
-        self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
+            #self.cocktailName.config(text=recipe['name'])
+            self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
         
-        self.cocktailIngredients.delete(1.0, END)
+            self.cocktailIngredients.delete(1.0, END)
 
-        for ingredient in recipe['ingredients']:
-            dots = ""
-            for x in range(28 - (len(ingredient['name'][:18]) + len(ingredient['quantity']) + len(ingredient['unit']))):
-                dots = dots + "."
-            self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n")
-        self.cocktailIngredients.delete('end-2c', END)
-        root.update()
-        root.update_idletasks()
-        line_height = font.metrics("linespace")
-        num_lines = self.cocktailIngredients.count('1.0', END, 'displaylines')[0]
-        total_height = line_height * num_lines + 10
-        self.cocktailIngredients.config(height=(num_lines))
-        self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomLeftPayne.winfo_height())))
+            for ingredient in recipe['ingredients']:
+                dots = ""
+                for x in range(28 - (len(ingredient['name'][:18]) + len(ingredient['quantity']) + len(ingredient['unit']))):
+                    dots = dots + "."
+                self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n")
+            self.cocktailIngredients.delete('end-2c', END)
+            #root.update()
+            #root.update_idletasks()
+            line_height = font.metrics("linespace")
+            num_lines = self.cocktailIngredients.count('1.0', END, 'displaylines')[0]
+            total_height = line_height * num_lines + 10
+            self.cocktailIngredients.config(height=(num_lines))
+            self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomLeftPayne.winfo_height())))
                     
-        self.cocktailSteps.delete(1.0, END)
-        for step in recipe['steps']:
-            self.cocktailSteps.insert(END, "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n")
-        self.cocktailSteps.delete('end-2c', END)
-        root.update()
-        root.update_idletasks()
-        line_height = font.metrics("linespace")
-        num_lines = self.cocktailSteps.count('1.0', END, 'displaylines')[0]
-        total_height = line_height * num_lines + 10
-        self.cocktailSteps.config(height=(num_lines))
-        self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
+            self.cocktailSteps.delete(1.0, END)
+            for step in recipe['steps']:
+                self.cocktailSteps.insert(END, "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n")
+            self.cocktailSteps.delete('end-2c', END)
+            #root.update()
+            #root.update_idletasks()
+            line_height = font.metrics("linespace")
+            num_lines = self.cocktailSteps.count('1.0', END, 'displaylines')[0]
+            total_height = line_height * num_lines + 10
+            self.cocktailSteps.config(height=(num_lines))
+            self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
 
-        if num_lines > 21:
-            self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
-            self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
+            if num_lines > 21:
+                self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
+                self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
-        self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 75), Image.BICUBIC))
-        self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
+            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 75), Image.BICUBIC))
+            self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
         
-        self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 225), Image.BICUBIC))
-        self.underLeftPayne.create_image(85, 0, anchor='nw', image=self.imgCocktail)
+            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 225), Image.BICUBIC))
+            self.underLeftPayne.create_image(85, 0, anchor='nw', image=self.imgCocktail)
 
-        self.imgGarnishes = []
-        x = 0
-        for garnish in str(recipe['garnish']).replace(" or ", " , ").split(','):
-            temp = str(garnish).strip(' ').lstrip(' ').lower()
-            if len(temp) <= 1:
-                break
-            if (temp[0] == 'a') & (temp[1] == ' '):
-                temp = temp[2:]
-            self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 75), Image.BICUBIC)))
-            self.underLeftPayne.create_image((235 - (x * 75)) , 225, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
-            x = x + 1
+            self.imgGarnishes = []
+            x = 0
+            for garnish in str(recipe['garnish']).replace(" or ", " , ").split(','):
+                temp = str(garnish).strip(' ').lstrip(' ').lower()
+                if len(temp) <= 1:
+                    break
+                if (temp[0] == 'a') & (temp[1] == ' '):
+                    temp = temp[2:]
+                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 75), Image.BICUBIC)))
+                self.underLeftPayne.create_image((235 - (x * 75)) , 225, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
+                x = x + 1
 
-        #self.cocktailGarnish.config(text=recipe['garnish'])
-        #self.cocktailGlass.config(text=recipe['glassType'])
+            #self.cocktailGarnish.config(text=recipe['garnish'])
+            #self.cocktailGlass.config(text=recipe['glassType'])
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
@@ -454,11 +524,9 @@ root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
 applicationInstance = Application(root)
 
-def update():
-    now = datetime.now()
-    dtString = now.strftime("%d/%m/%Y %H:%M:%S")
-    applicationInstance.setTimeString(dtString)
-    root.after(1000, update)
 
-root.after(1000, update)
+
+
+
+root.after(1000, applicationInstance.update)
 root.mainloop()
