@@ -65,6 +65,7 @@ class Application(Frame):
     names = set([])
     ingredients = set([])
     ingredientsInStock = dict()
+    ingredientsLEDPosition = dict()
     glassTypes = set([])
 
     scrolling = root
@@ -177,6 +178,8 @@ class Application(Frame):
 
         for ingredient in tempIngredients['ingredients']:
             self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
+            self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
+            
             
 
         checkGarnishImagesExist(self.recipes)
@@ -482,12 +485,14 @@ class Application(Frame):
 
             ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             ledStrips = [1, 2, 3, 4]
+            tempVal = self.ingredientsLEDPosition.get(ingredient, 0)[1]
             self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
-            self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x], ledIndexes[0], *ledIndexes, style='LEDIndexOptions.TButton')
+            self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFile)
             self.ledIndexCombo.pack(side=RIGHT, padx=5, ipady=5)
 
+            tempVal = self.ingredientsLEDPosition.get(ingredient, 0)[0]
             self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
-            self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x], ledStrips[0], *ledStrips, style='LEDIndexOptions.TButton')
+            self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFile)
             self.ledStripCombo.pack(side=RIGHT, padx=5, ipady=5)
 
 
@@ -514,8 +519,9 @@ class Application(Frame):
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
 
-    def updateIngredientsFile(self):
+    def updateIngredientsFile(self, event):
         self.ingredientsInStock.clear()
+        self.ingredientsLEDPosition.clear()
         JSONString = '{"ingredients": ['
         for i in range(len(self.checkIngredients)):
             JSONString = JSONString + '{"name": "' + self.checkIngredients[i] + '",'
@@ -524,6 +530,7 @@ class Application(Frame):
             JSONString = JSONString + '"LEDIndex": "' + str(self.checkLEDIndex[i].get()) + '"},'
 
             self.ingredientsInStock.update({self.checkIngredients[i]:str(self.checkValues[i].get())})
+            self.ingredientsLEDPosition.update({self.checkIngredients[i]:(str(self.checkLEDStrip[i].get()), str(self.checkLEDIndex[i].get()))})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
         f = open("ingredients.JSON", "w")
@@ -639,10 +646,10 @@ class Application(Frame):
                 self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
                 self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
-            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 75), Image.BICUBIC))
+            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 95), Image.BICUBIC))
             self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
         
-            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 225), Image.BICUBIC))
+            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 185), Image.BICUBIC))
             self.underLeftPayne.create_image(85, 0, anchor='nw', image=self.imgCocktail)
 
             self.imgGarnishes = []
@@ -653,8 +660,8 @@ class Application(Frame):
                     break
                 if (temp[0] == 'a') & (temp[1] == ' '):
                     temp = temp[2:]
-                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 75), Image.BICUBIC)))
-                self.underLeftPayne.create_image((235 - (x * 75)) , 225, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
+                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 95), Image.BICUBIC)))
+                self.underLeftPayne.create_image((235 - (x * 75)) , 185, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
                 x = x + 1
 
             #self.cocktailGarnish.config(text=recipe['garnish'])
