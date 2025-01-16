@@ -21,8 +21,9 @@ root = Tk()
 
 transparentColour = '#FF00E8'
 mainBGColour = '#111111'
-secondaryBGColour = '#595959'
+secondaryBGColour = '#333333'
 mainFGColour = '#CCCCCC'
+disabledFGColour = '#444444'
 
 font = Font(family="Courier new", size=13)
 smallFont = Font(family="Courier new", size=8)
@@ -117,10 +118,6 @@ class Application(Frame):
                 else:
                     self.scrolling.yview_scroll(int(self.scrollVelocity)*-1, "units")
 
-                    
-        
-
-
     
     def getIfIngredientIsSpirit(self, ing):
         for word in str(ing).split(' '):
@@ -148,8 +145,9 @@ class Application(Frame):
             if len(temp) > 1:
                 glassTypes2.add(temp)
 
-            if len(recipe['ingredients']) > 1:
-                for ingredient in recipe['ingredients']:
+            
+            for ingredient in recipe['ingredients']:
+                if len(ingredient['name']) > 1:
                     ingredients2.add(ingredient['name'])
                     
                     temp = self.getIfIngredientIsSpirit(ingredient['name'])
@@ -162,6 +160,12 @@ class Application(Frame):
             self.spirits = sorted(spirits)
             self.glassTypes = sorted(glassTypes2)
     
+    def recipeIngredientsInStock(self, recipe):
+        for ingredient in recipe['ingredients']:
+            if (self.ingredientsInStock.get(ingredient['name'], 0)) != '1':
+                return False
+        return True
+
     def __init__(self, root):
         super().__init__(root, bg=mainBGColour)
 
@@ -172,8 +176,6 @@ class Application(Frame):
         tempIngredients = json.load(self.f)
 
         for ingredient in tempIngredients['ingredients']:
-            print(ingredient['name'])
-            print(ingredient['inStock'])
             self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
             
 
@@ -221,7 +223,19 @@ class Application(Frame):
                 recipeList.append(recipe)
         self.addRecipeButtons(recipeList)
 
+    def orderRecipeListByInStock(self, recipes):
+        RecipeListInStock = []
+        RecipeListNotInStock = []
+        for recipe in recipes:
+            if self.recipeIngredientsInStock(recipe) == True:
+                RecipeListInStock.append(recipe)
+            else:
+                RecipeListNotInStock.append(recipe)
+        return RecipeListInStock + RecipeListNotInStock
+
     def addRecipeButtons(self, recipes):
+        orderedRecipes = self.orderRecipeListByInStock(recipes)
+
         for child in self.midPayne.winfo_children():
             child.destroy()
         self.totalButtons = 501
@@ -232,7 +246,7 @@ class Application(Frame):
         self.left = 5
         self.buttonImages = {};
         x = 0
-        for recipe in recipes:
+        for recipe in orderedRecipes:
             if (x % 4 == 0) & (x > 0):
                 self.left=5
                 self.top = self.top + self.h + 10
@@ -241,7 +255,13 @@ class Application(Frame):
             action_with_arg = partial(self.openRecipe, recipe)
             mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
             self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images\\cocktails\\buttons\\"+recipe['ID']+".jpg"))
-            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg='#ffffff', font=font, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
+
+            if self.recipeIngredientsInStock(recipe) == True:
+                colour = mainFGColour
+            else:
+                colour = disabledFGColour
+
+            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg=colour, font=font, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
             self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
             self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
             self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
@@ -437,17 +457,39 @@ class Application(Frame):
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.midPayne.bind('<Leave>', self.mouseUp)
        
+        self.style = ttk.Style()
+        self.style.theme_use('default')
+        self.style.configure('LEDIndexOptions.TButton', background=secondaryBGColour, foreground=mainFGColour, font=subTitleFont, width=4, height=4, padding=[0,0,0,0])
+
         x = 0
         itemHeight = 50
+        self.checkIngredients = []
+        self.checkValues = []
+        self.checkLEDStrip = []
+        self.checkLEDIndex = []
         for ingredient in self.ingredients:
-            self.ingFrameContainer = Frame(self.midPayne, bg='#00cc00')
-            self.ingFrame = Frame(self.ingFrameContainer, bg='#cc0000', height=itemHeight, width=800)
-            self.ingLabel = Label(self.ingFrame,text=ingredient, bg='#0000cc', fg=mainFGColour, font=subTitleFont)
+            self.ingFrameContainer = Frame(self.midPayne)
+            self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=800)
+            self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
             self.ingLabel.pack(side=LEFT, padx=10)
             self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
 
-            self.ingCheck = Checkbutton(self.ingFrame, onvalue=1, offvalue=0, height=5, width=5)
-            self.ingCheck.pack(side=RIGHT)
+            self.checkIngredients.append(ingredient)
+            tempVal = self.ingredientsInStock.get(ingredient, 0)
+            self.checkValues.append(IntVar(self.ingFrame, tempVal))
+            self.ingCheck = Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile)
+            self.ingCheck.pack(side=RIGHT, padx=5)
+
+            ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            ledStrips = [1, 2, 3, 4]
+            self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
+            self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x], ledIndexes[0], *ledIndexes, style='LEDIndexOptions.TButton')
+            self.ledIndexCombo.pack(side=RIGHT, padx=5, ipady=5)
+
+            self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
+            self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x], ledStrips[0], *ledStrips, style='LEDIndexOptions.TButton')
+            self.ledStripCombo.pack(side=RIGHT, padx=5, ipady=5)
+
 
             self.ingFrame.pack()
             self.ingFrame.pack_propagate(False)
@@ -455,7 +497,7 @@ class Application(Frame):
 
             self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
             x = x + 1
-        self.midPayne.configure(scrollregion=(0, 0, 500, max(itemHeight*(x+1), self.midPayneContainer.winfo_height())))
+        self.midPayne.configure(scrollregion=(0, 0, 500, max((itemHeight+5)*(x+1), self.midPayneContainer.winfo_height())))
         self.midPayne.pack()
 
         self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
@@ -471,6 +513,22 @@ class Application(Frame):
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
+
+    def updateIngredientsFile(self):
+        self.ingredientsInStock.clear()
+        JSONString = '{"ingredients": ['
+        for i in range(len(self.checkIngredients)):
+            JSONString = JSONString + '{"name": "' + self.checkIngredients[i] + '",'
+            JSONString = JSONString + '"inStock": "' + str(self.checkValues[i].get()) + '",'
+            JSONString = JSONString + '"LEDStrip": "' + str(self.checkLEDStrip[i].get()) + '",'
+            JSONString = JSONString + '"LEDIndex": "' + str(self.checkLEDIndex[i].get()) + '"},'
+
+            self.ingredientsInStock.update({self.checkIngredients[i]:str(self.checkValues[i].get())})
+        JSONString = JSONString[:-1]
+        JSONString = JSONString + ']}'
+        f = open("ingredients.JSON", "w")
+        f.write(JSONString)
+        f.close()
 
     def homepage(self):
         self.currentPageIndex = 0
@@ -508,11 +566,8 @@ class Application(Frame):
         self.getRecipesByGlassType(self.glassTypeString.get())
 
     def openRecipe(self, recipe):
-        #self.scrolling = root
         if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
-            #self.scrolledAmmount = 0
             self.mouseIsDown = False
-            #self.scrollPos = self.vbar.get()[0]
             self.currentPageIndex = 1
             for child in self.mainFrame.winfo_children():
                 child.destroy()
@@ -537,16 +592,28 @@ class Application(Frame):
             self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
             self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-            #self.cocktailName.config(text=recipe['name'])
             self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
         
             self.cocktailIngredients.delete(1.0, END)
 
+            self.cocktailIngredients.tag_config('green', foreground="#00cc00")
+            self.cocktailIngredients.tag_config('red', foreground="#cc0000")
+            self.cocktailIngredients.tag_config('default', foreground=mainFGColour)
+            self.tag = 'red'
             for ingredient in recipe['ingredients']:
                 dots = ""
                 for x in range(28 - (len(ingredient['name'][:18]) + len(ingredient['quantity']) + len(ingredient['unit']))):
                     dots = dots + "."
-                self.cocktailIngredients.insert(END, "\u2022 " + ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n")
+                
+                if (self.ingredientsInStock.get(ingredient['name'], 0) == '1'):
+                    self.tag = 'green'
+                else:
+                    self.tag = 'red'
+
+                self.cocktailIngredients.insert(END, "\u2022 ", self.tag)
+                self.cocktailIngredients.insert(END, ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n", 'default')
+  
+
             self.cocktailIngredients.delete('end-2c', END)
             #root.update()
             #root.update_idletasks()
