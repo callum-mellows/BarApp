@@ -309,11 +309,11 @@ class Application(Frame):
         self.midPayne.pack()
 
         self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
-        action_with_arg2 = partial(self.recipesMove, -1)
+        action_with_arg2 = partial(self.recipesMove, -105)
         self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
         self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
         self.upBtn.pack(side=TOP, pady=10)
-        action_with_arg3 = partial(self.recipesMove, 1)
+        action_with_arg3 = partial(self.recipesMove, 105)
         self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
         self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='down', command=action_with_arg3)
         self.downBtn.pack(side=BOTTOM, pady=10)
@@ -445,7 +445,7 @@ class Application(Frame):
         self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=100);
         self.titleFrame = Frame(self.topPayne, bg=mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=mainBGColour, fg=mainFGColour)
-        self.titleLabel.pack(side=BOTTOM)
+        self.titleLabel.pack(side=TOP)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
         self.btn = Button(self.topPayne, text="Return", font=subTitleFont, command=self.homepage)
         self.btn.pack(side=RIGHT, padx=25, pady=25)
@@ -470,47 +470,71 @@ class Application(Frame):
         self.checkValues = []
         self.checkLEDStrip = []
         self.checkLEDIndex = []
+
+        self.ingFrameContainer = Frame(self.midPayne)
+        self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=800)
+        self.ingLabel = Label(self.ingFrame,text='Stock:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=LEFT, padx=15)
+        self.ingLabel = Label(self.ingFrame,text='Name:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=LEFT, padx=40)
+        self.ingLabel = Label(self.ingFrame,text='LED Strip:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=RIGHT, padx=10)
+        self.ingLabel = Label(self.ingFrame,text='LED Index:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=RIGHT, padx=10)
+        self.ingFrame.pack()
+        self.ingFrame.pack_propagate(False)
+        mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+        self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
+        self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
+        x = x + 1
+
+        self.checkBoxes = []
         for ingredient in self.ingredients:
             self.ingFrameContainer = Frame(self.midPayne)
             self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=800)
-            self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
-            self.ingLabel.pack(side=LEFT, padx=10)
-            self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
 
             self.checkIngredients.append(ingredient)
             tempVal = self.ingredientsInStock.get(ingredient, 0)
             self.checkValues.append(IntVar(self.ingFrame, tempVal))
-            self.ingCheck = Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile)
-            self.ingCheck.pack(side=RIGHT, padx=5)
+            self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
+            self.checkBoxes[x-1].pack(side=LEFT, padx=25)
+
+            self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
+            self.ingLabel.pack(side=LEFT, padx=25)
+            mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
+            self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
+            mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+            self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
 
             ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             ledStrips = [1, 2, 3, 4]
             tempVal = self.ingredientsLEDPosition.get(ingredient, 0)[1]
             self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
-            self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFile)
-            self.ledIndexCombo.pack(side=RIGHT, padx=5, ipady=5)
+            self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
+            self.ledIndexCombo.pack(side=RIGHT, padx=45, ipady=5)
 
             tempVal = self.ingredientsLEDPosition.get(ingredient, 0)[0]
             self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
-            self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFile)
-            self.ledStripCombo.pack(side=RIGHT, padx=5, ipady=5)
+            self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
+            self.ledStripCombo.pack(side=RIGHT, padx=45, ipady=5)
 
 
             self.ingFrame.pack()
             self.ingFrame.pack_propagate(False)
+            mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
             self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
 
             self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
             x = x + 1
-        self.midPayne.configure(scrollregion=(0, 0, 500, max((itemHeight+5)*(x+1), self.midPayneContainer.winfo_height())))
+        self.midPayne.configure(scrollregion=(0, 0, 500, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
         self.midPayne.pack()
 
         self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
-        action_with_arg2 = partial(self.recipesMove, -1)
+        action_with_arg2 = partial(self.recipesMove, -385)
         self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
         self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
         self.upBtn.pack(side=TOP, pady=10)
-        action_with_arg3 = partial(self.recipesMove, 1)
+        action_with_arg3 = partial(self.recipesMove, 385)
         self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
         self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='down', command=action_with_arg3)
         self.downBtn.pack(side=BOTTOM, pady=10)
@@ -519,7 +543,15 @@ class Application(Frame):
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
 
-    def updateIngredientsFile(self, event):
+
+    def selectIngredientLabel(self, index, event):
+        if self.hasScrolled == False:
+            self.checkBoxes[index].toggle()
+
+    def updateIngredientsFileLED(self, event):
+        self.updateIngredientsFile()
+
+    def updateIngredientsFile(self):
         self.ingredientsInStock.clear()
         self.ingredientsLEDPosition.clear()
         JSONString = '{"ingredients": ['
@@ -545,7 +577,7 @@ class Application(Frame):
         self.midPayne.yview_moveto(self.scrollPos)
 
     def recipesMove(self, direction):
-        self.midPayne.yview_scroll(int(direction*7), "units")
+        self.midPayne.yview_scroll(int(direction), "units")
         
 
     def scrollMainPageRecipes(self, event):
@@ -599,7 +631,7 @@ class Application(Frame):
             self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
             self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-            self.topPayne.create_text(30,20, text=recipe['name'], font=titleFont, anchor='nw')
+            self.topPayne.create_text(30,10, text=recipe['name'], font=titleFont, anchor='nw')
         
             self.cocktailIngredients.delete(1.0, END)
 
@@ -622,7 +654,7 @@ class Application(Frame):
   
 
             self.cocktailIngredients.delete('end-2c', END)
-            #root.update()
+            root.update()
             #root.update_idletasks()
             line_height = font.metrics("linespace")
             num_lines = self.cocktailIngredients.count('1.0', END, 'displaylines')[0]
@@ -633,8 +665,9 @@ class Application(Frame):
             self.cocktailSteps.delete(1.0, END)
             for step in recipe['steps']:
                 self.cocktailSteps.insert(END, "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n")
+                #print("count: " + str(self.cocktailSteps.count( ('1.0', END, 'ypixels')))
             self.cocktailSteps.delete('end-2c', END)
-            #root.update()
+            root.update()
             #root.update_idletasks()
             line_height = font.metrics("linespace")
             num_lines = self.cocktailSteps.count('1.0', END, 'displaylines')[0]
