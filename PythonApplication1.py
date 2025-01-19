@@ -4,6 +4,7 @@ from genericpath import isfile
 import json
 from tkinter import *
 from tkinter import ttk 
+from tkinter import colorchooser
 import os
 import tkinter
 from tkinter.messagebox import showerror
@@ -22,10 +23,11 @@ root = Tk()
 transparentColour = '#FF00E8'
 mainBGColour = '#111111'
 secondaryBGColour = '#333333'
-mainFGColour = '#CCCCCC'
-disabledFGColour = '#444444'
+mainFGColour = '#EEEEEE'
+disabledFGColour = '#333333'
 
 font = Font(family="Courier new", size=13)
+fontBold = Font(family="Courier new", size=14, weight='bold')
 smallFont = Font(family="Courier new", size=8)
 titleFont = Font(family="Courier new", size=40, weight="bold")
 subTitleFont = Font(family="Courier new", size=15, weight="bold")
@@ -66,7 +68,9 @@ class Application(Frame):
     ingredients = set([])
     ingredientsInStock = dict()
     ingredientsLEDPosition = dict()
+    ingredientsColour = dict()
     glassTypes = set([])
+    garnishes = ([])
 
     scrolling = root
     mouseIsDown = False
@@ -133,6 +137,7 @@ class Application(Frame):
         ingredients2 = set([])
         spirits = set([])
         glassTypes2 = set([])
+        garnishes2 = ([])
         for recipe in recipes['recipies']:
             temp = recipe['season']
             if len(temp) > 1:
@@ -146,6 +151,10 @@ class Application(Frame):
             if len(temp) > 1:
                 glassTypes2.add(temp)
 
+            for garnish in str.split(recipe['garnish'], ','):
+                temp = str.strip(garnish, ' ')
+                if len(temp) > 1:
+                    garnishes2.append(str.lower(temp))
             
             for ingredient in recipe['ingredients']:
                 if len(ingredient['name']) > 1:
@@ -160,6 +169,7 @@ class Application(Frame):
             self.ingredients = sorted(ingredients2)
             self.spirits = sorted(spirits)
             self.glassTypes = sorted(glassTypes2)
+            self.garnishes = sorted(garnishes2)
     
     def recipeIngredientsInStock(self, recipe):
         for ingredient in recipe['ingredients']:
@@ -179,6 +189,7 @@ class Application(Frame):
         for ingredient in tempIngredients['ingredients']:
             self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
             self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
+            self.ingredientsColour.update({ingredient['name']:ingredient['Colour']})
             
             
 
@@ -264,7 +275,7 @@ class Application(Frame):
             else:
                 colour = disabledFGColour
 
-            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg=colour, font=font, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
+            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg=colour, font=fontBold, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
             self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
             self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
             self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
@@ -277,6 +288,14 @@ class Application(Frame):
             self.dateTimeLabel.configure(text=timeString)
             #self.dateTimeLabel.update()
     
+    def clickUpDownCanvas(self, event):
+        if (event.x > 0 & event.x < 75):
+            if((event.y > 10) & (event.y < 85)):
+                self.recipesMove(-105)
+                return
+            if((event.y > 370) & (event.y < 445)):
+                self.recipesMove(105)
+                return
 
     def Page0(self):
 
@@ -308,16 +327,43 @@ class Application(Frame):
         self.getRecipesByCategory('Any')
         self.midPayne.pack()
 
-        self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
-        action_with_arg2 = partial(self.recipesMove, -105)
-        self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
-        self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
-        self.upBtn.pack(side=TOP, pady=10)
-        action_with_arg3 = partial(self.recipesMove, 105)
-        self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
-        self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='down', command=action_with_arg3)
-        self.downBtn.pack(side=BOTTOM, pady=10)
-        self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
+        self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=75)
+        self.upDownBtnCanvas.bind("<ButtonPress-1>", self.clickUpDownCanvas)
+
+        self.upDownBtnCanvas.create_rectangle(35, 80, 39, 395, fill='#cccccc')
+
+        self.upImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\buttons\\up.png")), Image.BICUBIC)
+        self.upDownBtnCanvas.create_image(0, 10, anchor='nw', image=self.upImage)
+
+        self.downImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\buttons\\down.png")), Image.BICUBIC)
+        self.upDownBtnCanvas.create_image(0, 370, anchor='nw', image=self.downImage)
+
+        self.upDownBtnCanvas.create_rectangle(17, 90, 57, 92, fill='#cccccc', outline='#cccccc')
+        self.upDownBtnCanvas.create_rectangle(17, 364, 57, 366, fill='#cccccc', outline='#cccccc')
+
+        self.upDownBtnCanvas.pack(side=RIGHT, fill='y', padx=10)
+
+        # action_with_arg2 = partial(self.recipesMove, -105)
+        # self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\up.png"))
+        # self.upDownBtnFrame.create_image()
+        # self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='', command=action_with_arg2)
+        # self.upBtn.pack(side=TOP, pady=10)
+        # action_with_arg3 = partial(self.recipesMove, 105)
+        # self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\down.png"))
+        # self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='', command=action_with_arg3)
+        # self.downBtn.pack(side=BOTTOM, pady=10)
+        # self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
+
+        # self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
+        # action_with_arg2 = partial(self.recipesMove, -105)
+        # self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\up.png"))
+        # self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='', command=action_with_arg2)
+        # self.upBtn.pack(side=TOP, pady=10)
+        # action_with_arg3 = partial(self.recipesMove, 105)
+        # self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\down.png"))
+        # self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='', command=action_with_arg3)
+        # self.downBtn.pack(side=BOTTOM, pady=10)
+        # self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
@@ -470,6 +516,7 @@ class Application(Frame):
         self.checkValues = []
         self.checkLEDStrip = []
         self.checkLEDIndex = []
+        self.IngColours = [];
 
         self.ingFrameContainer = Frame(self.midPayne)
         self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=800)
@@ -481,6 +528,8 @@ class Application(Frame):
         self.ingLabel.pack(side=RIGHT, padx=10)
         self.ingLabel = Label(self.ingFrame,text='LED Index:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
         self.ingLabel.pack(side=RIGHT, padx=10)
+        self.ingLabel = Label(self.ingFrame,text='Colour:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=RIGHT, padx=10)
         self.ingFrame.pack()
         self.ingFrame.pack_propagate(False)
         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
@@ -489,43 +538,50 @@ class Application(Frame):
         x = x + 1
 
         self.checkBoxes = []
+        self.colourButtons = []
         for ingredient in self.ingredients:
-            self.ingFrameContainer = Frame(self.midPayne)
-            self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=800)
+            if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
+                self.ingFrameContainer = Frame(self.midPayne)
+                self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=800)
 
-            self.checkIngredients.append(ingredient)
-            tempVal = self.ingredientsInStock.get(ingredient, 0)
-            self.checkValues.append(IntVar(self.ingFrame, tempVal))
-            self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
-            self.checkBoxes[x-1].pack(side=LEFT, padx=25)
+                self.checkIngredients.append(ingredient)
+                tempVal = self.ingredientsInStock.get(ingredient, 0)
+                self.checkValues.append(IntVar(self.ingFrame, tempVal))
+                self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
+                self.checkBoxes[x-1].pack(side=LEFT, padx=25)
 
-            self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
-            self.ingLabel.pack(side=LEFT, padx=25)
-            mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
-            self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
-            mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-            self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
+                self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
+                self.ingLabel.pack(side=LEFT, padx=25)
+                mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
+                self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
+                mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+                self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
 
-            ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-            ledStrips = [1, 2, 3, 4]
-            tempVal = self.ingredientsLEDPosition.get(ingredient, 0)[1]
-            self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
-            self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-            self.ledIndexCombo.pack(side=RIGHT, padx=45, ipady=5)
+                ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+                ledStrips = [1, 2, 3, 4]
+                tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
+                self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
+                self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
+                self.ledIndexCombo.pack(side=RIGHT, padx=45, ipady=5)
 
-            tempVal = self.ingredientsLEDPosition.get(ingredient, 0)[0]
-            self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
-            self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-            self.ledStripCombo.pack(side=RIGHT, padx=45, ipady=5)
+                tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
+                self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
+                self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
+                self.ledStripCombo.pack(side=RIGHT, padx=45, ipady=5)
 
+                action_with_arg = partial(self.pickColor, x-1)
+                tempVal = self.ingredientsColour.get(ingredient, '#ffffff')
+                self.IngColours.append(tempVal)
+                self.colourButtons.append(Button(self.ingFrame, bg=tempVal, fg=mainFGColour, text='Colour', command=action_with_arg))
+                self.colourButtons[x-1].pack(side=RIGHT, padx= 10)
 
-            self.ingFrame.pack()
-            self.ingFrame.pack_propagate(False)
-            mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-            self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
+                self.ingFrame.pack()
+                self.ingFrame.pack_propagate(False)
+                mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+                self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
 
-            self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
-            x = x + 1
+                self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
+                x = x + 1
         self.midPayne.configure(scrollregion=(0, 0, 500, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
         self.midPayne.pack()
 
@@ -543,6 +599,11 @@ class Application(Frame):
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
 
+    def pickColor(self, index):
+        color_code = colorchooser.askcolor(title ="Choose color") 
+        self.colourButtons[index].configure(bg=color_code[1])
+        self.IngColours[index] = color_code[1]
+        self.updateIngredientsFile()
 
     def selectIngredientLabel(self, index, event):
         if self.hasScrolled == False:
@@ -554,15 +615,18 @@ class Application(Frame):
     def updateIngredientsFile(self):
         self.ingredientsInStock.clear()
         self.ingredientsLEDPosition.clear()
+        self.ingredientsColour.clear()
         JSONString = '{"ingredients": ['
         for i in range(len(self.checkIngredients)):
             JSONString = JSONString + '{"name": "' + self.checkIngredients[i] + '",'
             JSONString = JSONString + '"inStock": "' + str(self.checkValues[i].get()) + '",'
             JSONString = JSONString + '"LEDStrip": "' + str(self.checkLEDStrip[i].get()) + '",'
-            JSONString = JSONString + '"LEDIndex": "' + str(self.checkLEDIndex[i].get()) + '"},'
+            JSONString = JSONString + '"LEDIndex": "' + str(self.checkLEDIndex[i].get()) + '",'
+            JSONString = JSONString + '"Colour": "' + self.IngColours[i] + '"},'
 
             self.ingredientsInStock.update({self.checkIngredients[i]:str(self.checkValues[i].get())})
             self.ingredientsLEDPosition.update({self.checkIngredients[i]:(str(self.checkLEDStrip[i].get()), str(self.checkLEDIndex[i].get()))})
+            self.ingredientsColour.update({self.checkIngredients[i]:self.IngColours[i]})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
         f = open("ingredients.JSON", "w")
@@ -577,6 +641,7 @@ class Application(Frame):
         self.midPayne.yview_moveto(self.scrollPos)
 
     def recipesMove(self, direction):
+        print(direction)
         self.midPayne.yview_scroll(int(direction), "units")
         
 
@@ -612,9 +677,23 @@ class Application(Frame):
                 child.destroy()
             self.pages[self.currentPageIndex]()
 
+            RGB = [0, 0, 0]
+            ingredientsCount = 0
+            for ingredient in recipe['ingredients']:
+                if self.ingredientsColour.get(ingredient['name']) != '#ffffff':
+                    ingredientsCount = ingredientsCount + 1
+                    tempRGB = HexToRGB(self.ingredientsColour.get(ingredient['name']))
+                    RGB[0] = RGB[0] + tempRGB[0]
+                    RGB[1] = RGB[1] + tempRGB[1]
+                    RGB[2] = RGB[2] + tempRGB[2]
+            RGB[0] = RGB[0] / ingredientsCount
+            RGB[1] = RGB[1] / ingredientsCount
+            RGB[2] = RGB[2] / ingredientsCount
+            recipeColour = RGBToHex(int(RGB[0]), int(RGB[1]), int(RGB[2]))
+
             width = self.winfo_width()
             height = self.winfo_height()
-            (r1,g1,b1) = self.winfo_rgb(recipe['colour'])
+            (r1,g1,b1) = self.winfo_rgb(recipeColour)
             (r2,g2,b2) = self.winfo_rgb('#000000')
             r_ratio = float(r2-r1) / width
             g_ratio = float(g2-g1) / width
@@ -638,6 +717,7 @@ class Application(Frame):
             self.cocktailIngredients.tag_config('green', foreground="#00cc00")
             self.cocktailIngredients.tag_config('red', foreground="#cc0000")
             self.cocktailIngredients.tag_config('default', foreground=mainFGColour)
+            
             self.tag = 'red'
             for ingredient in recipe['ingredients']:
                 dots = ""
@@ -646,12 +726,13 @@ class Application(Frame):
                 
                 if (self.ingredientsInStock.get(ingredient['name'], 0) == '1'):
                     self.tag = 'green'
+                elif (self.garnishes.__contains__(str.lower(str.rstrip(ingredient['name'], 's'))) == True):
+                    self.tag = 'green'
                 else:
                     self.tag = 'red'
 
                 self.cocktailIngredients.insert(END, "\u2022 ", self.tag)
                 self.cocktailIngredients.insert(END, ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n", 'default')
-  
 
             self.cocktailIngredients.delete('end-2c', END)
             root.update()
@@ -679,7 +760,7 @@ class Application(Frame):
                 self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
                 self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
-            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 95), Image.BICUBIC))
+            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 110), Image.BICUBIC))
             self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
         
             self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 185), Image.BICUBIC))
@@ -693,7 +774,7 @@ class Application(Frame):
                     break
                 if (temp[0] == 'a') & (temp[1] == ' '):
                     temp = temp[2:]
-                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 95), Image.BICUBIC)))
+                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 110), Image.BICUBIC)))
                 self.underLeftPayne.create_image((235 - (x * 75)) , 185, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
                 x = x + 1
 
@@ -706,6 +787,16 @@ class Application(Frame):
             child.destroy()
         self.pages[self.currentPageIndex]()
 
+def HexToRGB(rgb):
+    if (type(rgb) != str):
+        return (0, 0, 0)
+    if ((len(rgb) == 0) | (rgb[0] != '#')):
+        return (0, 0, 0)
+    rgb = str.lstrip(rgb, '#')
+    return tuple(int(rgb[i:i+2], 16) for i in (0, 2, 4))
+
+def RGBToHex(r, g, b):
+    return "#{:02x}{:02x}{:02x}".format(r,g,b)
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
