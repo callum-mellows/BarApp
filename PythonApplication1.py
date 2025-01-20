@@ -17,6 +17,7 @@ from PIL import Image
 from PIL import ImageTk
 from pathlib import Path
 import time
+import pygame
 
 root = Tk()
 
@@ -72,6 +73,10 @@ class Application(Frame):
     glassTypes = set([])
     garnishes = ([])
 
+    pygame.mixer.init() 
+    pygame.mixer.music.set_volume(1.0)
+    
+
     scrolling = root
     mouseIsDown = False
     initialMouseY = 0
@@ -87,6 +92,7 @@ class Application(Frame):
             
             self.initialMouseY = root.winfo_pointery()
             self.scrolling.yview_scroll(int(scrollOffset)*-1, "units")
+            self.moveScrollBar()
 
     def mouseDown(self, widget, isText, event):
         self.mouseIsDown = True
@@ -122,6 +128,7 @@ class Application(Frame):
                     self.scrolling = root
                 else:
                     self.scrolling.yview_scroll(int(self.scrollVelocity)*-1, "units")
+                    self.moveScrollBar()
 
     
     def getIfIngredientIsSpirit(self, ing):
@@ -247,6 +254,7 @@ class Application(Frame):
                 RecipeListNotInStock.append(recipe)
         return RecipeListInStock + RecipeListNotInStock
 
+
     def addRecipeButtons(self, recipes):
         orderedRecipes = self.orderRecipeListByInStock(recipes)
 
@@ -275,10 +283,13 @@ class Application(Frame):
             else:
                 colour = disabledFGColour
 
-            self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg=colour, font=fontBold, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
-            self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
-            self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
-            self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
+            #self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg=colour, font=fontBold, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
+            #self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
+            #self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
+            #self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
+            
+
+            
             self.left = self.left+self.w+10;
             x = x + 1
         self.midPayne.configure(scrollregion=(0, 0, ((self.w * 4) + 25), max((((self.h * self.rows) + (10 * (self.rows + 1)))-5), self.midPayneContainer.winfo_height())))
@@ -327,43 +338,17 @@ class Application(Frame):
         self.getRecipesByCategory('Any')
         self.midPayne.pack()
 
-        self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=75)
+        self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=80)
         self.upDownBtnCanvas.bind("<ButtonPress-1>", self.clickUpDownCanvas)
-
-        self.upDownBtnCanvas.create_rectangle(35, 80, 39, 395, fill='#cccccc')
-
         self.upImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\buttons\\up.png")), Image.BICUBIC)
         self.upDownBtnCanvas.create_image(0, 10, anchor='nw', image=self.upImage)
-
         self.downImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\buttons\\down.png")), Image.BICUBIC)
         self.upDownBtnCanvas.create_image(0, 370, anchor='nw', image=self.downImage)
-
-        self.upDownBtnCanvas.create_rectangle(17, 90, 57, 92, fill='#cccccc', outline='#cccccc')
-        self.upDownBtnCanvas.create_rectangle(17, 364, 57, 366, fill='#cccccc', outline='#cccccc')
-
+        self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=290)
+        self.recipeScrollBarCanvas.create_rectangle(35, 0, 39, 320, fill='#cccccc', outline='#cccccc')
+        self.bar = self.recipeScrollBarCanvas.create_rectangle(17, 3, 57, 5, fill='#cccccc', outline='#cccccc')
+        self.recipeScrollBarCanvas.pack(pady = 83)
         self.upDownBtnCanvas.pack(side=RIGHT, fill='y', padx=10)
-
-        # action_with_arg2 = partial(self.recipesMove, -105)
-        # self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\up.png"))
-        # self.upDownBtnFrame.create_image()
-        # self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='', command=action_with_arg2)
-        # self.upBtn.pack(side=TOP, pady=10)
-        # action_with_arg3 = partial(self.recipesMove, 105)
-        # self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\down.png"))
-        # self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='', command=action_with_arg3)
-        # self.downBtn.pack(side=BOTTOM, pady=10)
-        # self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
-
-        # self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
-        # action_with_arg2 = partial(self.recipesMove, -105)
-        # self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\up.png"))
-        # self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='', command=action_with_arg2)
-        # self.upBtn.pack(side=TOP, pady=10)
-        # action_with_arg3 = partial(self.recipesMove, 105)
-        # self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\down.png"))
-        # self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='', command=action_with_arg3)
-        # self.downBtn.pack(side=BOTTOM, pady=10)
-        # self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
@@ -500,7 +485,7 @@ class Application(Frame):
 
         self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
-        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=805, height=450)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=1000, height=450)
         self.midPayne.configure(yscrollincrement='1')
         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
@@ -519,17 +504,17 @@ class Application(Frame):
         self.IngColours = [];
 
         self.ingFrameContainer = Frame(self.midPayne)
-        self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=800)
-        self.ingLabel = Label(self.ingFrame,text='Stock:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=1000)
+        self.ingLabel = Label(self.ingFrame,text='In\nStock:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
         self.ingLabel.pack(side=LEFT, padx=15)
         self.ingLabel = Label(self.ingFrame,text='Name:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
         self.ingLabel.pack(side=LEFT, padx=40)
-        self.ingLabel = Label(self.ingFrame,text='LED Strip:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=RIGHT, padx=10)
-        self.ingLabel = Label(self.ingFrame,text='LED Index:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=RIGHT, padx=10)
+        self.ingLabel = Label(self.ingFrame,text='LED\nStrip:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=RIGHT, padx=20)
+        self.ingLabel = Label(self.ingFrame,text='LED\nIndex:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        self.ingLabel.pack(side=RIGHT, padx=20)
         self.ingLabel = Label(self.ingFrame,text='Colour:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=RIGHT, padx=10)
+        self.ingLabel.pack(side=RIGHT, padx=20)
         self.ingFrame.pack()
         self.ingFrame.pack_propagate(False)
         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
@@ -541,17 +526,17 @@ class Application(Frame):
         self.colourButtons = []
         for ingredient in self.ingredients:
             if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
-                self.ingFrameContainer = Frame(self.midPayne)
-                self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=800)
+                self.ingFrameContainer = Frame(self.midPayne, width=1000)
+                self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=1000)
 
                 self.checkIngredients.append(ingredient)
                 tempVal = self.ingredientsInStock.get(ingredient, 0)
                 self.checkValues.append(IntVar(self.ingFrame, tempVal))
                 self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
-                self.checkBoxes[x-1].pack(side=LEFT, padx=25)
+                self.checkBoxes[x-1].pack(side=LEFT, padx=0, ipadx=25)
 
                 self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
-                self.ingLabel.pack(side=LEFT, padx=25)
+                self.ingLabel.pack(side=LEFT, padx=0, ipadx=20)
                 mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
                 self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
                 mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
@@ -562,18 +547,18 @@ class Application(Frame):
                 tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
                 self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
                 self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-                self.ledIndexCombo.pack(side=RIGHT, padx=45, ipady=5)
+                self.ledIndexCombo.pack(side=RIGHT, padx=30, ipady=5)
 
                 tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
                 self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
                 self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-                self.ledStripCombo.pack(side=RIGHT, padx=45, ipady=5)
+                self.ledStripCombo.pack(side=RIGHT, padx=30, ipady=5)
 
                 action_with_arg = partial(self.pickColor, x-1)
                 tempVal = self.ingredientsColour.get(ingredient, '#ffffff')
                 self.IngColours.append(tempVal)
-                self.colourButtons.append(Button(self.ingFrame, bg=tempVal, fg=mainFGColour, text='Colour', command=action_with_arg))
-                self.colourButtons[x-1].pack(side=RIGHT, padx= 10)
+                self.colourButtons.append(Button(self.ingFrame, bg=tempVal, fg=mainFGColour, text='', width=10, command=action_with_arg))
+                self.colourButtons[x-1].pack(side=RIGHT, padx= 30, ipady=5)
 
                 self.ingFrame.pack()
                 self.ingFrame.pack_propagate(False)
@@ -582,19 +567,8 @@ class Application(Frame):
 
                 self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
                 x = x + 1
-        self.midPayne.configure(scrollregion=(0, 0, 500, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
+        self.midPayne.configure(scrollregion=(0, 0, 1000, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
         self.midPayne.pack()
-
-        self.upDownBtnFrame = Frame(self.midPayneContainerContainer, bg=mainBGColour)
-        action_with_arg2 = partial(self.recipesMove, -385)
-        self.buttonUpImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
-        self.upBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonUpImage, compound="center", text='up', command=action_with_arg2)
-        self.upBtn.pack(side=TOP, pady=10)
-        action_with_arg3 = partial(self.recipesMove, 385)
-        self.buttonDownImage = PhotoImage(file = os.path.join(dirname, "images\\buttons\\btn1.png"))
-        self.downBtn = Button(self.upDownBtnFrame, width=75, height=75, highlightthickness=0, borderwidth=0, fg='#ffffff', padx=0, pady=0, image=self.buttonDownImage, compound="center", text='down', command=action_with_arg3)
-        self.downBtn.pack(side=BOTTOM, pady=10)
-        self.upDownBtnFrame.pack(side=RIGHT, fill='y', padx=10)
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
@@ -608,6 +582,7 @@ class Application(Frame):
     def selectIngredientLabel(self, index, event):
         if self.hasScrolled == False:
             self.checkBoxes[index].toggle()
+            self.updateIngredientsFile()
 
     def updateIngredientsFileLED(self, event):
         self.updateIngredientsFile()
@@ -618,15 +593,18 @@ class Application(Frame):
         self.ingredientsColour.clear()
         JSONString = '{"ingredients": ['
         for i in range(len(self.checkIngredients)):
+            temp = self.IngColours[i]
+            if type(temp) != str:
+                temp = '#ffffff'
             JSONString = JSONString + '{"name": "' + self.checkIngredients[i] + '",'
             JSONString = JSONString + '"inStock": "' + str(self.checkValues[i].get()) + '",'
             JSONString = JSONString + '"LEDStrip": "' + str(self.checkLEDStrip[i].get()) + '",'
             JSONString = JSONString + '"LEDIndex": "' + str(self.checkLEDIndex[i].get()) + '",'
-            JSONString = JSONString + '"Colour": "' + self.IngColours[i] + '"},'
+            JSONString = JSONString + '"Colour": "' + temp + '"},'
 
             self.ingredientsInStock.update({self.checkIngredients[i]:str(self.checkValues[i].get())})
             self.ingredientsLEDPosition.update({self.checkIngredients[i]:(str(self.checkLEDStrip[i].get()), str(self.checkLEDIndex[i].get()))})
-            self.ingredientsColour.update({self.checkIngredients[i]:self.IngColours[i]})
+            self.ingredientsColour.update({self.checkIngredients[i]:temp})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
         f = open("ingredients.JSON", "w")
@@ -634,6 +612,8 @@ class Application(Frame):
         f.close()
 
     def homepage(self):
+        pygame.mixer.music.load("closeRecipe.mp3")
+        pygame.mixer.music.play()
         self.currentPageIndex = 0
         for child in self.mainFrame.winfo_children():
             child.destroy()
@@ -641,9 +621,19 @@ class Application(Frame):
         self.midPayne.yview_moveto(self.scrollPos)
 
     def recipesMove(self, direction):
-        print(direction)
+        pygame.mixer.music.load("click.mp3")
+        pygame.mixer.music.play()
         self.midPayne.yview_scroll(int(direction), "units")
+        self.moveScrollBar()
         
+
+    def moveScrollBar(self):
+        if self.currentPageIndex == 0:
+            size = (self.midPayne.yview()[1] - self.midPayne.yview()[0])
+            alpha = (self.midPayne.yview()[0]-0)/((1 - (size))-0)*(1-0)+0
+            self.recipeScrollBarCanvas.delete(self.bar)
+            self.bar = self.recipeScrollBarCanvas.create_rectangle(17, (alpha * 276) + 3, 57, (alpha * 276) + 5, fill='#cccccc', outline='#cccccc')
+
 
     def scrollMainPageRecipes(self, event):
         self.midPayne.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -671,6 +661,8 @@ class Application(Frame):
 
     def openRecipe(self, recipe):
         if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
+            pygame.mixer.music.load("openRecipe.mp3")
+            pygame.mixer.music.play()
             self.mouseIsDown = False
             self.currentPageIndex = 1
             for child in self.mainFrame.winfo_children():
@@ -686,9 +678,9 @@ class Application(Frame):
                     RGB[0] = RGB[0] + tempRGB[0]
                     RGB[1] = RGB[1] + tempRGB[1]
                     RGB[2] = RGB[2] + tempRGB[2]
-            RGB[0] = RGB[0] / ingredientsCount
-            RGB[1] = RGB[1] / ingredientsCount
-            RGB[2] = RGB[2] / ingredientsCount
+            RGB[0] = RGB[0] / max(ingredientsCount, 1)
+            RGB[1] = RGB[1] / max(ingredientsCount, 1)
+            RGB[2] = RGB[2] / max(ingredientsCount, 1)
             recipeColour = RGBToHex(int(RGB[0]), int(RGB[1]), int(RGB[2]))
 
             width = self.winfo_width()
@@ -710,7 +702,15 @@ class Application(Frame):
             self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
             self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-            self.topPayne.create_text(30,10, text=recipe['name'], font=titleFont, anchor='nw')
+            self.topPayne.create_text(28,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(28,12, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(32,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(32,12, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(28,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(30,12, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(32,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(30,10, text=recipe['name'], font=titleFont, anchor='nw', fill='#cccccc')
         
             self.cocktailIngredients.delete(1.0, END)
 
@@ -778,10 +778,14 @@ class Application(Frame):
                 self.underLeftPayne.create_image((235 - (x * 75)) , 185, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
                 x = x + 1
 
+            
+
             #self.cocktailGarnish.config(text=recipe['garnish'])
             #self.cocktailGlass.config(text=recipe['glassType'])
 
     def openIngredientsManager(self):
+        pygame.mixer.music.load("openRecipe.mp3")
+        pygame.mixer.music.play()
         self.currentPageIndex = 2
         for child in self.mainFrame.winfo_children():
             child.destroy()
