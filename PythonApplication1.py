@@ -9,6 +9,7 @@ import os
 import tkinter
 from tkinter.messagebox import showerror
 from tkinter.font import Font
+from turtle import width
 dirname = os.path.dirname(__file__)
 from functools import partial
 from datetime import datetime
@@ -47,7 +48,7 @@ def checkGarnishImagesExist(recipes):
                 break
             if (temp[0] == 'a') & (temp[1] == ' '):
                 temp = temp[2:]
-            path = os.path.join(dirname, "images\\garnishes\\" + temp + ".png")
+            path = os.path.join(dirname, "images/garnishes/" + temp + ".png")
             if Path(path).is_file() == False:
                 showerror("", "missing file: " + path)
                 return False
@@ -55,7 +56,7 @@ def checkGarnishImagesExist(recipes):
 
 def checkGlassImagesExist(recipes):
     for recipe in recipes['recipies']:
-        path = os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")
+        path = os.path.join(dirname, "images/glasses/" + recipe['glassType'].split(' ')[0] + ".png")
         if Path(path).is_file() == False:
                 showerror("", "missing file: " + path)
                 return False
@@ -104,12 +105,15 @@ class Application(Frame):
         if isText == True:
             return "break"
 
+            
     def setHasScrolled(self):
         if self.mouseIsDown == True:
             self.hasScrolled = True
 
     def mouseUp(self, event):
         self.mouseIsDown = False
+        if (self.scrolling == self.midPayne) & (self.currentPageIndex == 0):
+            self.clickRecipeCanvas(event)
 
     def update(self):
         if self.scrollVelocity > 0:
@@ -187,10 +191,10 @@ class Application(Frame):
     def __init__(self, root):
         super().__init__(root, bg=mainBGColour)
 
-        self.f = open("recipes.JSON", "r")
+        self.f = open(os.path.join(dirname, "recipes.JSON"), "r")
         self.recipes = json.load(self.f)
 
-        self.f = open("ingredients.JSON", "r")
+        self.f = open(os.path.join(dirname, "ingredients.JSON"), "r")
         tempIngredients = json.load(self.f)
 
         for ingredient in tempIngredients['ingredients']:
@@ -254,12 +258,15 @@ class Application(Frame):
                 RecipeListNotInStock.append(recipe)
         return RecipeListInStock + RecipeListNotInStock
 
-
+    recipeButtons = []
+    recipeButtonAreas = []
     def addRecipeButtons(self, recipes):
         orderedRecipes = self.orderRecipeListByInStock(recipes)
 
-        for child in self.midPayne.winfo_children():
-            child.destroy()
+        for child in self.recipeButtons:
+            self.midPayne.delete(child)
+        self.recipeButtons.clear()
+
         self.totalButtons = 501
         self.w = 190
         self.h = 100
@@ -276,7 +283,7 @@ class Application(Frame):
 
             action_with_arg = partial(self.openRecipe, recipe)
             mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-            self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images\\cocktails\\buttons\\"+recipe['ID']+".jpg"))
+            self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images/cocktails/buttons/"+recipe['ID']+".jpg"))
 
             if self.recipeIngredientsInStock(recipe) == True:
                 colour = mainFGColour
@@ -287,12 +294,24 @@ class Application(Frame):
             #self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
             #self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
             #self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
-            
 
-            
+            self.recipeButtons.append(self.midPayne.create_image(self.left, self.top, anchor='nw', image=self.buttonImages[recipe['ID']]))
+            self.recipeButtons.append(self.midPayne.create_text(self.left + 10, self.top + 5, width=self.w-20, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']))
+            self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
+
             self.left = self.left+self.w+10;
             x = x + 1
         self.midPayne.configure(scrollregion=(0, 0, ((self.w * 4) + 25), max((((self.h * self.rows) + (10 * (self.rows + 1)))-5), self.midPayneContainer.winfo_height())))
+
+
+    def clickRecipeCanvas(self, event):
+        x = event.x
+        y = self.midPayne.canvasy(event.y)
+        for btn in self.recipeButtonAreas:
+            if ((x > btn[0][0]) & (x < btn[0][0] + btn[0][2])):
+                if ((y > btn[0][1]) & (y < btn[0][1] + btn[0][3])):
+                    self.openRecipe(btn[1])
+                    return
 
     def setTimeString(self, timeString):
         if self.currentPageIndex == 0:
@@ -340,9 +359,9 @@ class Application(Frame):
 
         self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=80)
         self.upDownBtnCanvas.bind("<ButtonPress-1>", self.clickUpDownCanvas)
-        self.upImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\buttons\\up.png")), Image.BICUBIC)
+        self.upImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/up.png")), Image.BICUBIC)
         self.upDownBtnCanvas.create_image(0, 10, anchor='nw', image=self.upImage)
-        self.downImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\buttons\\down.png")), Image.BICUBIC)
+        self.downImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/down.png")), Image.BICUBIC)
         self.upDownBtnCanvas.create_image(0, 370, anchor='nw', image=self.downImage)
         self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=290)
         self.recipeScrollBarCanvas.create_rectangle(35, 0, 39, 320, fill='#cccccc', outline='#cccccc')
@@ -607,12 +626,12 @@ class Application(Frame):
             self.ingredientsColour.update({self.checkIngredients[i]:temp})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
-        f = open("ingredients.JSON", "w")
+        f = open(os.path.join(dirname, "ingredients.JSON"), "w")
         f.write(JSONString)
         f.close()
 
     def homepage(self):
-        pygame.mixer.music.load("closeRecipe.mp3")
+        pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
         pygame.mixer.music.play()
         self.currentPageIndex = 0
         for child in self.mainFrame.winfo_children():
@@ -621,7 +640,7 @@ class Application(Frame):
         self.midPayne.yview_moveto(self.scrollPos)
 
     def recipesMove(self, direction):
-        pygame.mixer.music.load("click.mp3")
+        pygame.mixer.music.load(os.path.join(dirname, "click.mp3"))
         pygame.mixer.music.play()
         self.midPayne.yview_scroll(int(direction), "units")
         self.moveScrollBar()
@@ -661,7 +680,7 @@ class Application(Frame):
 
     def openRecipe(self, recipe):
         if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
-            pygame.mixer.music.load("openRecipe.mp3")
+            pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
             pygame.mixer.music.play()
             self.mouseIsDown = False
             self.currentPageIndex = 1
@@ -757,13 +776,13 @@ class Application(Frame):
             self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
 
             if num_lines > 21:
-                self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\overflow.png")), Image.BICUBIC)
+                self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflow.png")), Image.BICUBIC)
                 self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
-            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\glasses\\" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 110), Image.BICUBIC))
+            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/glasses/" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 110), Image.BICUBIC))
             self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
         
-            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\cocktails\\" + recipe['ID'] + ".jpg")).resize((225, 185), Image.BICUBIC))
+            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/" + recipe['ID'] + ".jpg")).resize((225, 185), Image.BICUBIC))
             self.underLeftPayne.create_image(85, 0, anchor='nw', image=self.imgCocktail)
 
             self.imgGarnishes = []
@@ -774,7 +793,7 @@ class Application(Frame):
                     break
                 if (temp[0] == 'a') & (temp[1] == ' '):
                     temp = temp[2:]
-                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images\\garnishes\\" + temp + ".png")).resize((75, 110), Image.BICUBIC)))
+                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/garnishes/" + temp + ".png")).resize((75, 110), Image.BICUBIC)))
                 self.underLeftPayne.create_image((235 - (x * 75)) , 185, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
                 x = x + 1
 
@@ -784,7 +803,7 @@ class Application(Frame):
             #self.cocktailGlass.config(text=recipe['glassType'])
 
     def openIngredientsManager(self):
-        pygame.mixer.music.load("openRecipe.mp3")
+        pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
         self.currentPageIndex = 2
         for child in self.mainFrame.winfo_children():
