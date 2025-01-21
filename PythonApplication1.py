@@ -114,6 +114,8 @@ class Application(Frame):
         self.mouseIsDown = False
         if (self.scrolling == self.midPayne) & (self.currentPageIndex == 0):
             self.clickRecipeCanvas(event)
+        if (self.scrolling == self.midPayne) & (self.currentPageIndex == 2):
+            self.clickIngredient(event)
 
     def update(self):
         if self.scrollVelocity > 0:
@@ -290,11 +292,6 @@ class Application(Frame):
             else:
                 colour = disabledFGColour
 
-            #self.btn = Button(self.midPayne, width=self.w, height=self.h, highlightthickness=0, fg=colour, font=fontBold, wraplength=180, borderwidth=0, padx=0, pady=0, image=self.buttonImages[recipe['ID']], compound="center", text=recipe['name'], command=action_with_arg)
-            #self.btn.bind('<ButtonPress-1>', mouse_action_with_arg)
-            #self.btn.bind("<MouseWheel>", self.scrollMainPageRecipes)
-            #self.item = self.midPayne.create_window((self.left, self.top), anchor=NW, window=self.btn)
-
             self.recipeButtons.append(self.midPayne.create_image(self.left, self.top, anchor='nw', image=self.buttonImages[recipe['ID']]))
             self.recipeButtons.append(self.midPayne.create_text(self.left + 10, self.top + 5, width=self.w-20, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']))
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
@@ -437,7 +434,7 @@ class Application(Frame):
         #self.vbar2.pack(side=LEFT, fill=Y)
         #self.vbar2.config(command=self.bottomLeftPayne.yview)
         #self.bottomLeftPayne.config(yscrollcommand=self.vbar2.set)
-        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD, cursor='arrow')
+        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
         mouse_action_with_arg = partial(self.mouseDown, self.bottomLeftPayne, True)
         self.cocktailIngredients.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailIngredients.bind('<Leave>', self.mouseUp)
@@ -463,7 +460,7 @@ class Application(Frame):
         #self.vbar3.pack(side=RIGHT, fill=Y)
         #self.vbar3.config(command=self.bottomRightPayne.yview)
         #self.bottomRightPayne.config(yscrollcommand=self.vbar3.set)
-        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, wrap=WORD, cursor='arrow')
+        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
         mouse_action_with_arg = partial(self.mouseDown, self.bottomRightPayne, True)
         self.cocktailSteps.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailSteps.bind('<Leave>', self.mouseUp)
@@ -484,8 +481,8 @@ class Application(Frame):
         #self.cocktailGlass = Label(self.mainFrame, text="glass")
         #self.cocktailGlass.pack()
 
-        self.bottomPayneContainer = Frame(self.mainFrame, bg='#0000cc', width=1024, height=15)
-        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg='#cc0000', width=1024, height=20);
+        self.bottomPayneContainer = Frame(self.mainFrame, bg=mainBGColour, width=1024, height=15)
+        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg=mainBGColour, width=1024, height=20);
         self.bottomPayne.pack()
         self.bottomPayneContainer.pack(side=BOTTOM)
 
@@ -515,82 +512,120 @@ class Application(Frame):
         self.style.configure('LEDIndexOptions.TButton', background=secondaryBGColour, foreground=mainFGColour, font=subTitleFont, width=4, height=4, padding=[0,0,0,0])
 
         x = 0
-        itemHeight = 50
+        itemHeight = 60
         self.checkIngredients = []
         self.checkValues = []
         self.checkLEDStrip = []
         self.checkLEDIndex = []
         self.IngColours = [];
 
-        self.ingFrameContainer = Frame(self.midPayne)
-        self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=1000)
-        self.ingLabel = Label(self.ingFrame,text='In\nStock:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=LEFT, padx=15)
-        self.ingLabel = Label(self.ingFrame,text='Name:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=LEFT, padx=40)
-        self.ingLabel = Label(self.ingFrame,text='LED\nStrip:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=RIGHT, padx=20)
-        self.ingLabel = Label(self.ingFrame,text='LED\nIndex:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=RIGHT, padx=20)
-        self.ingLabel = Label(self.ingFrame,text='Colour:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        self.ingLabel.pack(side=RIGHT, padx=20)
-        self.ingFrame.pack()
-        self.ingFrame.pack_propagate(False)
-        mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-        self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
-        self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
-        x = x + 1
+        # self.ingFrameContainer = Frame(self.midPayne)
+        # self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=1000)
+        # self.ingLabel = Label(self.ingFrame,text='In\nStock:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        # self.ingLabel.pack(side=LEFT, padx=15)
+        # self.ingLabel = Label(self.ingFrame,text='Name:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        # self.ingLabel.pack(side=LEFT, padx=40)
+        # self.ingLabel = Label(self.ingFrame,text='LED\nStrip:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        # self.ingLabel.pack(side=RIGHT, padx=20)
+        # self.ingLabel = Label(self.ingFrame,text='LED\nIndex:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        # self.ingLabel.pack(side=RIGHT, padx=20)
+        # self.ingLabel = Label(self.ingFrame,text='Colour:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
+        # self.ingLabel.pack(side=RIGHT, padx=20)
+        # self.ingFrame.pack()
+        # self.ingFrame.pack_propagate(False)
+        # mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+        # self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
+        # self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
+        # self.ingFrameContainer.pack()
 
-        self.checkBoxes = []
-        self.colourButtons = []
+        #self.checkBoxes = []
+        #self.colourButtons = []
+        #self.IngredientsCanvas = Canvas(self.midPayne, width=1000, height=(len(self.ingredients) * (itemHeight + 5)), bg=mainBGColour, border=0, highlightthickness=0)
+
+        self.ingredientInStockClickAreas = []
+
+        itemYPos = 0
+        self.unCheckImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/unCheck.png")), Image.BICUBIC)
+        self.checkImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/check.png")), Image.BICUBIC)
+ 
         for ingredient in self.ingredients:
             if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
-                self.ingFrameContainer = Frame(self.midPayne, width=1000)
-                self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=1000)
+                
 
-                self.checkIngredients.append(ingredient)
-                tempVal = self.ingredientsInStock.get(ingredient, 0)
-                self.checkValues.append(IntVar(self.ingFrame, tempVal))
-                self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
-                self.checkBoxes[x-1].pack(side=LEFT, padx=0, ipadx=25)
-
-                self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
-                self.ingLabel.pack(side=LEFT, padx=0, ipadx=20)
-                mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
-                self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
-                mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-                self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
-
-                ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-                ledStrips = [1, 2, 3, 4]
-                tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
-                self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
-                self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-                self.ledIndexCombo.pack(side=RIGHT, padx=30, ipady=5)
-
-                tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
-                self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
-                self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-                self.ledStripCombo.pack(side=RIGHT, padx=30, ipady=5)
-
-                action_with_arg = partial(self.pickColor, x-1)
-                tempVal = self.ingredientsColour.get(ingredient, '#ffffff')
-                self.IngColours.append(tempVal)
-                self.colourButtons.append(Button(self.ingFrame, bg=tempVal, fg=mainFGColour, text='', width=10, command=action_with_arg))
-                self.colourButtons[x-1].pack(side=RIGHT, padx= 30, ipady=5)
-
-                self.ingFrame.pack()
-                self.ingFrame.pack_propagate(False)
-                mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-                self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
-
-                self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
+                self.midPayne.create_rectangle(0, itemYPos, 1000, (itemYPos+itemHeight), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
+                self.ingredientInStockClickAreas.append(((0, itemYPos, 500, itemHeight), ingredient))
+                self.midPayne.lower('back')
+                self.midPayne.create_text(140, itemYPos+15, anchor='nw', text=ingredient, font=subTitleFont, fill=mainFGColour)
+                self.midPayne.create_image(20, itemYPos+5, anchor='nw', image=self.unCheckImage)
                 x = x + 1
-        self.midPayne.configure(scrollregion=(0, 0, 1000, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
+                itemYPos = itemYPos + itemHeight + 10
+
+        #self.IngredientsCanvas.pack()
+        #mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+        #self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
+
+        #self.IngredientsCanvas.configure(scrollregion=(0, 0, 1000, self.midPayneContainer.winfo_height()))
+        self.midPayne.configure(scrollregion=(0, 0, 1000, max(itemYPos, self.midPayneContainer.winfo_height())))
+
+        # for ingredient in self.ingredients:
+        #     if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
+        #         self.ingFrameContainer = Frame(self.midPayne, width=1000)
+        #         self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=1000)
+
+        #         self.checkIngredients.append(ingredient)
+        #         tempVal = self.ingredientsInStock.get(ingredient, 0)
+        #         self.checkValues.append(IntVar(self.ingFrame, tempVal))
+        #         self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
+        #         self.checkBoxes[x-1].pack(side=LEFT, padx=0, ipadx=25)
+
+        #         self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
+        #         self.ingLabel.pack(side=LEFT, padx=0, ipadx=20)
+        #         mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
+        #         self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
+        #         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+        #         self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
+
+        #         ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        #         ledStrips = [1, 2, 3, 4]
+        #         tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
+        #         self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
+        #         self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
+        #         self.ledIndexCombo.pack(side=RIGHT, padx=30, ipady=5)
+
+        #         tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
+        #         self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
+        #         self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
+        #         self.ledStripCombo.pack(side=RIGHT, padx=30, ipady=5)
+
+        #         action_with_arg = partial(self.pickColor, x-1)
+        #         tempVal = self.ingredientsColour.get(ingredient, '#ffffff')
+        #         self.IngColours.append(tempVal)
+        #         self.colourButtons.append(Button(self.ingFrame, bg=tempVal, fg=mainFGColour, text='', width=10, command=action_with_arg))
+        #         self.colourButtons[x-1].pack(side=RIGHT, padx= 30, ipady=5)
+
+        #         self.ingFrame.pack()
+        #         self.ingFrame.pack_propagate(False)
+        #         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+        #         self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
+
+        #         self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
+        #         x = x + 1
+        #self.midPayne.configure(scrollregion=(0, 0, 1000, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
         self.midPayne.pack()
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
+
+    def clickIngredient(self, event):
+        x = event.x
+        y = self.midPayne.canvasy(event.y)
+        for btn in self.ingredientInStockClickAreas:
+            if ((x > btn[0][0]) & (x < btn[0][0] + btn[0][2])):
+                if ((y > btn[0][1]) & (y < btn[0][1] + btn[0][3])):
+                    #self.openRecipe(btn[1])
+                    print(btn[1])
+                    return
+        
 
     def pickColor(self, index):
         color_code = colorchooser.askcolor(title ="Choose color") 
