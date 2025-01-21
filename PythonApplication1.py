@@ -513,36 +513,13 @@ class Application(Frame):
 
         x = 0
         itemHeight = 60
-        self.checkIngredients = []
-        self.checkValues = []
-        self.checkLEDStrip = []
-        self.checkLEDIndex = []
-        self.IngColours = [];
-
-        # self.ingFrameContainer = Frame(self.midPayne)
-        # self.ingFrame = Frame(self.ingFrameContainer, bg=mainBGColour, height=itemHeight, width=1000)
-        # self.ingLabel = Label(self.ingFrame,text='In\nStock:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        # self.ingLabel.pack(side=LEFT, padx=15)
-        # self.ingLabel = Label(self.ingFrame,text='Name:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        # self.ingLabel.pack(side=LEFT, padx=40)
-        # self.ingLabel = Label(self.ingFrame,text='LED\nStrip:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        # self.ingLabel.pack(side=RIGHT, padx=20)
-        # self.ingLabel = Label(self.ingFrame,text='LED\nIndex:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        # self.ingLabel.pack(side=RIGHT, padx=20)
-        # self.ingLabel = Label(self.ingFrame,text='Colour:', bg=mainBGColour, fg=mainFGColour, font=subTitleFont)
-        # self.ingLabel.pack(side=RIGHT, padx=20)
-        # self.ingFrame.pack()
-        # self.ingFrame.pack_propagate(False)
-        # mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-        # self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
-        # self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
-        # self.ingFrameContainer.pack()
-
-        #self.checkBoxes = []
-        #self.colourButtons = []
-        #self.IngredientsCanvas = Canvas(self.midPayne, width=1000, height=(len(self.ingredients) * (itemHeight + 5)), bg=mainBGColour, border=0, highlightthickness=0)
-
+        
         self.ingredientInStockClickAreas = []
+        self.ingredientCheckBoxes = dict()
+        self.ingredientLEDStripButtons = dict()
+        self.ingredientLEDIndexButtons = dict()
+        self.ingredientColourButtons = dict()
+        self.ingredientsData = []
 
         itemYPos = 0
         self.unCheckImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/unCheck.png")), Image.BICUBIC)
@@ -550,82 +527,96 @@ class Application(Frame):
  
         for ingredient in self.ingredients:
             if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
-                
 
-                self.midPayne.create_rectangle(0, itemYPos, 1000, (itemYPos+itemHeight), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
-                self.ingredientInStockClickAreas.append(((0, itemYPos, 500, itemHeight), ingredient))
-                self.midPayne.lower('back')
-                self.midPayne.create_text(140, itemYPos+15, anchor='nw', text=ingredient, font=subTitleFont, fill=mainFGColour)
-                self.midPayne.create_image(20, itemYPos+5, anchor='nw', image=self.unCheckImage)
+                checked = self.ingredientsInStock.get(ingredient, 0)
+                ledStrip = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
+                ledIndex = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
+                colour = self.ingredientsColour.get(ingredient, '#ffffff')
+
+                tpl = (ingredient, checked, ledStrip, ledIndex, colour)
+                self.ingredientsData.append(tpl)
+
+                self.drawIngredientRow(ingredient, itemYPos, itemHeight)
                 x = x + 1
                 itemYPos = itemYPos + itemHeight + 10
 
-        #self.IngredientsCanvas.pack()
-        #mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-        #self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
-
-        #self.IngredientsCanvas.configure(scrollregion=(0, 0, 1000, self.midPayneContainer.winfo_height()))
         self.midPayne.configure(scrollregion=(0, 0, 1000, max(itemYPos, self.midPayneContainer.winfo_height())))
-
-        # for ingredient in self.ingredients:
-        #     if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
-        #         self.ingFrameContainer = Frame(self.midPayne, width=1000)
-        #         self.ingFrame = Frame(self.ingFrameContainer, bg=secondaryBGColour, height=itemHeight, width=1000)
-
-        #         self.checkIngredients.append(ingredient)
-        #         tempVal = self.ingredientsInStock.get(ingredient, 0)
-        #         self.checkValues.append(IntVar(self.ingFrame, tempVal))
-        #         self.checkBoxes.append(Checkbutton(self.ingFrame, bg=secondaryBGColour, variable=self.checkValues[x-1], onvalue=1, offvalue=0, height=5, width=5, command=self.updateIngredientsFile))
-        #         self.checkBoxes[x-1].pack(side=LEFT, padx=0, ipadx=25)
-
-        #         self.ingLabel = Label(self.ingFrame,text=ingredient, bg=secondaryBGColour, fg=mainFGColour, font=subTitleFont)
-        #         self.ingLabel.pack(side=LEFT, padx=0, ipadx=20)
-        #         mouse_action_with_arg = partial(self.selectIngredientLabel, x-1)
-        #         self.ingLabel.bind('<ButtonRelease-1>', mouse_action_with_arg)
-        #         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-        #         self.ingLabel.bind('<ButtonPress-1>', mouse_action_with_arg)
-
-        #         ledIndexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        #         ledStrips = [1, 2, 3, 4]
-        #         tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
-        #         self.checkLEDIndex.append(IntVar(self.ingFrame, 1))
-        #         self.ledIndexCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDIndex[x-1], tempVal, *ledIndexes, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-        #         self.ledIndexCombo.pack(side=RIGHT, padx=30, ipady=5)
-
-        #         tempVal = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
-        #         self.checkLEDStrip.append(IntVar(self.ingFrame, 1))
-        #         self.ledStripCombo = ttk.OptionMenu(self.ingFrame, self.checkLEDStrip[x-1], tempVal, *ledStrips, style='LEDIndexOptions.TButton', command=self.updateIngredientsFileLED)
-        #         self.ledStripCombo.pack(side=RIGHT, padx=30, ipady=5)
-
-        #         action_with_arg = partial(self.pickColor, x-1)
-        #         tempVal = self.ingredientsColour.get(ingredient, '#ffffff')
-        #         self.IngColours.append(tempVal)
-        #         self.colourButtons.append(Button(self.ingFrame, bg=tempVal, fg=mainFGColour, text='', width=10, command=action_with_arg))
-        #         self.colourButtons[x-1].pack(side=RIGHT, padx= 30, ipady=5)
-
-        #         self.ingFrame.pack()
-        #         self.ingFrame.pack_propagate(False)
-        #         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-        #         self.ingFrame.bind('<ButtonPress-1>', mouse_action_with_arg)
-
-        #         self.item = self.midPayne.create_window((0, (x * (itemHeight + 5))), anchor=NW, window=self.ingFrameContainer)
-        #         x = x + 1
-        #self.midPayne.configure(scrollregion=(0, 0, 1000, max((itemHeight+5)*x, self.midPayneContainer.winfo_height())))
         self.midPayne.pack()
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
 
+    def drawIngredientRow(self, name, yPos, height):
+        for i in self.ingredientsData:
+            if (i[0] == name):
+                checked = i[1]
+                LEDStrip = i[2]
+                LEDIndex = i[3]
+                colour = i[4]
+
+        if checked == '1':
+            img = self.checkImage
+            textColour = '#00ff00'
+        else:
+            img = self.unCheckImage
+            textColour = '#ff0000'
+        self.midPayne.create_rectangle(100, yPos, 1000, (yPos+height), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
+        self.ingredientInStockClickAreas.append(((100, yPos, 1000, height), name))
+        self.midPayne.lower('back')
+        self.midPayne.create_text(240, yPos+15, anchor='nw', text=name, font=subTitleFont, fill=textColour)
+        self.ingredientCheckBoxes[name] = self.midPayne.create_image(120, yPos+5, anchor='nw', image=img)
+
+        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=colour)
+        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=secondaryBGColour)
+        self.ingredientColourButtons[name] = self.midPayne.create_rectangle(900, yPos+10, 975, yPos+height-10, fill=secondaryBGColour)
+
     def clickIngredient(self, event):
-        x = event.x
-        y = self.midPayne.canvasy(event.y)
-        for btn in self.ingredientInStockClickAreas:
-            if ((x > btn[0][0]) & (x < btn[0][0] + btn[0][2])):
-                if ((y > btn[0][1]) & (y < btn[0][1] + btn[0][3])):
-                    #self.openRecipe(btn[1])
-                    print(btn[1])
-                    return
+        if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
+            x = event.x
+            y = self.midPayne.canvasy(event.y)
+            for clickArea in self.ingredientInStockClickAreas:
+                if ((y > clickArea[0][1]) & (y < clickArea[0][1] + clickArea[0][3])):
+                    if ((x > clickArea[0][0]) & (x < clickArea[0][0] + 575)):
+                        self.ingredientSelectCheck(clickArea)
+                        return
+                    if ((x > clickArea[0][0] + 600) & (x < clickArea[0][0] + 675)):
+                        self.ingredientSelectColour(clickArea[1])
+                        return
+                    if ((x > clickArea[0][0] + 700) & (x < clickArea[0][0] + 775)):
+                        self.ingredientSelectLEDStrip(clickArea[1])
+                        return
+                    if ((x > clickArea[0][0] + 800) & (x < clickArea[0][0] + 875)):
+                        self.ingredientSelectLEDIndex(clickArea[1])
+                        return
+
         
+    def ingredientSelectCheck(self, clickArea):
+        self.midPayne.delete(self.ingredientCheckBoxes[clickArea[1]])
+        x = 0
+        for i in self.ingredientsData:
+            if (i[0] == clickArea[1]):
+                if (i[1] == '1'):
+                    temp = '0'
+                else:
+                    temp = '1'
+                tpl = (i[0], temp, i[2], i[3], i[4])
+                self.ingredientsData[x] = tpl
+                self.updateIngredientsFile()
+                self.drawIngredientRow(clickArea[1], clickArea[0][1], clickArea[0][3])
+                return
+            x = x + 1
+
+    def ingredientSelectColour(self, ingredientName):
+        print("colour: " + ingredientName)
+        return
+
+    def ingredientSelectLEDStrip(self, ingredientName):
+        print("led strip: " + ingredientName)
+        return
+
+    def ingredientSelectLEDIndex(self, ingredientName):
+        print("ledIndex: " + ingredientName)
+        return
 
     def pickColor(self, index):
         color_code = colorchooser.askcolor(title ="Choose color") 
@@ -646,19 +637,21 @@ class Application(Frame):
         self.ingredientsLEDPosition.clear()
         self.ingredientsColour.clear()
         JSONString = '{"ingredients": ['
-        for i in range(len(self.checkIngredients)):
-            temp = self.IngColours[i]
+        #for i in range(len(self.checkIngredients)):
+        #(ingredient, checked, ledStrip, ledIndex, colour)
+        for i in self.ingredientsData:
+            temp = i[4]
             if type(temp) != str:
                 temp = '#ffffff'
-            JSONString = JSONString + '{"name": "' + self.checkIngredients[i] + '",'
-            JSONString = JSONString + '"inStock": "' + str(self.checkValues[i].get()) + '",'
-            JSONString = JSONString + '"LEDStrip": "' + str(self.checkLEDStrip[i].get()) + '",'
-            JSONString = JSONString + '"LEDIndex": "' + str(self.checkLEDIndex[i].get()) + '",'
+            JSONString = JSONString + '{"name": "' + i[0] + '",'
+            JSONString = JSONString + '"inStock": "' + str(i[1]) + '",'
+            JSONString = JSONString + '"LEDStrip": "' + str(i[2]) + '",'
+            JSONString = JSONString + '"LEDIndex": "' + str(i[3]) + '",'
             JSONString = JSONString + '"Colour": "' + temp + '"},'
 
-            self.ingredientsInStock.update({self.checkIngredients[i]:str(self.checkValues[i].get())})
-            self.ingredientsLEDPosition.update({self.checkIngredients[i]:(str(self.checkLEDStrip[i].get()), str(self.checkLEDIndex[i].get()))})
-            self.ingredientsColour.update({self.checkIngredients[i]:temp})
+            self.ingredientsInStock.update({str(i[0]):str(i[1])})
+            self.ingredientsLEDPosition.update({str(i[0]):(str(i[2]), str(i[3]))})
+            self.ingredientsColour.update({str(i[0]):temp})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
         f = open(os.path.join(dirname, "ingredients.JSON"), "w")
