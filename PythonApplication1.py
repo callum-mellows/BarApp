@@ -1,5 +1,4 @@
 import ast
-from asyncio.windows_events import NULL
 from genericpath import isfile
 import json
 from tkinter import *
@@ -19,6 +18,7 @@ from PIL import ImageTk
 from pathlib import Path
 import time
 import pygame
+import math
 
 root = Tk()
 
@@ -514,6 +514,7 @@ class Application(Frame):
         x = 0
         itemHeight = 60
         
+        self.ingredientRows = dict()
         self.ingredientInStockClickAreas = []
         self.ingredientCheckBoxes = dict()
         self.ingredientLEDStripButtons = dict()
@@ -547,6 +548,10 @@ class Application(Frame):
         self.midPayneContainerContainer.pack(pady=5)
 
     def drawIngredientRow(self, name, yPos, height):
+        if name in self.ingredientRows:
+            for i in self.ingredientRows[name]:
+                self.midPayne.delete(i)
+
         for i in self.ingredientsData:
             if (i[0] == name):
                 checked = i[1]
@@ -560,33 +565,61 @@ class Application(Frame):
         else:
             img = self.unCheckImage
             textColour = '#ff0000'
-        self.midPayne.create_rectangle(100, yPos, 1000, (yPos+height), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
+        rowBack = self.midPayne.create_rectangle(100, yPos, 1000, (yPos+height), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
         self.ingredientInStockClickAreas.append(((100, yPos, 1000, height), name))
         self.midPayne.lower('back')
-        self.midPayne.create_text(240, yPos+15, anchor='nw', text=name, font=subTitleFont, fill=textColour)
+        rowName = self.midPayne.create_text(240, yPos+15, anchor='nw', text=name, font=subTitleFont, fill=textColour)
         self.ingredientCheckBoxes[name] = self.midPayne.create_image(120, yPos+5, anchor='nw', image=img)
 
-        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=colour)
-        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=secondaryBGColour)
-        self.ingredientColourButtons[name] = self.midPayne.create_rectangle(900, yPos+10, 975, yPos+height-10, fill=secondaryBGColour)
+        self.ingredientColourButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=colour)
+
+        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=secondaryBGColour)
+        rowLEDStripText = self.midPayne.create_text(837, yPos+30, width=100, font=subTitleFont, fill=mainFGColour, text=LEDStrip)
+
+        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(900, yPos+10, 975, yPos+height-10, fill=secondaryBGColour)
+        rowLEDIndexText = self.midPayne.create_text(937, yPos+30, width=100, font=subTitleFont, fill=mainFGColour, text=LEDIndex)
+
+        tup=(rowBack, rowName, self.ingredientCheckBoxes[name], self.ingredientColourButtons[name], self.ingredientLEDStripButtons[name], self.ingredientLEDIndexButtons[name], rowLEDStripText, rowLEDIndexText)
+        self.ingredientRows[name] = tup
 
     def clickIngredient(self, event):
         if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
+
             x = event.x
             y = self.midPayne.canvasy(event.y)
+            if(self.numberPickerClickArea != None):
+                if ((x > self.numberPickerClickArea[0]) & (x < self.numberPickerClickArea[2])):
+                    if ((y > self.numberPickerClickArea[1]) & (y < self.numberPickerClickArea[3])):
+                        start = self.numberPickerClickArea[4]
+                        end = self.numberPickerClickArea[5]
+                        bHeight = (self.numberPickerClickArea[3] - self.numberPickerClickArea[1]) / ((end+1)-start)
+                        numberValue = (math.floor((y - self.numberPickerClickArea[1]) / bHeight) + start)
+                        
+                        match self.numberPickerClickArea[6]:
+                            case 'LEDStrip':
+                                self.ingredientSelectLEDStrip(self.numberPickerClickArea[7], numberValue, self.numberPickerClickArea[8], self.numberPickerClickArea[9])                                
+                            case 'LEDIndex':
+                                self.ingredientSelectLEDIndex(self.numberPickerClickArea[7], numberValue, self.numberPickerClickArea[8], self.numberPickerClickArea[9])
+                                
+                        self.closeNumberPicker(self.numberPickerID)
+                        return
+            self.closeNumberPicker(None)
+
             for clickArea in self.ingredientInStockClickAreas:
                 if ((y > clickArea[0][1]) & (y < clickArea[0][1] + clickArea[0][3])):
                     if ((x > clickArea[0][0]) & (x < clickArea[0][0] + 575)):
                         self.ingredientSelectCheck(clickArea)
                         return
                     if ((x > clickArea[0][0] + 600) & (x < clickArea[0][0] + 675)):
-                        self.ingredientSelectColour(clickArea[1])
+                        self.ingredientSelectColour(clickArea)
                         return
                     if ((x > clickArea[0][0] + 700) & (x < clickArea[0][0] + 775)):
-                        self.ingredientSelectLEDStrip(clickArea[1])
+                        tup = (clickArea[0][0] + 700, clickArea[0][1], clickArea[0][0] + 775, clickArea[0][1] + clickArea[0][3])
+                        self.openNumberPicker(1, 5, tup[0], tup[1], clickArea[1]+'a', 'LEDStrip', clickArea[1], clickArea[0][1], clickArea[0][3])
                         return
                     if ((x > clickArea[0][0] + 800) & (x < clickArea[0][0] + 875)):
-                        self.ingredientSelectLEDIndex(clickArea[1])
+                        tup = (clickArea[0][0] + 800, clickArea[0][1], clickArea[0][0] + 875, clickArea[0][1] + clickArea[0][3])
+                        self.openNumberPicker(1, 15, tup[0], tup[1], clickArea[1]+'b', 'LEDIndex', clickArea[1], clickArea[0][1], clickArea[0][3])
                         return
 
         
@@ -606,23 +639,91 @@ class Application(Frame):
                 return
             x = x + 1
 
-    def ingredientSelectColour(self, ingredientName):
-        print("colour: " + ingredientName)
+    def ingredientSelectColour(self, clickArea):
+        self.pickColor(clickArea)
         return
 
-    def ingredientSelectLEDStrip(self, ingredientName):
-        print("led strip: " + ingredientName)
+    def ingredientSelectLEDStrip(self, name, value, rowYPos, rowHeight):
+        x = 0
+        for i in self.ingredientsData:
+            if (i[0] == name):
+                tpl = (i[0], i[1], value, i[3], i[4])
+                self.ingredientsData[x] = tpl
+                self.updateIngredientsFile()
+                self.drawIngredientRow(name, rowYPos, rowHeight)
+            x = x + 1
         return
 
-    def ingredientSelectLEDIndex(self, ingredientName):
-        print("ledIndex: " + ingredientName)
+    def ingredientSelectLEDIndex(self, name, value, rowYPos, rowHeight):
+        x = 0
+        for i in self.ingredientsData:
+            if (i[0] == name):
+                tpl = (i[0], i[1], i[2], value, i[4])
+                self.ingredientsData[x] = tpl
+                self.updateIngredientsFile()
+                self.drawIngredientRow(name, rowYPos, rowHeight)
+            x = x + 1
         return
 
-    def pickColor(self, index):
-        color_code = colorchooser.askcolor(title ="Choose color") 
-        self.colourButtons[index].configure(bg=color_code[1])
-        self.IngColours[index] = color_code[1]
-        self.updateIngredientsFile()
+    numberPickerRect = None
+    numberPickerID = None
+    numberPickerClickArea = None
+    numberPickButtons = []
+    numberPickText = []
+    def openNumberPicker(self, start, end, xPos, yPos, ID, callback, ingredientName, rowYPos, rowHeight): 
+        bHeight = 35
+
+        if(self.closeNumberPicker(ID) == True):
+
+            self.midPayne.update()
+            yPos = yPos + 50
+            totalHeight = (((end+1) - start) * bHeight)
+            containerHeight = self.midPayne.bbox('all')[3]
+
+            if(int((yPos + totalHeight)) > int(containerHeight)):
+                yPos = containerHeight - totalHeight
+
+            self.numberPickerRect = self.midPayne.create_rectangle(xPos, yPos, xPos+75, yPos + totalHeight, fill='#ff0000')
+            self.numberPickerID = ID
+            tup = (xPos, yPos, xPos+75, yPos+(((end+1) - start) * bHeight), start, end, callback, ingredientName, rowYPos, rowHeight)
+            self.numberPickerClickArea = tup
+            x = 0
+            for i in range(start, end+1):
+                self.numberPickButtons.append(self.midPayne.create_rectangle(xPos, (yPos + (bHeight * x)), xPos+75, (yPos + ((bHeight * x) + bHeight)), fill='#222222'))
+                self.numberPickText.append(self.midPayne.create_text((xPos + 37), (yPos + (bHeight * x) + 20), width=75, font=subTitleFont, fill=mainFGColour, text=i))
+                x = x + 1
+        return
+    
+    def closeNumberPicker(self, ID):
+        rtn = True
+        if(ID == self.numberPickerID):
+            self.numberPickerID = None
+            rtn = False
+        if(self.numberPickerRect != None):
+            self.midPayne.delete(self.numberPickerRect)
+            self.numberPickerRect = None
+            self.numberPickerClickArea = None
+        for i in self.numberPickButtons:
+            self.midPayne.delete(i)
+        for i in self.numberPickText:
+            self.midPayne.delete(i)
+        return rtn
+
+    def pickColor(self, clickArea):
+        colourCode = colorchooser.askcolor(title = "Choose color")[1]
+        if colourCode != None:
+            x = 0
+            for i in self.ingredientsData:  
+                if (i[0] == clickArea[1]):
+                    tpl = (i[0], i[1], i[2], i[3], str(colourCode))
+                    self.ingredientsData[x] = tpl
+                    self.updateIngredientsFile()
+                    self.drawIngredientRow(clickArea[1], clickArea[0][1], clickArea[0][3])
+                    return
+                x = x + 1
+        #self.colourButtons[index].configure(bg=color_code[1])
+        #self.IngColours[index] = color_code[1]
+        #self.updateIngredientsFile()
 
     def selectIngredientLabel(self, index, event):
         if self.hasScrolled == False:
@@ -637,8 +738,6 @@ class Application(Frame):
         self.ingredientsLEDPosition.clear()
         self.ingredientsColour.clear()
         JSONString = '{"ingredients": ['
-        #for i in range(len(self.checkIngredients)):
-        #(ingredient, checked, ledStrip, ledIndex, colour)
         for i in self.ingredientsData:
             temp = i[4]
             if type(temp) != str:
