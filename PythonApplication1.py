@@ -81,7 +81,7 @@ class Application(Frame):
     firstTimeOpening = True
     recipeList = []
     filterValues = ('Any', 'Any', 'Any', '')
-
+    alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
     scrolling = root
     mouseIsDown = False
@@ -110,7 +110,9 @@ class Application(Frame):
         if isText == True:
             return "break"
 
-            
+    def rootMouseDown(self, event):
+        self.keyboardClickCheck(event)
+
     def setHasScrolled(self):
         if self.mouseIsDown == True:
             self.hasScrolled = True
@@ -141,7 +143,6 @@ class Application(Frame):
                     self.scrolling.yview_scroll(int(self.scrollVelocity)*-1, "units")
                     self.moveScrollBar()
 
-    
     def getIfIngredientIsSpirit(self, ing):
         for word in str(ing).split(' '):
             for spirit in spiritList:
@@ -209,8 +210,6 @@ class Application(Frame):
             self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
             self.ingredientsColour.update({ingredient['name']:ingredient['Colour']})
             
-            
-
         checkGarnishImagesExist(self.recipes)
         checkGlassImagesExist(self.recipes)
 
@@ -222,12 +221,37 @@ class Application(Frame):
         self.mainFrame = self
         root.bind('<Motion>', self.mouseMove)
         root.bind('<ButtonRelease-1>', self.mouseUp)
+        root.bind("<ButtonPress-1>", self.rootMouseDown)
         self.mainFrame.configure(bg=mainBGColour)
         self.mainFrame.pack(fill=BOTH, expand=True)
         self.mainFrame.columnconfigure(0, weight=1)
         self.mainFrame.rowconfigure(0, weight=1)
-        
+
         self.pages[self.currentPageIndex]()
+
+    keyboard = None
+    keys = []
+    keyTexts = []
+    def openKeyboard(self, event):
+        self.keyboard = Frame(self.mainFrame, width=980, height=140, bg='#ff0000')
+        self.keyboard.place(x=22, y=400)
+        self.keyCanvas = Canvas(self.keyboard, width=980, height=140, highlightthickness=0)
+        self.keyCanvas.pack(fill='both')
+        for i in range(0, 13):
+            self.keys.append(self.keyCanvas.create_rectangle(i*70, 0, (i+1)*70, 70, fill=secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text((i*70)+35, 35, width=70, text=self.alphabet[i], font=titleFont, fill=mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle(i*70, 70, (i+1)*70, 140, fill=secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text((i*70)+35, 105, width=70, text=self.alphabet[i+13], font=titleFont, fill=mainFGColour))
+        Misc.lift(self.keyboard)
+
+    def keyboardClickCheck(self, event):
+        self.closeKeyboard(event)
+
+    def closeKeyboard(self, event):
+        if(self.keyboard != None):
+            self.keyboard.place_forget()
+            self.keyboard = None
+            root.focus()
 
     def getRecipesByCategory(self, season):
         self.recipeList = []
@@ -418,6 +442,8 @@ class Application(Frame):
         self.searchTerm = StringVar()
         self.searchTerm.trace("w", lambda name, index, mode, searchTerm=self.searchTerm: self.updateSearchBox(searchTerm))
         self.searchText = Entry(self.searchFrame, width=15, textvariable=self.searchTerm)
+        self.searchText.bind('<FocusIn>', self.openKeyboard)
+        self.searchText.bind('<FocusOut>', self.closeKeyboard)
         self.searchText.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.searchFrame.pack(side=LEFT, padx = 25, pady=5)
 
@@ -523,7 +549,6 @@ class Application(Frame):
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.midPayne.bind('<Leave>', self.mouseUp)
        
-        self.alphabet = 'abcdefghijklmnopqrstuvwxyz'
         self.leftPayne.create_rectangle(0, 4, 75, 442, fill='#0000ff')
         for i in range(26):
             self.leftPayne.create_rectangle(0, (i*17), 90, ((i*17)+17), fill='#222222')
