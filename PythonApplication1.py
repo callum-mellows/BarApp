@@ -486,8 +486,6 @@ class Application(Frame):
         self.bottomPayne.pack()
         self.bottomPayneContainer.pack(side=BOTTOM)
 
-
-
     def Page2(self):
         self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=100);
         self.titleFrame = Frame(self.topPayne, bg=mainBGColour)
@@ -501,18 +499,24 @@ class Application(Frame):
 
         self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
-        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=1000, height=450)
+        self.leftPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, width=100, height=442)
+        self.leftPayne.pack(side=LEFT)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=900, height=442)
         self.midPayne.configure(yscrollincrement='1')
         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.midPayne.bind('<Leave>', self.mouseUp)
        
-        self.style = ttk.Style()
-        self.style.theme_use('default')
-        self.style.configure('LEDIndexOptions.TButton', background=secondaryBGColour, foreground=mainFGColour, font=subTitleFont, width=4, height=4, padding=[0,0,0,0])
+        self.alphabet = 'abcdefghijklmnopqrstuvwxyz'
+        self.leftPayne.create_rectangle(0, 4, 75, 442, fill='#0000ff')
+        for i in range(26):
+            self.leftPayne.create_rectangle(0, (i*17), 90, ((i*17)+17), fill='#222222')
+            self.leftPayne.create_text(45, (i*17)+8, width=90, font=smallFont, fill=mainFGColour, text=self.alphabet[i])
+        self.leftPayne.bind('<ButtonPress-1>', self.clickAlphabet)
 
         x = 0
-        itemHeight = 60
+        self.itemHeight = 60
+        self.itemSpacing = 10
         
         self.ingredientRows = dict()
         self.ingredientInStockClickAreas = []
@@ -525,7 +529,6 @@ class Application(Frame):
         itemYPos = 0
         self.unCheckImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/unCheck.png")), Image.BICUBIC)
         self.checkImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/check.png")), Image.BICUBIC)
- 
         for ingredient in self.ingredients:
             if self.garnishes.__contains__(str.lower(str.rstrip(ingredient, 's'))) == False:
 
@@ -537,12 +540,12 @@ class Application(Frame):
                 tpl = (ingredient, checked, ledStrip, ledIndex, colour)
                 self.ingredientsData.append(tpl)
 
-                self.drawIngredientRow(ingredient, itemYPos, itemHeight)
+                self.drawIngredientRow(ingredient, itemYPos, self.itemHeight)
                 x = x + 1
-                itemYPos = itemYPos + itemHeight + 10
+                itemYPos = itemYPos + self.itemHeight + self.itemSpacing
 
         self.midPayne.configure(scrollregion=(0, 0, 1000, max(itemYPos, self.midPayneContainer.winfo_height())))
-        self.midPayne.pack()
+        self.midPayne.pack(side=RIGHT)
 
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack(pady=5)
@@ -565,26 +568,48 @@ class Application(Frame):
         else:
             img = self.unCheckImage
             textColour = '#ff0000'
-        rowBack = self.midPayne.create_rectangle(100, yPos, 1000, (yPos+height), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
-        self.ingredientInStockClickAreas.append(((100, yPos, 1000, height), name))
+        rowBack = self.midPayne.create_rectangle(0, yPos, 1000, (yPos+height), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
+        self.ingredientInStockClickAreas.append(((0, yPos, 1000, height), name))
         self.midPayne.lower('back')
-        rowName = self.midPayne.create_text(240, yPos+15, anchor='nw', text=name, font=subTitleFont, fill=textColour)
-        self.ingredientCheckBoxes[name] = self.midPayne.create_image(120, yPos+5, anchor='nw', image=img)
+        rowName = self.midPayne.create_text(140, yPos+15, anchor='nw', text=name, font=subTitleFont, fill=textColour)
+        self.ingredientCheckBoxes[name] = self.midPayne.create_image(20, yPos+5, anchor='nw', image=img)
 
-        self.ingredientColourButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=colour)
+        self.ingredientColourButtons[name] = self.midPayne.create_rectangle(600, yPos+10, 675, yPos+height-10, fill=colour)
 
-        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=secondaryBGColour)
-        rowLEDStripText = self.midPayne.create_text(837, yPos+30, width=100, font=subTitleFont, fill=mainFGColour, text=LEDStrip)
+        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=secondaryBGColour)
+        rowLEDStripText = self.midPayne.create_text(737, yPos+30, width=100, font=subTitleFont, fill=mainFGColour, text=LEDStrip)
 
-        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(900, yPos+10, 975, yPos+height-10, fill=secondaryBGColour)
-        rowLEDIndexText = self.midPayne.create_text(937, yPos+30, width=100, font=subTitleFont, fill=mainFGColour, text=LEDIndex)
+        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=secondaryBGColour)
+        rowLEDIndexText = self.midPayne.create_text(837, yPos+30, width=100, font=subTitleFont, fill=mainFGColour, text=LEDIndex)
 
         tup=(rowBack, rowName, self.ingredientCheckBoxes[name], self.ingredientColourButtons[name], self.ingredientLEDStripButtons[name], self.ingredientLEDIndexButtons[name], rowLEDStripText, rowLEDIndexText)
         self.ingredientRows[name] = tup
 
+    def clickAlphabet(self, event):
+        x = 0
+        for i in self.ingredientsData:
+            if(str(i[0][0]).lower() == self.alphabet[math.floor(event.y / 17)]):
+                self.moveToIngredient(x)
+                return
+            x = x + 1
+
+        x = len(self.ingredientsData)
+        for i in reversed(self.ingredientsData):
+            if(str(i[0][0]).lower() < self.alphabet[math.floor(event.y / 17)-1]):
+                self.moveToIngredient(x)
+                return
+            x = x - 1
+        self.moveToIngredient(0)
+
+    def moveToIngredient(self, x):
+        print(x)
+        totalHeight = self.midPayne.bbox('all')[3]
+        scrollTo = ((self.itemHeight + self.itemSpacing) * x)
+        self.midPayne.yview_moveto(float(scrollTo+1) / totalHeight)
+        return
+
     def clickIngredient(self, event):
         if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
-
             x = event.x
             y = self.midPayne.canvasy(event.y)
             if(self.numberPickerClickArea != None):
