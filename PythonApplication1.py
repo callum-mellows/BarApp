@@ -19,6 +19,7 @@ from pathlib import Path
 import time
 import pygame
 import math
+import random
 
 root = Tk()
 
@@ -64,7 +65,6 @@ def checkGlassImagesExist(recipes):
 
 class Application(Frame):
 
-    scrollPos = 0;
     categories = set([])
     names = set([])
     ingredients = set([])
@@ -77,6 +77,11 @@ class Application(Frame):
     pygame.mixer.init() 
     pygame.mixer.music.set_volume(1.0)
     
+    recipesScroll = 0
+    firstTimeOpening = True
+    recipeList = []
+    filterValues = ('Any', 'Any', 'Any', '')
+
 
     scrolling = root
     mouseIsDown = False
@@ -209,7 +214,6 @@ class Application(Frame):
         checkGarnishImagesExist(self.recipes)
         checkGlassImagesExist(self.recipes)
 
-        #self.garnishes = findGarnishes(self.recipes)
         self.getSearchables(self.recipes)
 
         self.currentPageIndex = 0
@@ -226,29 +230,38 @@ class Application(Frame):
         self.pages[self.currentPageIndex]()
 
     def getRecipesByCategory(self, season):
-        recipeList = []
+        self.recipeList = []
         for recipe in self.recipes['recipies']:
             if (recipe['season'] == season) | (season == 'None') | (season == 'Any'):
-                recipeList.append(recipe)
-        self.addRecipeButtons(recipeList)
+                self.recipeList.append(recipe)
+        self.addRecipeButtons(self.recipeList)
 
- #if (SequenceMatcher(a=ing['name'],b=spirit).ratio() > 0.75) | (spirit == 'Any'):
     def getRecipesBySpirit(self, spirit):
-        recipeList = []
+        self.recipeList = []
         for recipe in self.recipes['recipies']:
             for ing in recipe['ingredients']:
                 if str(ing['name']).lower().__contains__(spirit) | (spirit == 'Any'):
-                    recipeList.append(recipe)
+                    self.recipeList.append(recipe)
                     break
-        self.addRecipeButtons(recipeList)
-
+        self.addRecipeButtons(self.recipeList)
 
     def getRecipesByGlassType(self, glassType):
-        recipeList = []
+        self.recipeList = []
         for recipe in self.recipes['recipies']:
             if (recipe['glassType'] == glassType) | (glassType == 'Any'):
-                recipeList.append(recipe)
-        self.addRecipeButtons(recipeList)
+                self.recipeList.append(recipe)
+        self.addRecipeButtons(self.recipeList)
+
+    def updateSearchBox(self, searchTerm):
+        self.filterValues = ('Any', 'Any', 'Any', searchTerm.get())
+        self.recipeList = []
+        search = str.lower(str(searchTerm.get()))
+        for recipe in self.recipes['recipies']:
+            recipeNameString = str.lower(recipe['name'][:len(search)])
+            ratio = SequenceMatcher(None, recipeNameString, search).ratio()
+            if (ratio > 0.8):
+                self.recipeList.append(recipe)
+        self.addRecipeButtons(self.recipeList)
 
     def orderRecipeListByInStock(self, recipes):
         RecipeListInStock = []
@@ -263,13 +276,13 @@ class Application(Frame):
     recipeButtons = []
     recipeButtonAreas = []
     def addRecipeButtons(self, recipes):
+        self.recipeButtonAreas.clear()
         orderedRecipes = self.orderRecipeListByInStock(recipes)
 
         for child in self.recipeButtons:
             self.midPayne.delete(child)
         self.recipeButtons.clear()
 
-        self.totalButtons = 501
         self.w = 190
         self.h = 100
         self.rows = 1
@@ -347,11 +360,6 @@ class Application(Frame):
         self.midPayne.bind('<Leave>', self.mouseUp)
 
         self.midPayne.bind("<MouseWheel>", self.scrollMainPageRecipes)
-        #self.vbar=Scrollbar(self.midPayneContainer, orient=VERTICAL)
-        #self.vbar.pack(side=RIGHT, fill=Y)
-        #self.vbar.config(command=self.midPayne.yview)
-        #self.midPayne.config(yscrollcommand=self.vbar.set)
-        self.getRecipesByCategory('Any')
         self.midPayne.pack()
 
         self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=80)
@@ -378,7 +386,7 @@ class Application(Frame):
             self.categories.insert(0, 'Any')
         self.categoryString = StringVar(self.categoryFrame) 
         self.categoryBox = ttk.OptionMenu(self.categoryFrame, self.categoryString, list(self.categories)[0], *self.categories, command=self.pickCategory, direction='above')
-        self.categoryBox.configure(width=25)
+        self.categoryBox.configure(width=15)
         self.categoryBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.categoryFrame.pack(side=LEFT, padx = 25, pady=5)
 
@@ -389,7 +397,7 @@ class Application(Frame):
             self.spirits.insert(0, 'Any')
         self.ingredientsString = StringVar(self.ingredientsFrame) 
         self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.spirits)[0], *self.spirits, command=self.pickSpirit, direction='above')
-        self.ingredientsBox.configure(width=25)
+        self.ingredientsBox.configure(width=15)
         self.ingredientsBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.ingredientsFrame.pack(side=LEFT, padx = 25, pady=5)
 
@@ -400,18 +408,37 @@ class Application(Frame):
             self.glassTypes.insert(0, 'Any')
         self.glassTypeString = StringVar(self.glassFrame) 
         self.glassTypeBox = ttk.OptionMenu(self.glassFrame, self.glassTypeString, list(self.glassTypes)[0], *self.glassTypes, command=self.pickGlassType, direction='above')
-        self.glassTypeBox.configure(width=25)
+        self.glassTypeBox.configure(width=15)
         self.glassTypeBox.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.glassFrame.pack(side=LEFT, padx = 25, pady=5)
 
+        self.searchFrame = Frame(self.bottomPayne, bg=mainBGColour)
+        self.ingredientsButtonLabel = Label(self.searchFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Search:')
+        self.ingredientsButtonLabel.pack(side=TOP)
+        self.searchTerm = StringVar()
+        self.searchTerm.trace("w", lambda name, index, mode, searchTerm=self.searchTerm: self.updateSearchBox(searchTerm))
+        self.searchText = Entry(self.searchFrame, width=15, textvariable=self.searchTerm)
+        self.searchText.pack(ipadx=20, ipady=10, side=BOTTOM)
+        self.searchFrame.pack(side=LEFT, padx = 25, pady=5)
+
         self.ingredientsButtonFrame = Frame(self.bottomPayne, bg=mainBGColour)
-        self.ingredientsButtonLabel = Label(self.ingredientsButtonFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Ingredients manager:')
+        self.ingredientsButtonLabel = Label(self.ingredientsButtonFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Ingredients:')
         self.ingredientsButtonLabel.pack(side=TOP)
         self.ingredientsButton = Button(self.ingredientsButtonFrame, text='Open', command=self.openIngredientsManager)
         self.ingredientsButton.pack(ipadx=20, ipady=10, side=BOTTOM)
         self.ingredientsButtonFrame.pack(side=LEFT, padx = 25, pady=5)
 
         self.bottomPayne.pack()
+
+        if(self.firstTimeOpening == True):
+            self.getRecipesByCategory('Any')
+            self.firstTimeOpening = False
+        else:
+            self.addRecipeButtons(self.recipeList)
+            self.categoryString.set(self.filterValues[0])
+            self.ingredientsString.set(self.filterValues[1])
+            self.glassTypeString.set(self.filterValues[2])
+            self.searchTerm.set(self.filterValues[3])
 
     def Page1(self):
 
@@ -423,6 +450,9 @@ class Application(Frame):
         self.btn = Button(self.topPayne, text="Return", font=subTitleFont, command=self.homepage)
         self.btn.pack(side=RIGHT, padx=25, pady=25)
 
+        self.btn2 = Button(self.topPayne, text="🔀", font=subTitleFont, command=self.randomRecipe)
+        self.btn2.pack(side=RIGHT, padx=25, pady=25)
+
         self.middleContainer = Frame(self.mainFrame, bg=mainBGColour)
 
         self.leftPaynesContainer = Frame(self.middleContainer)
@@ -430,10 +460,6 @@ class Application(Frame):
         self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", height=150, width=315)
         self.bottomLeftPayne.configure(yscrollincrement='1')
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
-        #self.vbar2=Scrollbar(self.bottomLeftPayneContainer, orient=VERTICAL)
-        #self.vbar2.pack(side=LEFT, fill=Y)
-        #self.vbar2.config(command=self.bottomLeftPayne.yview)
-        #self.bottomLeftPayne.config(yscrollcommand=self.vbar2.set)
         self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
         mouse_action_with_arg = partial(self.mouseDown, self.bottomLeftPayne, True)
         self.cocktailIngredients.bind('<ButtonPress-1>', mouse_action_with_arg)
@@ -456,10 +482,6 @@ class Application(Frame):
         self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=435)
         self.bottomRightPayne.configure(yscrollincrement='1')
         self.bottomRightPayne.bind("<MouseWheel>", self.scrollRecipeSteps)
-        #self.vbar3=Scrollbar(self.bottomRightPayneContainer, orient=VERTICAL)
-        #self.vbar3.pack(side=RIGHT, fill=Y)
-        #self.vbar3.config(command=self.bottomRightPayne.yview)
-        #self.bottomRightPayne.config(yscrollcommand=self.vbar3.set)
         self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
         mouse_action_with_arg = partial(self.mouseDown, self.bottomRightPayne, True)
         self.cocktailSteps.bind('<ButtonPress-1>', mouse_action_with_arg)
@@ -474,12 +496,6 @@ class Application(Frame):
         self.bottomRightPayneContainer.pack(side=RIGHT, padx=5, pady=0)
 
         self.middleContainer.pack(side=TOP)
-
-        #self.cocktailGarnish = Label(self.mainFrame, text="garnish")
-        #self.cocktailGarnish.pack()
-
-        #self.cocktailGlass = Label(self.mainFrame, text="glass")
-        #self.cocktailGlass.pack()
 
         self.bottomPayneContainer = Frame(self.mainFrame, bg=mainBGColour, width=1024, height=15)
         self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg=mainBGColour, width=1024, height=20);
@@ -629,7 +645,7 @@ class Application(Frame):
                         self.closeNumberPicker(self.numberPickerID)
                         return
             self.closeNumberPicker(None)
-
+            
             for clickArea in self.ingredientInStockClickAreas:
                 if ((y > clickArea[0][1]) & (y < clickArea[0][1] + clickArea[0][3])):
                     if ((x > clickArea[0][0]) & (x < clickArea[0][0] + 575)):
@@ -719,6 +735,7 @@ class Application(Frame):
                 x = x + 1
         return
     
+
     def closeNumberPicker(self, ID):
         rtn = True
         if(ID == self.numberPickerID):
@@ -746,9 +763,6 @@ class Application(Frame):
                     self.drawIngredientRow(clickArea[1], clickArea[0][1], clickArea[0][3])
                     return
                 x = x + 1
-        #self.colourButtons[index].configure(bg=color_code[1])
-        #self.IngColours[index] = color_code[1]
-        #self.updateIngredientsFile()
 
     def selectIngredientLabel(self, index, event):
         if self.hasScrolled == False:
@@ -789,7 +803,8 @@ class Application(Frame):
         for child in self.mainFrame.winfo_children():
             child.destroy()
         self.pages[self.currentPageIndex]()
-        self.midPayne.yview_moveto(self.scrollPos)
+        self.midPayne.yview_moveto(self.recipesScroll)
+        self.moveScrollBar()
 
     def recipesMove(self, direction):
         pygame.mixer.music.load(os.path.join(dirname, "click.mp3"))
@@ -801,7 +816,7 @@ class Application(Frame):
     def moveScrollBar(self):
         if self.currentPageIndex == 0:
             size = (self.midPayne.yview()[1] - self.midPayne.yview()[0])
-            alpha = (self.midPayne.yview()[0]-0)/((1 - (size))-0)*(1-0)+0
+            alpha = (self.midPayne.yview()[0]-0)/max(0.00001, ((1 - (size))-0)*(1-0)+0)
             self.recipeScrollBarCanvas.delete(self.bar)
             self.bar = self.recipeScrollBarCanvas.create_rectangle(17, (alpha * 276) + 3, 57, (alpha * 276) + 5, fill='#cccccc', outline='#cccccc')
 
@@ -818,22 +833,31 @@ class Application(Frame):
     def pickCategory(self, event):
         self.ingredientsString.set("Any")
         self.glassTypeString.set("Any")
+        self.filterValues = (self.categoryString.get(), 'Any', 'Any')
         self.getRecipesByCategory(self.categoryString.get())
 
     def pickSpirit(self, event):
         self.categoryString.set("Any")
         self.glassTypeString.set("Any")
+        self.filterValues = ('Any', self.ingredientsString.get(), 'Any')
         self.getRecipesBySpirit(self.ingredientsString.get())
 
     def pickGlassType(self, event):
         self.categoryString.set("Any")
         self.ingredientsString.set("Any")
+        self.filterValues = ('Any', 'Any', self.glassTypeString.get())
         self.getRecipesByGlassType(self.glassTypeString.get())
+
+    def randomRecipe(self):
+        self.openRecipe(self.recipes['recipies'][random.randint(0, len(self.recipes['recipies'])-1)]);
 
     def openRecipe(self, recipe):
         if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
             pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
             pygame.mixer.music.play()
+            if(self.currentPageIndex == 0):
+                self.recipesScroll = self.midPayne.yview()[0]
+
             self.mouseIsDown = False
             self.currentPageIndex = 1
             for child in self.mainFrame.winfo_children():
@@ -843,12 +867,11 @@ class Application(Frame):
             RGB = [0, 0, 0]
             ingredientsCount = 0
             for ingredient in recipe['ingredients']:
-                if self.ingredientsColour.get(ingredient['name']) != '#ffffff':
-                    ingredientsCount = ingredientsCount + 1
-                    tempRGB = HexToRGB(self.ingredientsColour.get(ingredient['name']))
-                    RGB[0] = RGB[0] + tempRGB[0]
-                    RGB[1] = RGB[1] + tempRGB[1]
-                    RGB[2] = RGB[2] + tempRGB[2]
+                ingredientsCount = ingredientsCount + 1
+                tempRGB = HexToRGB(self.ingredientsColour.get(ingredient['name']))
+                RGB[0] = RGB[0] + tempRGB[0]
+                RGB[1] = RGB[1] + tempRGB[1]
+                RGB[2] = RGB[2] + tempRGB[2]
             RGB[0] = RGB[0] / max(ingredientsCount, 1)
             RGB[1] = RGB[1] / max(ingredientsCount, 1)
             RGB[2] = RGB[2] / max(ingredientsCount, 1)
@@ -861,26 +884,29 @@ class Application(Frame):
             r_ratio = float(r2-r1) / width
             g_ratio = float(g2-g1) / width
             b_ratio = float(b2-b1) / width
-            for i in range(width):
+            for i in range(0, width, 10):
                 nr = int(r1 + (r_ratio * i))
                 ng = int(g1 + (g_ratio * i))
                 nb = int(b1 + (b_ratio * i))
                 color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
-                self.topPayne.create_line(i, 0, i, 100, tags=("gradient",), fill=color)
-                self.bottomPayne.create_line(i, 0, i, 20, tags=("gradient",), fill=color)
+                #self.topPayne.create_line(i, 0, i+1, 100, tags=("gradient",), fill=color)
+                self.topPayne.create_rectangle(i, 0, i+9, 100, tags=("gradient",), fill=color, outline=color)
+                #self.bottomPayne.create_line(i, 0, i, 20, tags=("gradient",), fill=color)
+                self.bottomPayne.create_rectangle(i, 0, i+9, 20, tags=("gradient",), fill=color, outline=color)
             self.topPayne.lower("gradient")
             self.bottomPayne.lower("gradient")
             self.topPayne.create_rectangle(0,97,width, 100, fill='#cccccc', outline='#cccccc')
             self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-            self.topPayne.create_text(28,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            #self.topPayne.create_text(26,6, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
             self.topPayne.create_text(28,12, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(32,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(32,12, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            #self.topPayne.create_text(34,6, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(34,14, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
             self.topPayne.create_text(28,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(30,12, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(32,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
             self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            #self.topPayne.create_text(30,6, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            
             self.topPayne.create_text(30,10, text=recipe['name'], font=titleFont, anchor='nw', fill='#cccccc')
         
             self.cocktailIngredients.delete(1.0, END)
@@ -907,7 +933,6 @@ class Application(Frame):
 
             self.cocktailIngredients.delete('end-2c', END)
             root.update()
-            #root.update_idletasks()
             line_height = font.metrics("linespace")
             num_lines = self.cocktailIngredients.count('1.0', END, 'displaylines')[0]
             total_height = line_height * num_lines + 10
@@ -917,10 +942,8 @@ class Application(Frame):
             self.cocktailSteps.delete(1.0, END)
             for step in recipe['steps']:
                 self.cocktailSteps.insert(END, "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n")
-                #print("count: " + str(self.cocktailSteps.count( ('1.0', END, 'ypixels')))
             self.cocktailSteps.delete('end-2c', END)
             root.update()
-            #root.update_idletasks()
             line_height = font.metrics("linespace")
             num_lines = self.cocktailSteps.count('1.0', END, 'displaylines')[0]
             total_height = line_height * num_lines + 10
