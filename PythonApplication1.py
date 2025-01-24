@@ -73,6 +73,8 @@ class Application(Frame):
     ingredientsColour = dict()
     glassTypes = set([])
     garnishes = ([])
+    overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflow.png")), Image.BICUBIC)
+    overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")), Image.BICUBIC)
 
     pygame.mixer.init() 
     pygame.mixer.music.set_volume(1.0)
@@ -230,27 +232,56 @@ class Application(Frame):
         self.pages[self.currentPageIndex]()
 
     keyboard = None
+    keyCanvas = None
     keys = []
     keyTexts = []
     def openKeyboard(self, event):
-        self.keyboard = Frame(self.mainFrame, width=980, height=140, bg='#ff0000')
-        self.keyboard.place(x=22, y=400)
-        self.keyCanvas = Canvas(self.keyboard, width=980, height=140, highlightthickness=0)
+        self.keyboard = Frame(self.mainFrame, width=985, height=235, bg='#ff0000')
+        self.keyboard.place(x=20, y=317)
+        self.keyCanvas = Canvas(self.keyboard, width=985, height=235, highlightthickness=0, bg='#222222')
         self.keyCanvas.pack(fill='both')
         for i in range(0, 13):
-            self.keys.append(self.keyCanvas.create_rectangle(i*70, 0, (i+1)*70, 70, fill=secondaryBGColour))
-            self.keyTexts.append(self.keyCanvas.create_text((i*70)+35, 35, width=70, text=self.alphabet[i], font=titleFont, fill=mainFGColour))
-            self.keys.append(self.keyCanvas.create_rectangle(i*70, 70, (i+1)*70, 140, fill=secondaryBGColour))
-            self.keyTexts.append(self.keyCanvas.create_text((i*70)+35, 105, width=70, text=self.alphabet[i+13], font=titleFont, fill=mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle((i*75)+5, 5, ((i+1)*75)+5, 80, fill=secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+5)+37, 42, width=75, text=self.alphabet[i], font=titleFont, fill=mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle((i*75)+5, 80, ((i+1)*75)+5, 155, fill=secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+5)+37, 117, width=75, text=self.alphabet[i+13], font=titleFont, fill=mainFGColour))
+        
+        self.keys.append(self.keyCanvas.create_rectangle(80, 155, 230, 230, fill=secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(155, 192, width=150, text='🠜', font=titleFont, fill=mainFGColour))
+
+        self.keys.append(self.keyCanvas.create_rectangle(305, 155, 680, 230, fill=secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(482, 192, width=375, text='Space', font=titleFont, fill=mainFGColour))
+
+        self.keys.append(self.keyCanvas.create_rectangle(755, 155, 905, 230, fill=secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(830, 192, width=150, text='🡃', font=titleFont, fill=mainFGColour))
         Misc.lift(self.keyboard)
 
     def keyboardClickCheck(self, event):
-        self.closeKeyboard(event)
+        if(self.keyboard != None):
+
+            if(event.widget == self.keyCanvas):
+                
+                if((event.y > 5) & (event.y <= 80) & (event.x > 5) & (event.x < 980)):
+                    self.searchTerm.set(self.searchTerm.get() + self.alphabet[math.floor((event.x - 5) / 75)])
+                elif((event.y > 80) & (event.y <= 155) & (event.x > 5) & (event.x < 980)):
+                    self.searchTerm.set(self.searchTerm.get() + self.alphabet[(math.floor((event.x - 5) / 75)) + 13])
+                elif((event.y > 155) & (event.y <= 230)):
+                    if((event.x > 80) & (event.x <= 230)):
+                        self.searchTerm.set(self.searchTerm.get()[:-1])
+                    elif((event.x > 305) & (event.x <= 680)):
+                        self.searchTerm.set(self.searchTerm.get() + ' ')
+                    elif((event.x > 755) & (event.x <= 905)):
+                        self.searchTerm.set('')
+                        self.closeKeyboard(event)
+                self.searchText.icursor(len(self.searchTerm.get()))
+                return
+            self.closeKeyboard(event)
 
     def closeKeyboard(self, event):
         if(self.keyboard != None):
             self.keyboard.place_forget()
             self.keyboard = None
+            self.keyCanvas = None
             root.focus()
 
     def getRecipesByCategory(self, season):
@@ -468,7 +499,7 @@ class Application(Frame):
 
     def Page1(self):
 
-        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=100);
+        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=75);
 
         self.topPayne.pack(side=TOP)
         self.topPayne.pack_propagate(0)
@@ -483,16 +514,21 @@ class Application(Frame):
 
         self.leftPaynesContainer = Frame(self.middleContainer)
         self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
-        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", height=150, width=315)
+        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", width=315, height=150)
         self.bottomLeftPayne.configure(yscrollincrement='1')
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
-        self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
+        #self.cocktailIngredients = Text(self.bottomLeftPayne, font=font, width=31, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
+        self.cocktailIngredients = Canvas(self.bottomLeftPayne, width=310, height=130, bg=mainBGColour, highlightthickness=0)
         mouse_action_with_arg = partial(self.mouseDown, self.bottomLeftPayne, True)
         self.cocktailIngredients.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailIngredients.bind('<Leave>', self.mouseUp)
         self.cocktailIngredients.bind("<MouseWheel>", self.scrollRecipeIngredients)
         self.bottomLeftPayne.create_window((5, 5), anchor=NW, window=self.cocktailIngredients)
         self.bottomLeftPayne.pack(pady=5)
+
+        self.overFlowContainerSmall = Canvas(self.bottomLeftPayneContainer, bg=mainBGColour, width=315, height=30, highlightthickness=0)
+        self.overFlowContainerSmall.pack(side=BOTTOM)
+
         self.bottomLeftPayneContainer.pack(side=TOP, padx=0, pady=0)
 
         self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
@@ -505,10 +541,11 @@ class Application(Frame):
         self.leftPaynesContainer.pack(side=LEFT, padx=5, pady=5)
 
         self.bottomRightPayneContainer = Frame(self.middleContainer, bg=mainBGColour)
-        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=435)
+        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=465)
         self.bottomRightPayne.configure(yscrollincrement='1')
         self.bottomRightPayne.bind("<MouseWheel>", self.scrollRecipeSteps)
-        self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
+        #self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
+        self.cocktailSteps = Canvas(self.bottomRightPayne, width=665, height=440, bg=mainBGColour, highlightthickness=0)
         mouse_action_with_arg = partial(self.mouseDown, self.bottomRightPayne, True)
         self.cocktailSteps.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailSteps.bind('<Leave>', self.mouseUp)
@@ -934,50 +971,32 @@ class Application(Frame):
             
             self.topPayne.create_text(30,10, text=recipe['name'], font=titleFont, anchor='nw', fill='#cccccc')
         
-            self.cocktailIngredients.delete(1.0, END)
 
-            self.cocktailIngredients.tag_config('green', foreground="#00cc00")
-            self.cocktailIngredients.tag_config('red', foreground="#cc0000")
-            self.cocktailIngredients.tag_config('default', foreground=mainFGColour)
-            
-            self.tag = 'red'
+            ingredientString = ''
             for ingredient in recipe['ingredients']:
                 dots = ""
                 for x in range(28 - (len(ingredient['name'][:18]) + len(ingredient['quantity']) + len(ingredient['unit']))):
                     dots = dots + "."
-                
-                if (self.ingredientsInStock.get(ingredient['name'], 0) == '1'):
-                    self.tag = 'green'
-                elif (self.garnishes.__contains__(str.lower(str.rstrip(ingredient['name'], 's'))) == True):
-                    self.tag = 'green'
-                else:
-                    self.tag = 'red'
+                ingredientString = ingredientString + "\u2022 " + ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n"
+            ingredientString = ingredientString[:-1]
+            ingredientText = self.cocktailIngredients.create_text(155, 0, text=ingredientString, anchor='n', fill=mainFGColour, font=font, width=310)
+            self.cocktailIngredients.configure(height=max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]), self.bottomLeftPayne.winfo_height()))
+            self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]), 150)))
+            
+            if((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]) > 150):
+                 self.overFlowContainerSmall.create_image(0, 0, anchor='nw', image=self.overflowImageSmall)
 
-                self.cocktailIngredients.insert(END, "\u2022 ", self.tag)
-                self.cocktailIngredients.insert(END, ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n", 'default')
-
-            self.cocktailIngredients.delete('end-2c', END)
-            root.update()
-            line_height = font.metrics("linespace")
-            num_lines = self.cocktailIngredients.count('1.0', END, 'displaylines')[0]
-            total_height = line_height * num_lines + 10
-            self.cocktailIngredients.config(height=(num_lines))
-            self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomLeftPayne.winfo_height())))
-                    
-            self.cocktailSteps.delete(1.0, END)
+            stepsString = ''
             for step in recipe['steps']:
-                self.cocktailSteps.insert(END, "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n")
-            self.cocktailSteps.delete('end-2c', END)
-            root.update()
-            line_height = font.metrics("linespace")
-            num_lines = self.cocktailSteps.count('1.0', END, 'displaylines')[0]
-            total_height = line_height * num_lines + 10
-            self.cocktailSteps.config(height=(num_lines))
-            self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max(total_height, self.bottomRightPayne.winfo_height())))
+                stepsString = stepsString + "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n"
+            stepsString = stepsString[:-2]
 
-            if num_lines > 21:
-                self.overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflow.png")), Image.BICUBIC)
-                self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
+            stepsText = self.cocktailSteps.create_text(332, 0, text=stepsString, anchor='n', fill=mainFGColour, font=font, width=665)
+            self.cocktailSteps.configure(height=max((self.cocktailSteps.bbox(stepsText)[3] - self.cocktailSteps.bbox(stepsText)[1]), self.bottomRightPayne.winfo_height()))
+            self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailSteps.bbox(stepsText)[3] - self.cocktailSteps.bbox(stepsText)[1]), 465)))
+
+            if((self.cocktailSteps.bbox(stepsText)[3] - self.cocktailSteps.bbox(stepsText)[1]) > 465):
+                 self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
             self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/glasses/" + recipe['glassType'].split(' ')[0] + ".png")).resize((75, 110), Image.BICUBIC))
             self.underLeftPayne.create_image(10, 0, anchor='nw', image=self.imgGlass)
