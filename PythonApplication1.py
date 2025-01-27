@@ -7,6 +7,7 @@ from tkinter import colorchooser
 import os
 from os import listdir
 from os.path import isfile, join
+import platform
 import tkinter
 from tkinter.messagebox import showerror
 from tkinter.font import Font
@@ -15,8 +16,7 @@ dirname = os.path.dirname(__file__)
 from functools import partial
 from datetime import datetime
 from difflib import SequenceMatcher
-from PIL import Image
-from PIL import ImageTk
+from PIL import Image, ImageEnhance, ImageTk
 from pathlib import Path
 import time
 import pygame
@@ -24,12 +24,6 @@ import math
 import random
 
 root = Tk()
-
-transparentColour = '#FF00E8'
-mainBGColour = '#111111'
-secondaryBGColour = '#333333'
-mainFGColour = '#EEEEEE'
-disabledFGColour = '#333333'
 
 font = Font(family="BPtypewrite", size=13)
 fontBold = Font(family="BPtypewrite", size=14, weight='bold')
@@ -68,6 +62,23 @@ def checkGlassImagesExist(recipes):
 
 class Application(Frame):
 
+    mainBGColour = '#111111'
+    secondaryBGColour = '#333333'
+    mainFGColour = '#EEEEEE'
+    disabledFGColour = '#333333'
+
+    mainBGColourDark = '#040404'
+    secondaryBGColourDark = '#111111'
+    mainFGColourDark = '#444444'
+    disabledFGColourDark = '#333333'
+
+    sleepSeconds = 5
+    lastActive = datetime.now()
+    currentBrightness = 1.0
+    fadeOutSeconds = 10
+    fadeInSeconds = 5
+    fading = False
+
     seasons = set([])
     names = set([])
     ingredients = set([])
@@ -80,7 +91,9 @@ class Application(Frame):
     overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")), Image.BICUBIC)
     recipeColours = dict()
     recipeButtonImages = dict()
+    recipeButtonImagesDark = dict()
     recipeButtonFiles = dict()
+    recipeButtonFilesDark = dict()
 
     pygame.mixer.init() 
     pygame.mixer.music.set_volume(1.0)
@@ -91,6 +104,46 @@ class Application(Frame):
     filterValues = ('Any', 'Any', 'Any', '')
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
+    overlay = None
+    overlayImage = None
+    mainFrameCanvas = None
+
+    def __init__(self, root):
+        super().__init__(root, bg=self.mainBGColour)
+
+        self.f = open(os.path.join(dirname, "recipes.JSON"), "r")
+        self.recipes = json.load(self.f)
+
+        self.f = open(os.path.join(dirname, "ingredients.JSON"), "r")
+        tempIngredients = json.load(self.f)
+
+        for ingredient in tempIngredients['ingredients']:
+            self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
+            self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
+            self.ingredientsColour.update({ingredient['name']:ingredient['Colour']})
+            
+        checkGarnishImagesExist(self.recipes)
+        checkGlassImagesExist(self.recipes)
+
+        self.getSearchables(self.recipes)
+
+        self.currentPageIndex = 0
+        self.pages = [self.Page0, self.Page1, self.Page2]
+
+        self.mainFrame = self
+        root.bind('<Motion>', self.mouseMove)
+        root.bind('<ButtonRelease-1>', self.mouseUp)
+        root.bind("<ButtonPress-1>", self.rootMouseDown)
+        self.mainFrame.configure(bg=self.mainBGColour)
+        self.mainFrame.pack(fill=BOTH, expand=True)
+        self.mainFrame.columnconfigure(0, weight=1)
+        self.mainFrame.rowconfigure(0, weight=1)
+
+        self.mainFrameCanvas = Canvas(self.mainFrame, width=1024, height=600, bg=self.mainBGColour, highlightthickness=0)
+        self.mainFrameCanvas.place(x=0, y=0)
+
+        self.pages[self.currentPageIndex]()      
+    
     scrolling = root
     mouseIsDown = False
     initialMouseY = 0
@@ -150,6 +203,89 @@ class Application(Frame):
                 else:
                     self.scrolling.yview_scroll(int(self.scrollVelocity)*-1, "units")
                     self.moveScrollBar()
+        
+        sinceActive = now - self.lastActive
+        #if(sinceActive.seconds >= self.sleepSeconds):
+            #if(self.isDark == False):
+                #self.goDark()
+
+            # if(self.fading == True):
+            #     msIntoFadeOut = ((sinceActive.seconds - self.sleepSeconds) * 1000000) + sinceActive.microseconds
+            #     self.currentBrightness = interpolate(0, (self.fadeOutSeconds*1000000), 1.0, 0.2, msIntoFadeOut)
+            #     self.adjustBrightness(self.currentBrightness)
+
+            # if((self.fading == False) & (self.currentBrightness > 0.2)):
+            #     self.fading = True
+
+            # if((self.fading == True) & (self.currentBrightness <= 0.2)):
+            #     self.fading = False
+
+    isDark = False
+    def goDark(self):
+        self.isDark = True
+
+        self.titleLabel.configure(fg=self.mainFGColourDark)
+        self.dateTimeLabel.configure(fg=self.mainFGColourDark)
+
+        self.midPayne.configure(bg=self.mainBGColourDark)
+        self.topPayne.configure(bg=self.mainBGColourDark)
+        self.titleLabel.configure(bg=self.mainBGColourDark)
+        self.dateTimeLabel.configure(bg=self.mainBGColourDark)
+        self.upDownBtnCanvas.configure(bg=self.mainBGColourDark)
+        self.midPayneLeftCanvas.configure(bg=self.mainBGColourDark)
+        self.midPayneContainerContainer.configure(bg=self.mainBGColourDark)
+        self.mainFrameCanvas.configure(bg=self.mainBGColourDark)
+        self.dateTimeFrame.configure(bg=self.mainBGColourDark)
+        self.recipeScrollBarCanvas.configure(bg=self.mainBGColourDark)
+
+        for i in self.recipeButtons.keys():
+            self.midPayne.itemconfig(self.recipeButtons[i], image=self.recipeButtonImagesDark.get(i))
+            self.midPayne.itemconfig(self.recipeTexts[i], fill=self.mainFGColourDark)
+
+        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchDark)
+        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsDark)
+        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsDark)
+        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeDark)
+        self.midPayneLeftCanvas.itemconfig(self.ingredientsButton, image=self.imgIngredientManagerDark)
+
+        self.upDownBtnCanvas.itemconfig(self.upButton, image=self.upImageDark)
+        self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImageDark)
+        self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
+        self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
+
+        self.goLight()
+
+
+    def goLight(self):
+        self.isDark = True
+        self.titleLabel.configure(fg=self.mainFGColour)
+        self.dateTimeLabel.configure(fg=self.mainFGColour)
+
+        self.midPayne.configure(bg=self.mainBGColour)
+        self.topPayne.configure(bg=self.mainBGColour)
+        self.titleLabel.configure(bg=self.mainBGColour)
+        self.dateTimeLabel.configure(bg=self.mainBGColour)
+        self.upDownBtnCanvas.configure(bg=self.mainBGColour)
+        self.midPayneLeftCanvas.configure(bg=self.mainBGColour)
+        self.midPayneContainerContainer.configure(bg=self.mainBGColour)
+        self.mainFrameCanvas.configure(bg=self.mainBGColour)
+        self.dateTimeFrame.configure(bg=self.mainBGColour)
+        self.recipeScrollBarCanvas.configure(bg=self.mainBGColour)
+
+        for i in self.recipeButtons.keys():
+            self.midPayne.itemconfig(self.recipeButtons[i], image=self.recipeButtonImages.get(i))
+            self.midPayne.itemconfig(self.recipeTexts[i], fill=self.mainFGColour)
+
+        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+        self.midPayneLeftCanvas.itemconfig(self.ingredientsButton, image=self.imgIngredientManager)
+
+        self.upDownBtnCanvas.itemconfig(self.upButton, image=self.upImage)
+        self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImage)
+        self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColour, outline=self.mainFGColour)
+        self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColour, outline=self.mainFGColour)
 
     def getIfIngredientIsSpirit(self, ing):
         for word in str(ing).split(' '):
@@ -164,6 +300,7 @@ class Application(Frame):
         buttonFiles = [f for f in listdir(buttonFileDir) if isfile(join(buttonFileDir, f))]
         for file in buttonFiles:
             self.recipeButtonFiles[file.split('_')[0]] = (file.split('_')[1].split('.')[0], ImageTk.PhotoImage(Image.open(buttonFileDir + '/' + file), Image.BICUBIC))
+            self.recipeButtonFilesDark[file.split('_')[0]] = (file.split('_')[1].split('.')[0], ImageTk.PhotoImage(Image.open(buttonFileDir + '/dark/' + file), Image.BICUBIC))
 
         seasons2 = set([])
         names2 = set([])
@@ -204,15 +341,20 @@ class Application(Frame):
             if(self.recipeButtonFiles.__contains__(recipe['ID'])):
                 if(self.recipeButtonFiles[recipe['ID']][0] == self.recipeColours[recipe['name']]):
                     self.recipeButtonImages[recipe['name']] = self.recipeButtonFiles[recipe['ID']][1]
+                    self.recipeButtonImagesDark[recipe['name']] = self.recipeButtonFilesDark[recipe['ID']][1]
                     found = True
                 else:
                     os.remove(buttonFileDir + '/' + recipe['ID'] + '_' + self.recipeButtonFiles[recipe['ID']][0] + '.png')
+                    os.remove(buttonFileDir + '/dark/' + recipe['ID'] + '_' + self.recipeButtonFiles[recipe['ID']][0] + '.png')
                 
             if(found == False):
-                self.recipeButtonImages[recipe['name']] = tintImage(recipeButton, self.recipeColours[recipe['name']], recipeButtonMask)
+                buttonImg = tintImage(recipeButton, self.recipeColours[recipe['name']], recipeButtonMask)
+                self.recipeButtonImages[recipe['name']] = buttonImg[0]
+                self.recipeButtonImagesDark[recipe['name']] = buttonImg[1]
                 self.recipeButtonImages[recipe['name']].write(buttonFileDir + '/' + recipe['ID'] + '_' + self.recipeColours[recipe['name']] + '.png', format='png')
+                self.recipeButtonImagesDark[recipe['name']].write(buttonFileDir + '/dark/' + recipe['ID'] + '_' + self.recipeColours[recipe['name']] + '.png', format='png')
             
-            
+
             self.seasons = sorted(seasons2)
             if self.seasons.__contains__('Any') == False:
                 self.seasons.insert(0, 'Any')
@@ -232,39 +374,6 @@ class Application(Frame):
                 return False
         return True
 
-    def __init__(self, root):
-        super().__init__(root, bg=mainBGColour)
-
-        self.f = open(os.path.join(dirname, "recipes.JSON"), "r")
-        self.recipes = json.load(self.f)
-
-        self.f = open(os.path.join(dirname, "ingredients.JSON"), "r")
-        tempIngredients = json.load(self.f)
-
-        for ingredient in tempIngredients['ingredients']:
-            self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
-            self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
-            self.ingredientsColour.update({ingredient['name']:ingredient['Colour']})
-            
-        checkGarnishImagesExist(self.recipes)
-        checkGlassImagesExist(self.recipes)
-
-        self.getSearchables(self.recipes)
-
-        self.currentPageIndex = 0
-        self.pages = [self.Page0, self.Page1, self.Page2]
-
-        self.mainFrame = self
-        root.bind('<Motion>', self.mouseMove)
-        root.bind('<ButtonRelease-1>', self.mouseUp)
-        root.bind("<ButtonPress-1>", self.rootMouseDown)
-        self.mainFrame.configure(bg=mainBGColour)
-        self.mainFrame.pack(fill=BOTH, expand=True)
-        self.mainFrame.columnconfigure(0, weight=1)
-        self.mainFrame.rowconfigure(0, weight=1)
-
-        self.pages[self.currentPageIndex]()
-
     keyboard = None
     keyCanvas = None
     keys = []
@@ -272,30 +381,30 @@ class Application(Frame):
     keyboardOpen = False
     searchTerm = StringVar()
     def openKeyboard(self):
-        self.keyboard = Frame(self.mainFrame)
+        self.keyboard = Frame(self.mainFrameCanvas)
         self.keyboard.place(x=10, y=307)
         
         self.keyCanvas = Canvas(self.keyboard, width=1005, height=285, highlightthickness=0, bg='#222222')
         self.keyCanvas.pack(fill='both')
 
         self.searchTerm.trace("w", lambda name, index, mode, searchTerm=self.searchTerm: self.updateSearchBox(searchTerm))
-        self.keyboardTextEntry = Entry(self.keyCanvas, font=subTitleFont, textvariable=self.searchTerm, bg=mainBGColour, bd=0, fg=mainFGColour)
+        self.keyboardTextEntry = Entry(self.keyCanvas, font=subTitleFont, textvariable=self.searchTerm, bg=self.mainBGColour, bd=0, fg=self.mainFGColour)
         self.keyboardTextEntry.place(x=15, y=10, height=40, width=975)
 
         for i in range(0, 13):
-            self.keys.append(self.keyCanvas.create_rectangle((i*75)+15, 55, ((i+1)*75)+15, 130, fill=secondaryBGColour))
-            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 92, width=75, text=self.alphabet[i], font=titleFont, fill=mainFGColour))
-            self.keys.append(self.keyCanvas.create_rectangle((i*75)+15, 130, ((i+1)*75)+15, 205, fill=secondaryBGColour))
-            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 167, width=75, text=self.alphabet[i+13], font=titleFont, fill=mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle((i*75)+15, 55, ((i+1)*75)+15, 130, fill=self.secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 92, width=75, text=self.alphabet[i], font=titleFont, fill=self.mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle((i*75)+15, 130, ((i+1)*75)+15, 205, fill=self.secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 167, width=75, text=self.alphabet[i+13], font=titleFont, fill=self.mainFGColour))
         
-        self.keys.append(self.keyCanvas.create_rectangle(90, 205, 240, 280, fill=secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(165, 242, width=150, text='🠜', font=titleFont, fill=mainFGColour))
+        self.keys.append(self.keyCanvas.create_rectangle(90, 205, 240, 280, fill=self.secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(165, 242, width=150, text='🠜', font=titleFont, fill=self.mainFGColour))
 
-        self.keys.append(self.keyCanvas.create_rectangle(315, 205, 690, 280, fill=secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(492, 242, width=375, text='Space', font=titleFont, fill=mainFGColour))
+        self.keys.append(self.keyCanvas.create_rectangle(315, 205, 690, 280, fill=self.secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(492, 242, width=375, text='Space', font=titleFont, fill=self.mainFGColour))
 
-        self.keys.append(self.keyCanvas.create_rectangle(765, 205, 915, 280, fill=secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='🡃', font=titleFont, fill=mainFGColour))
+        self.keys.append(self.keyCanvas.create_rectangle(765, 205, 915, 280, fill=self.secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='🡃', font=titleFont, fill=self.mainFGColour))
         Misc.lift(self.keyboard)
         self.keyboardOpen = True
 
@@ -303,8 +412,6 @@ class Application(Frame):
         if(self.keyboardOpen == True):
             if(event.widget == self.keyCanvas):
 
-                print(event.y)
-                
                 if((event.y > 55) & (event.y <= 130) & (event.x > 5) & (event.x < 980)):
                     self.searchTerm.set(self.searchTerm.get() + self.alphabet[math.floor((event.x - 5) / 75)])
                 elif((event.y > 130) & (event.y <= 205) & (event.x > 5) & (event.x < 980)):
@@ -387,15 +494,17 @@ class Application(Frame):
         RGB[2] = RGB[2] / max(ingredientsCount, 1)
         return RGBToHex(int(RGB[0]), int(RGB[1]), int(RGB[2]))
 
-    recipeButtons = []
-    
+    recipeButtons = dict()  
+    recipeTexts = dict()  
     recipeButtonAreas = []
     
     def addRecipeButtons(self, recipes):
         self.recipeButtonAreas.clear()
         orderedRecipes = self.orderRecipeListByInStock(recipes)
 
-        for child in self.recipeButtons:
+        for child in self.recipeButtons.values():
+            self.midPayne.delete(child)
+        for child in self.recipeTexts.values():
             self.midPayne.delete(child)
         self.recipeButtons.clear()
 
@@ -417,14 +526,12 @@ class Application(Frame):
             #self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images/cocktails/buttons/"+recipe['ID']+".jpg"))
 
             if self.recipeIngredientsInStock(recipe) == True:
-                colour = mainFGColour
+                colour = self.mainFGColour
             else:
-                colour = disabledFGColour
+                colour = self.disabledFGColour
 
-            #self.midPayne.create_rectangle(self.left, self.top, self.left+self.w, self.top+self.h, fill=self.getRecipeColour(recipe), outline=mainBGColour)
-            self.recipeButtons.append(self.midPayne.create_image(self.left, self.top, anchor='nw', image=self.recipeButtonImages.get(recipe['name'])))
-            #self.recipeButtons.append(self.midPayne.create_image(self.left, self.top, anchor='nw', image=self.buttonImages[recipe['ID']]))
-            self.recipeButtons.append(self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']))
+            self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=self.recipeButtonImages.get(recipe['name']))
+            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name'])
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
 
             self.left = self.left+self.w+10;
@@ -473,7 +580,7 @@ class Application(Frame):
 
         if(self.keyboard == None):
             self.openKeyboard()
-            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch2)
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
         else:
             self.searchTerm.set('')
             self.closeKeyboard()
@@ -499,13 +606,13 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
 
         self.pickerString = string
-        self.pickerCanvas = Canvas(self.mainFrame, width=200, height=400, bg='#ff0000', highlightthickness=0)
+        self.pickerCanvas = Canvas(self.mainFrameCanvas, width=200, height=400, bg='#ff0000', highlightthickness=0)
         action_with_arg = partial(self.pickerClick, options)
         self.pickerCanvas.bind('<ButtonPress-1>', action_with_arg)
         x = 0
         for item in options:
             self.pickerCanvas.create_rectangle(0, x * 40, 200, (x + 1) * 40, fill='#222222')
-            self.pickerCanvas.create_text(100, (x*40) + 20, width=200, fill=mainFGColour, font=font, text=item)
+            self.pickerCanvas.create_text(100, (x*40) + 20, width=200, fill=self.mainFGColour, font=font, text=item)
             x = x + 1
         self.pickerCanvas.configure(height=x*40)
         self.pickerCanvas.place(x=XPos, y=(YPos - (x*10)))
@@ -527,7 +634,7 @@ class Application(Frame):
         if(self.pickerType != 'seasons'):
             self.openPickerBox(self.seasons, 110, 137, self.categoryString)
             self.pickerType = 'seasons'
-            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons2)
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
         else:
             self.pickerType = ''
 
@@ -539,7 +646,7 @@ class Application(Frame):
         if(self.pickerType != 'spirits'):
             self.openPickerBox(self.spirits, 110, 237, self.ingredientsString)
             self.pickerType = 'spirits'
-            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits2)
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
         else:
             self.pickerType = ''
 
@@ -551,27 +658,27 @@ class Application(Frame):
         if(self.pickerType != 'glassTypes'):
             self.openPickerBox(self.glassTypes, 110, 337, self.glassTypeString)
             self.pickerType = 'glassTypes'
-            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType2)
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
             self.pickerType = ''
 
     def Page0(self):
 
-        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=70);
-        self.titleFrame = Frame(self.topPayne, bg=mainBGColour)
-        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Cocktails 'n shit", bg=mainBGColour, fg=mainFGColour)
+        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
+        self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
+        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Cocktails 'n shit", bg=self.mainBGColour, fg=self.mainFGColour)
         self.titleLabel.pack(side=BOTTOM)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
-        self.dateTimeFrame = Frame(self.topPayne, bg=mainBGColour)
-        self.dateTimeLabel = Label(self.dateTimeFrame, font=subSubTitleFont, anchor='n', bg=mainBGColour, fg=mainFGColour, text="00/00/0000 00:00:00")
+        self.dateTimeFrame = Frame(self.topPayne, bg=self.mainBGColour)
+        self.dateTimeLabel = Label(self.dateTimeFrame, font=subSubTitleFont, anchor='n', bg=self.mainBGColour, fg=self.mainFGColour, text="00/00/0000 00:00:00")
         self.dateTimeLabel.pack(side=TOP)
         self.dateTimeFrame.pack(side=RIGHT, fill='y', padx=10, pady=10)
         self.topPayne.pack(fill='x')
         self.topPayne.pack_propagate(0)
 
-        self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
+        self.midPayneContainerContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
-        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=805, height=500)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=self.mainBGColour, scrollregion="0 0 2000 1000", width=805, height=500)
         self.midPayne.configure(yscrollincrement='1')
         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
@@ -580,109 +687,59 @@ class Application(Frame):
         self.midPayne.bind("<MouseWheel>", self.scrollMainPageRecipes)
         self.midPayne.pack()
 
-        self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=80)
+        self.upDownBtnCanvas = Canvas(self.midPayneContainerContainer, bg=self.mainBGColour, borderwidth=0, highlightthickness=0, width=80)
         self.upDownBtnCanvas.bind("<ButtonPress-1>", self.clickUpDownCanvas)
         self.upImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/up.png")), Image.BICUBIC)
-        self.upDownBtnCanvas.create_image(0, 10, anchor='nw', image=self.upImage)
+        self.upImageDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/upDark.png")), Image.BICUBIC)
+        self.upButton = self.upDownBtnCanvas.create_image(0, 10, anchor='nw', image=self.upImage)
         self.downImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/down.png")), Image.BICUBIC)
-        self.upDownBtnCanvas.create_image(0, 370, anchor='nw', image=self.downImage)
-        self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=290)
-        self.recipeScrollBarCanvas.create_rectangle(35, 0, 39, 320, fill='#cccccc', outline='#cccccc')
+        self.downImageDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/downDark.png")), Image.BICUBIC)
+        self.downButton = self.upDownBtnCanvas.create_image(0, 370, anchor='nw', image=self.downImage)
+        self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=self.mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=290)
+        self.barBack = self.recipeScrollBarCanvas.create_rectangle(35, 0, 39, 320, fill='#cccccc', outline='#cccccc')
         self.bar = self.recipeScrollBarCanvas.create_rectangle(17, 3, 57, 5, fill='#cccccc', outline='#cccccc')
         self.recipeScrollBarCanvas.pack(pady = 83)
         self.upDownBtnCanvas.pack(side=RIGHT, fill='y', padx=10)
 
         self.midPayneContainer.pack(side=RIGHT)
         
-        self.midPayneLeftCanvas = Canvas(self.midPayneContainerContainer, bg=mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=475)
+        self.midPayneLeftCanvas = Canvas(self.midPayneContainerContainer, bg=self.mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=475)
         
         self.imgSearch = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search.png")), Image.BICUBIC)
-        self.imgSearch2 = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search_on.png")), Image.BICUBIC)
+        self.imgSearchDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/searchDark.png")), Image.BICUBIC)
+        self.imgSearchOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search_on.png")), Image.BICUBIC)
         self.searchButton = self.midPayneLeftCanvas.create_image(0, 0, anchor='nw', image=self.imgSearch)
 
         self.imgSeasons = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season.png")), Image.BICUBIC)
-        self.imgSeasons2 = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season_on.png")), Image.BICUBIC)
+        self.imgSeasonsDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/seasonDark.png")), Image.BICUBIC)
+        self.imgSeasonsOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season_on.png")), Image.BICUBIC)
         self.seasonsButton = self.midPayneLeftCanvas.create_image(0, 100, anchor='nw', image=self.imgSeasons)
 
         self.imgSpirits = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit.png")), Image.BICUBIC)
-        self.imgSpirits2 = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit_on.png")), Image.BICUBIC)
+        self.imgSpiritsDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spiritDark.png")), Image.BICUBIC)
+        self.imgSpiritsOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit_on.png")), Image.BICUBIC)
         self.spiritsButton = self.midPayneLeftCanvas.create_image(0, 200, anchor='nw', image=self.imgSpirits)
 
         self.imgGlassType = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType.png")), Image.BICUBIC)
-        self.imgGlassType2 = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType_on.png")), Image.BICUBIC)
+        self.imgGlassTypeDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassTypeDark.png")), Image.BICUBIC)
+        self.imgGlassTypeOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType_on.png")), Image.BICUBIC)
         self.glassTypesButton = self.midPayneLeftCanvas.create_image(0, 300, anchor='nw', image=self.imgGlassType)
 
         self.imgIngredientManager = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients.png")), Image.BICUBIC)
-        self.imgIngredientManager2 = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients_on.png")), Image.BICUBIC)
+        self.imgIngredientManagerDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredientsDark.png")), Image.BICUBIC)
+        self.imgIngredientManagerOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients_on.png")), Image.BICUBIC)
         self.ingredientsButton = self.midPayneLeftCanvas.create_image(0, 400, anchor='nw', image=self.imgIngredientManager)
 
         self.midPayneLeftCanvas.bind('<ButtonPress-1>', self.clickLeftButtonCanvas)
         self.midPayneLeftCanvas.pack(pady=5, padx=20, side=LEFT, anchor='nw')
 
-        # self.midPayneLeftContainer = Frame(self.midPayneContainerContainer, bg=mainBGColour)
-
-        # self.ingredientsButtonFrame = Frame(self.midPayneLeftContainer, bg=mainBGColour)
-        # self.ingredientsButtonLabel = Label(self.ingredientsButtonFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Ingredients:')
-        # self.ingredientsButtonLabel.pack(side=TOP)
-        # self.ingredientsButton = Button(self.ingredientsButtonFrame, text='Open', command=self.openIngredientsManager)
-        # self.ingredientsButton.pack(ipadx=20, ipady=10, side=BOTTOM)
-        # self.ingredientsButtonFrame.pack(side=TOP, padx = 0, pady=5)
-
-        # self.searchFrame = Frame(self.midPayneLeftContainer, bg=mainBGColour)
-        # self.ingredientsButtonLabel = Label(self.searchFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Search:')
-        # self.ingredientsButtonLabel.pack(side=TOP)
-        #self.searchTerm = StringVar()
-        #self.searchTerm.trace("w", lambda name, index, mode, searchTerm=self.searchTerm: self.updateSearchBox(searchTerm))
-        # self.searchText = Entry(self.searchFrame, width=15, textvariable=self.searchTerm)
-        # self.searchText.bind('<FocusIn>', self.openKeyboard)
-        # self.searchText.bind('<FocusOut>', self.closeKeyboard)
-        # self.searchText.pack(ipadx=20, ipady=10, side=BOTTOM)
-        # self.searchFrame.pack(side=TOP, padx = 0, pady=5)
-
-        # self.categoryFrame = Frame(self.midPayneLeftContainer, bg=mainBGColour)
-        # self.categoryLabel = Label(self.categoryFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Season:')
-        # self.categoryLabel.pack(side=TOP)
-        # if self.seasons.__contains__('Any') == False:
-        #     self.seasons.insert(0, 'Any')
-        # self.categoryString = StringVar(self.categoryFrame) 
-        # self.categoryBox = ttk.OptionMenu(self.categoryFrame, self.categoryString, list(self.seasons)[0], *self.seasons, command=self.pickCategory, direction='above')
-        # self.categoryBox.configure(width=15)
-        # self.categoryBox.pack(ipadx=20, ipady=10, side=BOTTOM)
-        # self.categoryFrame.pack(side=TOP, padx = 0, pady=5)
-
-        # self.ingredientsFrame = Frame(self.midPayneLeftContainer, bg=mainBGColour)
-        # self.ingredientsLabel = Label(self.ingredientsFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Spirit:')
-        # self.ingredientsLabel.pack(side=TOP)
-        # if self.spirits.__contains__('Any') == False:
-        #     self.spirits.insert(0, 'Any')
-        # self.ingredientsString = StringVar(self.ingredientsFrame) 
-        # self.ingredientsBox = ttk.OptionMenu(self.ingredientsFrame, self.ingredientsString, list(self.spirits)[0], *self.spirits, command=self.pickSpirit, direction='above')
-        # self.ingredientsBox.configure(width=15)
-        # self.ingredientsBox.pack(ipadx=20, ipady=10, side=BOTTOM)
-        # self.ingredientsFrame.pack(side=TOP, padx = 0, pady=5)
-
-        # self.glassFrame = Frame(self.midPayneLeftContainer, bg=mainBGColour)
-        # self.glassLabel = Label(self.glassFrame, bg=mainBGColour, fg=mainFGColour, font=smallFont, text='Glass Type:')
-        # self.glassLabel.pack(side=TOP)
-        # if self.glassTypes.__contains__('Any') == False:
-        #     self.glassTypes.insert(0, 'Any')
-        # self.glassTypeString = StringVar(self.glassFrame) 
-        # self.glassTypeBox = ttk.OptionMenu(self.glassFrame, self.glassTypeString, list(self.glassTypes)[0], *self.glassTypes, command=self.pickGlassType, direction='above')
-        # self.glassTypeBox.configure(width=15)
-        # self.glassTypeBox.pack(ipadx=20, ipady=10, side=BOTTOM)
-        # self.glassFrame.pack(side=TOP, padx = 0, pady=5)
-
-        # self.midPayneLeftContainer.pack(pady=5, padx=10, side=LEFT, anchor='nw')
         self.midPayneContainerContainer.pack(pady=5, side=RIGHT)
 
-        # self.bottomPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=75);
-        # self.bottomPayne.pack(side=BOTTOM)
 
         if(self.firstTimeOpening == True):
             self.getRecipesByCategory('Any')
             self.firstTimeOpening = False
         else:
-            print(self.filterValues)
             self.addRecipeButtons(self.recipeList)
             self.categoryString.set(self.filterValues[0])
             self.ingredientsString.set(self.filterValues[1])
@@ -691,7 +748,7 @@ class Application(Frame):
 
     def Page1(self):
 
-        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=75);
+        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=75);
 
         self.topPayne.pack(side=TOP)
         self.topPayne.pack_propagate(0)
@@ -702,14 +759,14 @@ class Application(Frame):
         self.btn2 = Button(self.topPayne, text=u"\U0001F500", font=subSubTitleFont, command=self.randomRecipe)
         self.btn2.pack(side=RIGHT, padx=25, pady=10)
 
-        self.middleContainer = Frame(self.mainFrame, bg=mainBGColour)
+        self.middleContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
 
         self.leftPaynesContainer = Frame(self.middleContainer)
-        self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
-        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 500", width=315, height=140)
+        self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=self.mainBGColour)
+        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=self.mainBGColour, scrollregion="0 0 2000 500", width=315, height=140)
         self.bottomLeftPayne.configure(yscrollincrement='1')
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
-        self.cocktailIngredients = Canvas(self.bottomLeftPayne, width=310, height=130, bg=mainBGColour, highlightthickness=0)
+        self.cocktailIngredients = Canvas(self.bottomLeftPayne, width=310, height=130, bg=self.mainBGColour, highlightthickness=0)
         mouse_action_with_arg = partial(self.mouseDown, self.bottomLeftPayne, True)
         self.cocktailIngredients.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailIngredients.bind('<Leave>', self.mouseUp)
@@ -717,13 +774,13 @@ class Application(Frame):
         self.bottomLeftPayne.create_window((5, 10), anchor=NW, window=self.cocktailIngredients)
         self.bottomLeftPayne.pack()
 
-        self.overFlowContainerSmall = Canvas(self.bottomLeftPayneContainer, bg=mainBGColour, width=315, height=15, highlightthickness=0)
+        self.overFlowContainerSmall = Canvas(self.bottomLeftPayneContainer, bg=self.mainBGColour, width=315, height=15, highlightthickness=0)
         self.overFlowContainerSmall.pack(side=BOTTOM)
 
         self.bottomLeftPayneContainer.pack(side=TOP, padx=0, pady=0)
 
-        self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=mainBGColour)
-        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=mainBGColour, height=350, width=315)
+        self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=self.mainBGColour)
+        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=self.mainBGColour, height=350, width=315)
 
         self.underLeftPayne.pack()
         self.underLeftPayne.pack_propagate(0)
@@ -731,12 +788,12 @@ class Application(Frame):
 
         self.leftPaynesContainer.pack(side=LEFT, padx=5)
 
-        self.bottomRightPayneContainer = Frame(self.middleContainer, bg=mainBGColour)
-        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=700, height=475)
+        self.bottomRightPayneContainer = Frame(self.middleContainer, bg=self.mainBGColour)
+        self.bottomRightPayne = Canvas(self.bottomRightPayneContainer, highlightthickness=0, bg=self.mainBGColour, scrollregion="0 0 2000 1000", width=700, height=475)
         self.bottomRightPayne.configure(yscrollincrement='1')
         self.bottomRightPayne.bind("<MouseWheel>", self.scrollRecipeSteps)
-        #self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=mainBGColour, fg=mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
-        self.cocktailSteps = Canvas(self.bottomRightPayne, width=665, height=440, bg=mainBGColour, highlightthickness=0)
+        #self.cocktailSteps = Text(self.bottomRightPayne, font=font, width=66, bg=self.mainBGColour, fg=self.mainFGColour, borderwidth=0, bd=0, wrap=WORD, cursor='arrow')
+        self.cocktailSteps = Canvas(self.bottomRightPayne, width=665, height=440, bg=self.mainBGColour, highlightthickness=0)
         mouse_action_with_arg = partial(self.mouseDown, self.bottomRightPayne, True)
         self.cocktailSteps.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailSteps.bind('<Leave>', self.mouseUp)
@@ -744,22 +801,22 @@ class Application(Frame):
         self.bottomRightPayne.create_window((5, 5), anchor=NW, window=self.cocktailSteps)
         self.bottomRightPayne.pack(padx=8, side=TOP)
 
-        self.overFlowContainer = Canvas(self.bottomRightPayneContainer, bg=mainBGColour, width=700, height=30, highlightthickness=0)
+        self.overFlowContainer = Canvas(self.bottomRightPayneContainer, bg=self.mainBGColour, width=700, height=30, highlightthickness=0)
         self.overFlowContainer.pack(padx=8, side=BOTTOM)
 
         self.bottomRightPayneContainer.pack(side=RIGHT, padx=5)
 
         self.middleContainer.pack(side=TOP)
 
-        self.bottomPayneContainer = Frame(self.mainFrame, bg=mainBGColour, width=1024, height=15)
-        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg=mainBGColour, width=1024, height=20);
+        self.bottomPayneContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour, width=1024, height=15)
+        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg=self.mainBGColour, width=1024, height=20);
         self.bottomPayne.pack()
         self.bottomPayneContainer.pack(side=BOTTOM)
 
     def Page2(self):
-        self.topPayne = Canvas(self.mainFrame, highlightthickness=0, bg=mainBGColour, width=1024, height=100);
-        self.titleFrame = Frame(self.topPayne, bg=mainBGColour)
-        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=mainBGColour, fg=mainFGColour)
+        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=100);
+        self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
+        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=self.mainBGColour, fg=self.mainFGColour)
         self.titleLabel.pack(side=TOP)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
         self.btn = Button(self.topPayne, text="Return", font=subSubTitleFont, command=self.homepage)
@@ -767,11 +824,11 @@ class Application(Frame):
         self.topPayne.pack(fill='x')
         self.topPayne.pack_propagate(0)
 
-        self.midPayneContainerContainer = Frame(self.mainFrame, bg=mainBGColour)
+        self.midPayneContainerContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
         self.midPayneContainer = Frame(self.midPayneContainerContainer)
-        self.leftPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, width=100, height=442)
+        self.leftPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=self.mainBGColour, width=100, height=442)
         self.leftPayne.pack(side=LEFT)
-        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=mainBGColour, scrollregion="0 0 2000 1000", width=900, height=442)
+        self.midPayne = Canvas(self.midPayneContainer, highlightthickness=0, bg=self.mainBGColour, scrollregion="0 0 2000 1000", width=900, height=442)
         self.midPayne.configure(yscrollincrement='1')
         mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
         self.midPayne.bind('<ButtonPress-1>', mouse_action_with_arg)
@@ -780,7 +837,7 @@ class Application(Frame):
         self.leftPayne.create_rectangle(0, 4, 75, 442, fill='#0000ff')
         for i in range(26):
             self.leftPayne.create_rectangle(0, (i*17), 90, ((i*17)+17), fill='#222222')
-            self.leftPayne.create_text(45, (i*17)+8, width=90, font=smallFont, fill=mainFGColour, text=self.alphabet[i])
+            self.leftPayne.create_text(45, (i*17)+8, width=90, font=smallFont, fill=self.mainFGColour, text=self.alphabet[i])
         self.leftPayne.bind('<ButtonPress-1>', self.clickAlphabet)
 
         x = 0
@@ -837,7 +894,7 @@ class Application(Frame):
         else:
             img = self.unCheckImage
             textColour = '#ff0000'
-        rowBack = self.midPayne.create_rectangle(0, yPos, 1000, (yPos+height), fill=secondaryBGColour, outline=secondaryBGColour, tags='back')
+        rowBack = self.midPayne.create_rectangle(0, yPos, 1000, (yPos+height), fill=self.secondaryBGColour, outline=self.secondaryBGColour, tags='back')
         self.ingredientInStockClickAreas.append(((0, yPos, 1000, height), name))
         self.midPayne.lower('back')
         rowName = self.midPayne.create_text(140, yPos+15, anchor='nw', text=name, font=subSubTitleFont, fill=textColour)
@@ -845,11 +902,11 @@ class Application(Frame):
 
         self.ingredientColourButtons[name] = self.midPayne.create_rectangle(600, yPos+10, 675, yPos+height-10, fill=colour)
 
-        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=secondaryBGColour)
-        rowLEDStripText = self.midPayne.create_text(737, yPos+30, width=100, font=subSubTitleFont, fill=mainFGColour, text=LEDStrip)
+        self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=self.secondaryBGColour)
+        rowLEDStripText = self.midPayne.create_text(737, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=LEDStrip)
 
-        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=secondaryBGColour)
-        rowLEDIndexText = self.midPayne.create_text(837, yPos+30, width=100, font=subSubTitleFont, fill=mainFGColour, text=LEDIndex)
+        self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=self.secondaryBGColour)
+        rowLEDIndexText = self.midPayne.create_text(837, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=LEDIndex)
 
         tup=(rowBack, rowName, self.ingredientCheckBoxes[name], self.ingredientColourButtons[name], self.ingredientLEDStripButtons[name], self.ingredientLEDIndexButtons[name], rowLEDStripText, rowLEDIndexText)
         self.ingredientRows[name] = tup
@@ -871,7 +928,6 @@ class Application(Frame):
         self.moveToIngredient(0)
 
     def moveToIngredient(self, x):
-        print(x)
         totalHeight = self.midPayne.bbox('all')[3]
         scrollTo = ((self.itemHeight + self.itemSpacing) * x)
         self.midPayne.yview_moveto(float(scrollTo+1) / totalHeight)
@@ -984,7 +1040,7 @@ class Application(Frame):
             x = 0
             for i in range(start, end+1):
                 self.numberPickButtons.append(self.midPayne.create_rectangle(xPos, (yPos + (bHeight * x)), xPos+75, (yPos + ((bHeight * x) + bHeight)), fill='#222222'))
-                self.numberPickText.append(self.midPayne.create_text((xPos + 37), (yPos + (bHeight * x) + 20), width=75, font=subSubTitleFont, fill=mainFGColour, text=i))
+                self.numberPickText.append(self.midPayne.create_text((xPos + 37), (yPos + (bHeight * x) + 20), width=75, font=subSubTitleFont, fill=self.mainFGColour, text=i))
                 x = x + 1
         return
     
@@ -1053,7 +1109,7 @@ class Application(Frame):
         pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
         pygame.mixer.music.play()
         self.currentPageIndex = 0
-        for child in self.mainFrame.winfo_children():
+        for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
         self.pages[self.currentPageIndex]()
         self.midPayne.yview_moveto(self.recipesScroll)
@@ -1116,7 +1172,7 @@ class Application(Frame):
 
             self.mouseIsDown = False
             self.currentPageIndex = 1
-            for child in self.mainFrame.winfo_children():
+            for child in self.mainFrameCanvas.winfo_children():
                 child.destroy()
             self.pages[self.currentPageIndex]()
 
@@ -1143,14 +1199,14 @@ class Application(Frame):
             self.topPayne.create_rectangle(0,72,width, 75, fill='#cccccc', outline='#cccccc')
             self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-            self.topPayne.create_text(32,4, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(28,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(30,4, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(28,6, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
-            #self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=mainBGColour)
+            self.topPayne.create_text(32,4, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            self.topPayne.create_text(28,8, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            self.topPayne.create_text(30,4, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            self.topPayne.create_text(28,6, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            #self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
             
             self.topPayne.create_text(30,6, text=recipe['name'], font=titleFont, anchor='nw', fill='#cccccc')
         
@@ -1176,8 +1232,8 @@ class Application(Frame):
                 self.cocktailIngredients.create_text(10, (i*lineHeight), text=string, anchor='n', fill=colour, font=font, width=20)
                 i = i+1
             ingredientString = ingredientString[:-1]
-            ingredientText = self.cocktailIngredients.create_text(165, 0, text=ingredientString, anchor='n', fill=mainFGColour, font=font, width=290)
-            bulletsText = self.cocktailIngredients.create_text(15, 0, text=bulletsString, anchor='n', fill=mainFGColour, font=font, width=20)
+            ingredientText = self.cocktailIngredients.create_text(165, 0, text=ingredientString, anchor='n', fill=self.mainFGColour, font=font, width=290)
+            bulletsText = self.cocktailIngredients.create_text(15, 0, text=bulletsString, anchor='n', fill=self.mainFGColour, font=font, width=20)
             self.cocktailIngredients.configure(height=max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]), self.bottomLeftPayne.winfo_height()))
             self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1])+15, 140)))
             
@@ -1189,7 +1245,7 @@ class Application(Frame):
                 stepsString = stepsString + "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n"
             stepsString = stepsString[:-1]
 
-            stepsText = self.cocktailSteps.create_text(332, 0, text=stepsString, anchor='n', fill=mainFGColour, font=font, width=665)
+            stepsText = self.cocktailSteps.create_text(332, 0, text=stepsString, anchor='n', fill=self.mainFGColour, font=font, width=665)
             self.cocktailSteps.configure(height=max((self.cocktailSteps.bbox(stepsText)[3] - self.cocktailSteps.bbox(stepsText)[1]), self.bottomRightPayne.winfo_height()))
             self.bottomRightPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailSteps.bbox(stepsText)[3] - self.cocktailSteps.bbox(stepsText)[1]), 465)))
 
@@ -1223,7 +1279,7 @@ class Application(Frame):
         pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
         self.currentPageIndex = 2
-        for child in self.mainFrame.winfo_children():
+        for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
         self.closeKeyboard()
         self.closePickerBox()
@@ -1240,22 +1296,35 @@ def HexToRGB(rgb):
 def RGBToHex(r, g, b):
     return "#{:02x}{:02x}{:02x}".format(r,g,b)
 
+def interpolate(x1: float, x2: float, y1: float, y2: float, x: float):
+    """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
+    return ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
+
 def tintImage(image, colour, mask):
     rgb = HexToRGB(colour)
     newImage = PhotoImage(width=image.width(), height=image.height())
+    newImageDark = PhotoImage(width=image.width(), height=image.height())
     for x in range(newImage.width()):
         for y in range(newImage.height()):
             if((mask.get(x,y)[0] == 0) & (mask.get(x,y)[1] == 0) & (mask.get(x,y)[2] == 0)):
                 r = max(min(255, (image.get(x,y)[0] + rgb[0])/2) - 64, 0)
                 g = max(min(255, (image.get(x,y)[1] + rgb[1])/2) - 64, 0)
                 b = max(min(255, (image.get(x,y)[2] + rgb[2])/2) - 64, 0)
+                # r2 = int(r/4)
+                # g2 = int(g/4)
+                # b2 = int(b/4)
             else:
                 r = mask.get(x,y)[0]
                 g = mask.get(x,y)[1]
                 b = mask.get(x,y)[2]
+                # r2 = mask.get(x,y)[0]
+                # g2 = mask.get(x,y)[1]
+                # b2 = mask.get(x,y)[2]
+
             newImage.put("#%02x%02x%02x" % (int(r), int(g), int(b)), (x, y))
-    print(newImage)
-    return newImage
+            newImageDark.put("#%02x%02x%02x" % (int(r/4), int(g/4), int(b/4)), (x, y))
+
+    return (newImage, newImageDark)
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
@@ -1264,8 +1333,10 @@ root.bind("<Escape>", on_escape)
 root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
 applicationInstance = Application(root)
-#root.attributes("-fullscreen", True)
-#root.wm_attributes("-topmost", True)
+
+if(platform.system() != 'Windows'):
+    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
+    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
 
 root.after(1000, applicationInstance.update)
 root.mainloop()
