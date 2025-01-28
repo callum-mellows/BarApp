@@ -72,12 +72,8 @@ class Application(Frame):
     mainFGColourDark = '#444444'
     disabledFGColourDark = '#333333'
 
-    sleepSeconds = 5
+    sleepSeconds = 300
     lastActive = datetime.now()
-    currentBrightness = 1.0
-    fadeOutSeconds = 10
-    fadeInSeconds = 5
-    fading = False
 
     seasons = set([])
     names = set([])
@@ -162,16 +158,22 @@ class Application(Frame):
             self.moveScrollBar()
 
     def mouseDown(self, widget, isText, event):
+        if(self.isDark == True):
+            self.goLight()
+            return
+        self.lastActive = datetime.now()
         self.mouseIsDown = True
         self.scrolling = widget
         self.initialMouseY = root.winfo_pointery()
         self.scrollVelocity = 0
         self.hasScrolled = False
         root.after(150, self.setHasScrolled)
-        if isText == True:
-            return "break"
 
     def rootMouseDown(self, event):
+        if(self.isDark == True):
+            self.goLight()
+            return
+        self.lastActive = datetime.now()
         self.keyboardClickCheck(event)
 
     def setHasScrolled(self):
@@ -179,6 +181,10 @@ class Application(Frame):
             self.hasScrolled = True
 
     def mouseUp(self, event):
+        if(self.isDark == True):
+            self.goLight()
+            return
+        self.lastActive = datetime.now()
         self.mouseIsDown = False
         if (self.scrolling == self.midPayne) & (self.currentPageIndex == 0):
             self.clickRecipeCanvas(event)
@@ -205,23 +211,14 @@ class Application(Frame):
                     self.moveScrollBar()
         
         sinceActive = now - self.lastActive
-        #if(sinceActive.seconds >= self.sleepSeconds):
-            #if(self.isDark == False):
-                #self.goDark()
-
-            # if(self.fading == True):
-            #     msIntoFadeOut = ((sinceActive.seconds - self.sleepSeconds) * 1000000) + sinceActive.microseconds
-            #     self.currentBrightness = interpolate(0, (self.fadeOutSeconds*1000000), 1.0, 0.2, msIntoFadeOut)
-            #     self.adjustBrightness(self.currentBrightness)
-
-            # if((self.fading == False) & (self.currentBrightness > 0.2)):
-            #     self.fading = True
-
-            # if((self.fading == True) & (self.currentBrightness <= 0.2)):
-            #     self.fading = False
+        if(sinceActive.seconds >= self.sleepSeconds):
+            if(self.isDark == False):
+                self.goDark()
 
     isDark = False
     def goDark(self):
+        self.homepage()
+
         self.isDark = True
 
         self.titleLabel.configure(fg=self.mainFGColourDark)
@@ -253,11 +250,12 @@ class Application(Frame):
         self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
         self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
 
-        self.goLight()
-
 
     def goLight(self):
-        self.isDark = True
+        print("light")
+        self.isDark = False
+        self.lastActive = datetime.now()
+
         self.titleLabel.configure(fg=self.mainFGColour)
         self.dateTimeLabel.configure(fg=self.mainFGColour)
 
@@ -553,6 +551,10 @@ class Application(Frame):
             self.dateTimeLabel.configure(text=timeString)
     
     def clickUpDownCanvas(self, event):
+        if(self.isDark == True):
+            self.goLight()
+            return
+        self.lastActive = datetime.now()
         if (event.x > 0 & event.x < 75):
             if((event.y > 10) & (event.y < 85)):
                 self.recipesMove(-105)
@@ -562,6 +564,10 @@ class Application(Frame):
                 return
 
     def clickLeftButtonCanvas(self, event):
+        if(self.isDark == True):
+            self.goLight()
+            return
+        self.lastActive = datetime.now()
         if(event.y <= 75):
             self.openSearch()
         elif((event.y > 100) & (event.y <= 175)):
@@ -746,18 +752,32 @@ class Application(Frame):
             self.glassTypeString.set(self.filterValues[2])
             self.searchTerm.set(self.filterValues[3])
 
+    def clickTopPayne(self, event):
+        if((event.y > 15) & (event.y <= 60)):
+            if((event.x > 810) & (event.x <= 855)):
+                self.randomRecipe()
+            elif((event.x > 880) & (event.x <= 1000)):
+                self.homepage()
+
     def Page1(self):
 
-        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=75);
+        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1050, height=75);
 
         self.topPayne.pack(side=TOP)
         self.topPayne.pack_propagate(0)
 
-        self.btn = Button(self.topPayne, text="Return", font=subSubTitleFont, command=self.homepage)
-        self.btn.pack(side=RIGHT, padx=25, pady=10)
+        self.imgShuffleButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/shuffle.png")), Image.BICUBIC)
+        self.topPayne.create_image(810, 15, anchor='nw', image=self.imgShuffleButton)
 
-        self.btn2 = Button(self.topPayne, text=u"\U0001F500", font=subSubTitleFont, command=self.randomRecipe)
-        self.btn2.pack(side=RIGHT, padx=25, pady=10)
+        self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
+        self.topPayne.create_image(880, 15, anchor='nw', image=self.imgReturnButton)
+        self.topPayne.bind('<ButtonPress-1>', self.clickTopPayne)
+
+        # self.btn = Button(self.topPayne, text="Return", font=subSubTitleFont, command=self.homepage)
+        # self.btn.pack(side=RIGHT, padx=25, pady=10)
+
+        # self.btn2 = Button(self.topPayne, text=u"\U0001F500", font=subSubTitleFont, command=self.randomRecipe)
+        # self.btn2.pack(side=RIGHT, padx=25, pady=10)
 
         self.middleContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
 
@@ -808,8 +828,8 @@ class Application(Frame):
 
         self.middleContainer.pack(side=TOP)
 
-        self.bottomPayneContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour, width=1024, height=15)
-        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg=self.mainBGColour, width=1024, height=20);
+        self.bottomPayneContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
+        self.bottomPayne = Canvas(self.bottomPayneContainer, highlightthickness=0, bg=self.mainBGColour, width=1050, height=20);
         self.bottomPayne.pack()
         self.bottomPayneContainer.pack(side=BOTTOM)
 
@@ -1109,8 +1129,11 @@ class Application(Frame):
         pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
         pygame.mixer.music.play()
         self.currentPageIndex = 0
+        self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
+        self.keyboard = None
+        self.pickerCanvas = None
         self.pages[self.currentPageIndex]()
         self.midPayne.yview_moveto(self.recipesScroll)
         self.moveScrollBar()
@@ -1161,17 +1184,18 @@ class Application(Frame):
         self.openRecipe(self.recipes['recipies'][random.randint(0, len(self.recipes['recipies'])-1)]);
 
     def openRecipe(self, recipe):
-        if (abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False):
+        if (((abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False)) | (self.currentPageIndex == 1)):
             pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
             pygame.mixer.music.play()
             if(self.currentPageIndex == 0):
                 self.recipesScroll = self.midPayne.yview()[0]
            
-            self.closeKeyboard()
-            self.closePickerBox()
+            #self.closeKeyboard()
+            #self.closePickerBox()
 
             self.mouseIsDown = False
             self.currentPageIndex = 1
+            self.lastActive = datetime.now()
             for child in self.mainFrameCanvas.winfo_children():
                 child.destroy()
             self.pages[self.currentPageIndex]()
@@ -1279,10 +1303,11 @@ class Application(Frame):
         pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
         self.currentPageIndex = 2
+        self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
-        self.closeKeyboard()
-        self.closePickerBox()
+        #self.closeKeyboard()
+        #self.closePickerBox()
         self.pages[self.currentPageIndex]()
 
 def HexToRGB(rgb):
