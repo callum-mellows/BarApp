@@ -25,12 +25,12 @@ import random
 
 root = Tk()
 
-font = Font(family="BPtypewrite", size=13)
-fontBold = Font(family="BPtypewrite", size=14, weight='bold')
-smallFont = Font(family="BPtypewrite", size=8)
-titleFont = Font(family="BPtypewrite", size=40, weight="bold")
-subTitleFont = Font(family="BPtypewrite", size=20, weight="bold")
-subSubTitleFont = Font(family="BPtypewrite", size=15, weight="bold")
+font = Font(family="Pieces of Eight", size=13)
+fontBold = Font(family="Pieces of Eight", size=14, weight='bold')
+smallFont = Font(family="Pieces of Eight", size=8)
+titleFont = Font(family="Pieces of Eight", size=40, weight="bold")
+subTitleFont = Font(family="Pieces of Eight", size=20, weight="bold")
+subSubTitleFont = Font(family="Pieces of Eight", size=15, weight="bold")
 
 spiritList = ("whisky", "whiskey", "vodka", "rum", "brandy", "gin", "tequila")
 
@@ -634,10 +634,11 @@ class Application(Frame):
 
     categoryString = StringVar()
     def openSeasons(self):
+        formerPickerType = self.pickerType
         if(self.pickerCanvas != None):
             self.closePickerBox()
 
-        if(self.pickerType != 'seasons'):
+        if(formerPickerType != 'seasons'):
             self.openPickerBox(self.seasons, 110, 137, self.categoryString)
             self.pickerType = 'seasons'
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
@@ -646,10 +647,11 @@ class Application(Frame):
 
     ingredientsString = StringVar() 
     def openSpirits(self):
+        formerPickerType = self.pickerType
         if(self.pickerCanvas != None):
             self.closePickerBox()
 
-        if(self.pickerType != 'spirits'):
+        if(formerPickerType != 'spirits'):
             self.openPickerBox(self.spirits, 110, 237, self.ingredientsString)
             self.pickerType = 'spirits'
             self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
@@ -658,10 +660,11 @@ class Application(Frame):
 
     glassTypeString = StringVar() 
     def openGlassTypes(self):
+        formerPickerType = self.pickerType
         if(self.pickerCanvas != None):
             self.closePickerBox()
 
-        if(self.pickerType != 'glassTypes'):
+        if(formerPickerType != 'glassTypes'):
             self.openPickerBox(self.glassTypes, 110, 337, self.glassTypeString)
             self.pickerType = 'glassTypes'
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
