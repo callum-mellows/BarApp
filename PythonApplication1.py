@@ -25,12 +25,12 @@ import random
 
 root = Tk()
 
-font = Font(family="Pieces of Eight", size=13)
-fontBold = Font(family="Pieces of Eight", size=14, weight='bold')
-smallFont = Font(family="Pieces of Eight", size=8)
-titleFont = Font(family="Pieces of Eight", size=40, weight="bold")
-subTitleFont = Font(family="Pieces of Eight", size=20, weight="bold")
-subSubTitleFont = Font(family="Pieces of Eight", size=15, weight="bold")
+font = Font(family="Typegrapher One", size=16)
+fontBold = Font(family="Typegrapher One", size=16, weight='bold')
+smallFont = Font(family="Typegrapher One", size=15)
+titleFont = Font(family="Typegrapher One", size=50, weight="bold")
+subTitleFont = Font(family="Typegrapher One", size=30, weight="bold")
+subSubTitleFont = Font(family="Typegrapher One", size=22, weight="bold")
 
 spiritList = ("whisky", "whiskey", "vodka", "rum", "brandy", "gin", "tequila")
 
@@ -107,8 +107,8 @@ class Application(Frame):
     def __init__(self, root):
         super().__init__(root, bg=self.mainBGColour)
 
-        self.f = open(os.path.join(dirname, "recipes.JSON"), "r")
-        self.recipes = json.load(self.f)
+        self.f = open(os.path.join(dirname, "recipes.JSON"), "r", encoding='utf-8')
+        self.recipes = json.load(self.f, )
 
         self.f = open(os.path.join(dirname, "ingredients.JSON"), "r")
         tempIngredients = json.load(self.f)
@@ -396,15 +396,16 @@ class Application(Frame):
             self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 167, width=75, text=self.alphabet[i+13], font=titleFont, fill=self.mainFGColour))
         
         self.keys.append(self.keyCanvas.create_rectangle(90, 205, 240, 280, fill=self.secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(165, 242, width=150, text='🠜', font=titleFont, fill=self.mainFGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(165, 242, width=150, text='Delete', font=subSubTitleFont, fill=self.mainFGColour))
 
         self.keys.append(self.keyCanvas.create_rectangle(315, 205, 690, 280, fill=self.secondaryBGColour))
         self.keyTexts.append(self.keyCanvas.create_text(492, 242, width=375, text='Space', font=titleFont, fill=self.mainFGColour))
 
         self.keys.append(self.keyCanvas.create_rectangle(765, 205, 915, 280, fill=self.secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='🡃', font=titleFont, fill=self.mainFGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='Close', font=subSubTitleFont, fill=self.mainFGColour))
         Misc.lift(self.keyboard)
         self.keyboardOpen = True
+        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
 
     def keyboardClickCheck(self, event):
         if(self.keyboardOpen == True):
@@ -433,6 +434,7 @@ class Application(Frame):
             self.keyCanvas = None
             root.focus()
             self.keyboardOpen = False
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
 
     def getRecipesByCategory(self, season):
         self.recipeList = []
@@ -586,11 +588,9 @@ class Application(Frame):
 
         if(self.keyboard == None):
             self.openKeyboard()
-            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
         else:
             self.searchTerm.set('')
             self.closeKeyboard()
-            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
 
     def pickerClick(self, options, event):
         self.pickerString.set(options[math.floor(event.y / 40)])
@@ -681,7 +681,7 @@ class Application(Frame):
         self.dateTimeFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.dateTimeLabel = Label(self.dateTimeFrame, font=subSubTitleFont, anchor='n', bg=self.mainBGColour, fg=self.mainFGColour, text="00/00/0000 00:00:00")
         self.dateTimeLabel.pack(side=TOP)
-        self.dateTimeFrame.pack(side=RIGHT, fill='y', padx=10, pady=10)
+        self.dateTimeFrame.pack(side=RIGHT, fill='y', padx=35, pady=10)
         self.topPayne.pack(fill='x')
         self.topPayne.pack_propagate(0)
 
@@ -700,14 +700,14 @@ class Application(Frame):
         self.upDownBtnCanvas.bind("<ButtonPress-1>", self.clickUpDownCanvas)
         self.upImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/up.png")), Image.BICUBIC)
         self.upImageDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/upDark.png")), Image.BICUBIC)
-        self.upButton = self.upDownBtnCanvas.create_image(0, 10, anchor='nw', image=self.upImage)
+        self.upButton = self.upDownBtnCanvas.create_image(0, 6, anchor='nw', image=self.upImage)
         self.downImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/down.png")), Image.BICUBIC)
         self.downImageDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/downDark.png")), Image.BICUBIC)
-        self.downButton = self.upDownBtnCanvas.create_image(0, 370, anchor='nw', image=self.downImage)
-        self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=self.mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=290)
-        self.barBack = self.recipeScrollBarCanvas.create_rectangle(35, 0, 39, 320, fill='#cccccc', outline='#cccccc')
-        self.bar = self.recipeScrollBarCanvas.create_rectangle(17, 3, 57, 5, fill='#cccccc', outline='#cccccc')
-        self.recipeScrollBarCanvas.pack(pady = 83)
+        self.downButton = self.upDownBtnCanvas.create_image(0, 395, anchor='nw', image=self.downImage)
+        self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=self.mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=319)
+        self.barBack = self.recipeScrollBarCanvas.create_rectangle(37, 0, 38, 345, fill='#cccccc', outline='#cccccc')
+        self.bar = self.recipeScrollBarCanvas.create_rectangle(27, 3, 47, 4, fill='#cccccc', outline='#cccccc')
+        self.recipeScrollBarCanvas.pack(pady = 79)
         self.upDownBtnCanvas.pack(side=RIGHT, fill='y', padx=10)
 
         self.midPayneContainer.pack(side=RIGHT)
@@ -757,7 +757,7 @@ class Application(Frame):
 
     def clickTopPayne(self, event):
         if((event.y > 15) & (event.y <= 60)):
-            if((event.x > 810) & (event.x <= 855)):
+            if((event.x > 810) & (event.x <= 855) & (self.currentPageIndex == 1)):
                 self.randomRecipe()
             elif((event.x > 880) & (event.x <= 1000)):
                 self.homepage()
@@ -775,12 +775,6 @@ class Application(Frame):
         self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
         self.topPayne.create_image(880, 15, anchor='nw', image=self.imgReturnButton)
         self.topPayne.bind('<ButtonPress-1>', self.clickTopPayne)
-
-        # self.btn = Button(self.topPayne, text="Return", font=subSubTitleFont, command=self.homepage)
-        # self.btn.pack(side=RIGHT, padx=25, pady=10)
-
-        # self.btn2 = Button(self.topPayne, text=u"\U0001F500", font=subSubTitleFont, command=self.randomRecipe)
-        # self.btn2.pack(side=RIGHT, padx=25, pady=10)
 
         self.middleContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
 
@@ -842,8 +836,11 @@ class Application(Frame):
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=self.mainBGColour, fg=self.mainFGColour)
         self.titleLabel.pack(side=TOP)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
-        self.btn = Button(self.topPayne, text="Return", font=subSubTitleFont, command=self.homepage)
-        self.btn.pack(side=RIGHT, padx=25, pady=25)
+
+        self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
+        self.topPayne.create_image(880, 15, anchor='nw', image=self.imgReturnButton)
+        self.topPayne.bind('<ButtonPress-1>', self.clickTopPayne)
+
         self.topPayne.pack(fill='x')
         self.topPayne.pack_propagate(0)
 
@@ -1153,7 +1150,7 @@ class Application(Frame):
             size = (self.midPayne.yview()[1] - self.midPayne.yview()[0])
             alpha = (self.midPayne.yview()[0]-0)/max(0.00001, ((1 - (size))-0)*(1-0)+0)
             self.recipeScrollBarCanvas.delete(self.bar)
-            self.bar = self.recipeScrollBarCanvas.create_rectangle(17, (alpha * 276) + 3, 57, (alpha * 276) + 5, fill='#cccccc', outline='#cccccc')
+            self.bar = self.recipeScrollBarCanvas.create_rectangle(27, (alpha * 310) + 3, 47, (alpha * 310) + 4, fill='#cccccc', outline='#cccccc')
 
 
     def scrollMainPageRecipes(self, event):
@@ -1226,41 +1223,73 @@ class Application(Frame):
             self.topPayne.create_rectangle(0,72,width, 75, fill='#cccccc', outline='#cccccc')
             self.bottomPayne.create_rectangle(0,0,width, 2, fill='#cccccc', outline='#cccccc')
 
-            self.topPayne.create_text(32,4, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
-            self.topPayne.create_text(28,8, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
-            self.topPayne.create_text(30,4, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
-            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
-            self.topPayne.create_text(28,6, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
-            self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
-            self.topPayne.create_text(34,10, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            x = 30
+            y = 2
+            titleShadow1 = self.topPayne.create_text(x+2,y-2, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            titleShadow2 = self.topPayne.create_text(x-2,y+2, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            titleShadow3 = self.topPayne.create_text(x,y-2, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            titleShadow4 = self.topPayne.create_text(x+4,y+4, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            titleShadow5 = self.topPayne.create_text(x-2,y, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            titleShadow6 = self.topPayne.create_text(x,y+2, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
+            titleShadow7 = self.topPayne.create_text(x+4,y+4, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
             #self.topPayne.create_text(30,8, text=recipe['name'], font=titleFont, anchor='nw', fill=self.mainBGColour)
             
-            self.topPayne.create_text(30,6, text=recipe['name'], font=titleFont, anchor='nw', fill='#cccccc')
-        
-            bulletsString = ''
+            newString = recipe['name']
+            titleText = self.topPayne.create_text(x, y, text=recipe['name'], font=titleFont, anchor='nw', fill='#cccccc')
+            titleWidth = self.topPayne.bbox(titleText)[2] - self.topPayne.bbox(titleText)[0]
+            if(titleWidth > 700):
+                while(titleWidth > 700):
+                    newString = newString[:-1]
+                    self.topPayne.itemconfig(titleText, text=newString)
+                    titleWidth = self.topPayne.bbox(titleText)[2] - self.topPayne.bbox(titleText)[0]
+                newString = newString + "…"
+                self.topPayne.itemconfig(titleText, text=newString)
+                self.topPayne.itemconfig(titleShadow1, text=newString)
+                self.topPayne.itemconfig(titleShadow2, text=newString)
+                self.topPayne.itemconfig(titleShadow3, text=newString)
+                self.topPayne.itemconfig(titleShadow4, text=newString)
+                self.topPayne.itemconfig(titleShadow5, text=newString)
+                self.topPayne.itemconfig(titleShadow6, text=newString)
+                self.topPayne.itemconfig(titleShadow7, text=newString)
+
+
             ingredientString = ''
+            quantitiesString = ''
             i = 0
             for ingredient in recipe['ingredients']:
                 dots = ""
                 for x in range(28 - (len(ingredient['name'][:18]) + len(ingredient['quantity']) + len(ingredient['unit']))):
                     dots = dots + "."
                     colour = '#ff0000'
-                    string = "\u2610 "
+                    string = "- "
                     if (self.ingredientsInStock.get(ingredient['name'], 0) == '1'):
                         colour = '#00ff00'
-                        string = "\u2611 "
+                        string = "+ "
                     elif (self.garnishes.__contains__(str.lower(str.rstrip(ingredient['name'], 's'))) == True):
                         colour = '#00ff00'
-                        string = "\u2611 "
+                        string = "+ "
 
 
-                ingredientString = ingredientString + ingredient['name'][:18] + dots + ingredient['quantity'] + ingredient['unit'] + "\n"
-                lineHeight = font.metrics("linespace")
-                self.cocktailIngredients.create_text(10, (i*lineHeight), text=string, anchor='n', fill=colour, font=font, width=20)
+                ingredientString = ingredientString + ingredient['name'][:18] + "\n"
+                quantitiesString = quantitiesString + ingredient['quantity'] + " " + ingredient['unit'] + "\n"
+                lineHeight = smallFont.metrics("linespace")
+                self.cocktailIngredients.create_text(10, (i*lineHeight), text=string, anchor='n', fill=colour, font=smallFont, width=20)
                 i = i+1
             ingredientString = ingredientString[:-1]
-            ingredientText = self.cocktailIngredients.create_text(165, 0, text=ingredientString, anchor='n', fill=self.mainFGColour, font=font, width=290)
-            bulletsText = self.cocktailIngredients.create_text(15, 0, text=bulletsString, anchor='n', fill=self.mainFGColour, font=font, width=20)
+            quantitiesString = quantitiesString[:-1]
+            ingredientText = self.cocktailIngredients.create_text(25, 0, text=ingredientString, anchor='nw', fill=self.mainFGColour, font=smallFont, width=295, justify='left')
+            ingredientWidth = self.cocktailIngredients.bbox(ingredientText)[2] - self.cocktailIngredients.bbox(ingredientText)[0]
+            newString = ingredientString
+            if(ingredientWidth > 185):
+                while(ingredientWidth > 185):
+                    newString = newString[:-1]
+                    self.cocktailIngredients.itemconfig(ingredientText, text=newString)
+                    ingredientWidth = self.cocktailIngredients.bbox(ingredientText)[2] - self.cocktailIngredients.bbox(ingredientText)[0]
+                newString = newString + "…"
+                self.cocktailIngredients.itemconfig(ingredientText, text=newString)
+
+            quantitiesText = self.cocktailIngredients.create_text(300, 0, text=quantitiesString, anchor='ne', fill=self.mainFGColour, font=smallFont, width=290, justify='right')
+            #bulletsText = self.cocktailIngredients.create_text(15, 0, text=bulletsString, anchor='n', fill=self.mainFGColour, font=font, width=20)
             self.cocktailIngredients.configure(height=max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]), self.bottomLeftPayne.winfo_height()))
             self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1])+15, 140)))
             
@@ -1269,7 +1298,7 @@ class Application(Frame):
 
             stepsString = ''
             for step in recipe['steps']:
-                stepsString = stepsString + "\u2022 " + step['name'] + "\n" + step['text'] + "\n\n"
+                stepsString = stepsString + "  • " + step['name'] + "\n" + step['text'] + "\n\n"
             stepsString = stepsString[:-1]
 
             stepsText = self.cocktailSteps.create_text(332, 0, text=stepsString, anchor='n', fill=self.mainFGColour, font=font, width=665)
