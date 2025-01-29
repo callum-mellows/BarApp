@@ -714,12 +714,12 @@ class Application(Frame):
         self.imgSearch = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search.png")), Image.BICUBIC)
         self.imgSearchDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/searchDark.png")), Image.BICUBIC)
         self.imgSearchOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search_on.png")), Image.BICUBIC)
-        self.searchButton = self.midPayneLeftCanvas.create_image(0, 0, anchor='nw', image=self.imgSearch)
+        self.searchButton = self.midPayneLeftCanvas.create_image(0, 10, anchor='nw', image=self.imgSearch)
 
         self.imgSeasons = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season.png")), Image.BICUBIC)
         self.imgSeasonsDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/seasonDark.png")), Image.BICUBIC)
         self.imgSeasonsOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season_on.png")), Image.BICUBIC)
-        self.seasonsButton = self.midPayneLeftCanvas.create_image(0, 100, anchor='nw', image=self.imgSeasons)
+        self.seasonsButton = self.midPayneLeftCanvas.create_image(0, 125, anchor='nw', image=self.imgSeasons)
 
         self.imgSpirits = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit.png")), Image.BICUBIC)
         self.imgSpiritsDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spiritDark.png")), Image.BICUBIC)
@@ -729,12 +729,12 @@ class Application(Frame):
         self.imgGlassType = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType.png")), Image.BICUBIC)
         self.imgGlassTypeDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassTypeDark.png")), Image.BICUBIC)
         self.imgGlassTypeOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType_on.png")), Image.BICUBIC)
-        self.glassTypesButton = self.midPayneLeftCanvas.create_image(0, 300, anchor='nw', image=self.imgGlassType)
+        self.glassTypesButton = self.midPayneLeftCanvas.create_image(0, 275, anchor='nw', image=self.imgGlassType)
 
         self.imgIngredientManager = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients.png")), Image.BICUBIC)
         self.imgIngredientManagerDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredientsDark.png")), Image.BICUBIC)
         self.imgIngredientManagerOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients_on.png")), Image.BICUBIC)
-        self.ingredientsButton = self.midPayneLeftCanvas.create_image(0, 400, anchor='nw', image=self.imgIngredientManager)
+        self.ingredientsButton = self.midPayneLeftCanvas.create_image(0, 390, anchor='nw', image=self.imgIngredientManager)
 
         self.midPayneLeftCanvas.bind('<ButtonPress-1>', self.clickLeftButtonCanvas)
         self.midPayneLeftCanvas.pack(pady=5, padx=20, side=LEFT, anchor='nw')
