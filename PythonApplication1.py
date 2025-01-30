@@ -1,4 +1,5 @@
 import ast
+from encodings import utf_8
 from genericpath import isfile
 import json
 from tkinter import *
@@ -22,6 +23,7 @@ import time
 import pygame
 import math
 import random
+import serial
 
 root = Tk()
 
@@ -72,7 +74,7 @@ class Application(Frame):
     mainFGColourDark = '#444444'
     disabledFGColourDark = '#333333'
 
-    sleepSeconds = 300
+    sleepSeconds = 60
     lastActive = datetime.now()
 
     seasons = set([])
@@ -138,7 +140,25 @@ class Application(Frame):
         self.mainFrameCanvas = Canvas(self.mainFrame, width=1024, height=600, bg=self.mainBGColour, highlightthickness=0)
         self.mainFrameCanvas.place(x=0, y=0)
 
-        self.pages[self.currentPageIndex]()      
+        self.pages[self.currentPageIndex]()
+
+        try:
+            if(platform.system() == 'Windows'):
+                self.SerialObj = serial.Serial('COM5') # COMxx  format on Windows
+            else:
+                self.SerialObj = serial.Serial('/dev/ttyUSB0')
+            self.SerialObj.baudrate = 15200  # set Baud rate to 9600
+            self.SerialObj.bytesize = 8   # Number of data bits = 8
+            self.SerialObj.parity  ='N'   # No parity
+            self.SerialObj.stopbits = 1   # Number of Stop bits = 1
+
+           #self.usb = serial.Serial("COM5", 9600, timeout=2)
+           #self.usb = serial.Serial("/dev/ttyACM0", 9600, timeout=2)
+        except:
+           print("ERROR - Could not open USB serial port.  Please check your port name and permissions.")
+           print("Exiting program.")
+
+        
     
     scrolling = root
     mouseIsDown = False
@@ -215,6 +235,8 @@ class Application(Frame):
             if(self.isDark == False):
                 self.goDark()
 
+
+
     isDark = False
     def goDark(self):
         self.homepage()
@@ -250,6 +272,7 @@ class Application(Frame):
         self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
         self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
 
+        self.sendMessageToArduino("fadeOut")
 
     def goLight(self):
         print("light")
@@ -284,6 +307,8 @@ class Application(Frame):
         self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImage)
         self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColour, outline=self.mainFGColour)
         self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColour, outline=self.mainFGColour)
+
+        self.sendMessageToArduino("fadeIn")
 
     def getIfIngredientIsSpirit(self, ing):
         for word in str(ing).split(' '):
@@ -1202,6 +1227,8 @@ class Application(Frame):
 
             recipeColour = self.getRecipeColour(recipe)
 
+            self.sendMessageToArduino("RGB"+recipeColour)
+
             width = self.winfo_width()
             height = self.winfo_height()
             (r1,g1,b1) = self.winfo_rgb(recipeColour)
@@ -1342,6 +1369,13 @@ class Application(Frame):
         #self.closePickerBox()
         self.pages[self.currentPageIndex]()
 
+    def sendMessageToArduino(self, message):
+        msg = message + "\n"
+        self.SerialObj.write(msg.encode('utf-8'))
+        ReceivedString = self.SerialObj.readline()
+        print(ReceivedString.decode())
+        self.SerialObj.flush()
+
 def HexToRGB(rgb):
     if (type(rgb) != str):
         return (0, 0, 0)
@@ -1391,9 +1425,18 @@ root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
 applicationInstance = Application(root)
 
+# applicationInstance.SerialObj.write("abcdefghijkl\n".encode('utf-8'))
+# ReceivedString = applicationInstance.SerialObj.readline()
+# print(ReceivedString.decode())
+# applicationInstance.SerialObj.flush()
+
+root.after(2000, lambda: applicationInstance.goLight())
+
 if(platform.system() != 'Windows'):
     root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
     root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
+
+
 
 root.after(1000, applicationInstance.update)
 root.mainloop()
