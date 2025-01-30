@@ -1153,6 +1153,7 @@ class Application(Frame):
     def homepage(self):
         pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
         pygame.mixer.music.play()
+        self.sendMessageToArduino("RGB#FFFFFF")
         self.currentPageIndex = 0
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
@@ -1361,6 +1362,7 @@ class Application(Frame):
     def openIngredientsManager(self):
         pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
+        self.sendMessageToArduino("RGB#FFFFFF")
         self.currentPageIndex = 2
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
