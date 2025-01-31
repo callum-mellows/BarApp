@@ -126,7 +126,7 @@ class Application(Frame):
         self.getSearchables(self.recipes)
 
         self.currentPageIndex = 0
-        self.pages = [self.Page0, self.Page1, self.Page2]
+        self.pages = [self.Page0, self.Page1, self.Page2, self.Page3]
 
         self.mainFrame = self
         root.bind('<Motion>', self.mouseMove)
@@ -158,8 +158,6 @@ class Application(Frame):
            self.SerialObj = None
            print("Lighting Arduino not found!")
 
-        
-    
     scrolling = root
     mouseIsDown = False
     initialMouseY = 0
@@ -594,17 +592,16 @@ class Application(Frame):
             self.goLight()
             return
         self.lastActive = datetime.now()
-        if(event.y <= 75):
+        if((event.y > 10) & (event.y <= 85)):
             self.openSearch()
-        elif((event.y > 100) & (event.y <= 175)):
+        elif((event.y > 125) & (event.y <= 200)):
             self.openSeasons()
         elif((event.y > 200) & (event.y <= 275)):
             self.openSpirits()
-        elif((event.y > 300) & (event.y <= 375)):
+        elif((event.y > 275) & (event.y <= 350)):
             self.openGlassTypes()
-        elif((event.y > 400) & (event.y <= 475)):
+        elif((event.y > 390) & (event.y <= 465)):
             self.openMenu()
-            #self.openIngredientsManager()
 
     def openSearch(self):
         if(self.pickerCanvas != None):
@@ -639,15 +636,15 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
 
         self.pickerString = string
-        self.pickerCanvas = Canvas(self.mainFrameCanvas, width=200, height=400, bg='#ff0000', highlightthickness=0)
+        self.pickerCanvas = Canvas(self.mainFrameCanvas, width=261, height=400, bg='#000000', highlightthickness=0)
         action_with_arg = partial(self.pickerClick, options)
         self.pickerCanvas.bind('<ButtonPress-1>', action_with_arg)
         x = 0
         for item in options:
-            self.pickerCanvas.create_rectangle(0, x * 40, 200, (x + 1) * 40, fill='#222222')
-            self.pickerCanvas.create_text(100, (x*40) + 20, width=200, fill=self.mainFGColour, font=font, text=item)
+            self.pickerCanvas.create_rectangle(0, (x*45), 260, ((x*45)+40), fill='#222222')
+            self.pickerCanvas.create_text(10, (x*45) + 20, width=260, anchor='w', fill=self.mainFGColour, font=font, text=item)
             x = x + 1
-        self.pickerCanvas.configure(height=x*40)
+        self.pickerCanvas.configure(height=(x*45)-4)
         self.pickerCanvas.place(x=XPos, y=(YPos - (x*10)))
 
     def closePickerBox(self):
@@ -693,13 +690,13 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'glassTypes'):
-            self.openPickerBox(self.glassTypes, 110, 337, self.glassTypeString)
+            self.openPickerBox(self.glassTypes, 110, 300, self.glassTypeString)
             self.pickerType = 'glassTypes'
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
             self.pickerType = ''
 
-    menuItems = ['Ingredients', 'Lights']
+    menuItems = ['Ingredients', 'Configuration', 'Lights On']
     menuString = StringVar() 
     def openMenu(self):
         formerPickerType = self.pickerType
@@ -707,7 +704,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'menu'):
-            self.openPickerBox(self.menuItems, 110, 475, self.menuString)
+            self.openPickerBox(self.menuItems, 110, 460, self.menuString)
             self.pickerType = 'menu'
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButtonOn)
         else:
@@ -878,7 +875,7 @@ class Application(Frame):
         self.bottomPayneContainer.pack(side=BOTTOM)
 
     def Page2(self):
-        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=100);
+        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=self.mainBGColour, fg=self.mainFGColour)
         self.titleLabel.pack(side=TOP)
@@ -941,7 +938,79 @@ class Application(Frame):
         self.midPayne.pack(side=RIGHT)
 
         self.midPayneContainer.pack(side=LEFT)
-        self.midPayneContainerContainer.pack(pady=5)
+        self.midPayneContainerContainer.pack(pady=35)
+
+    brightnessBarRect = (320, 50, 520, 70)
+    warmthBarRect = (320, 80, 520, 100)
+    currentBrightnessPercent = 25
+    currentWarmthPercent = 75
+    def Page3(self):
+        self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
+        self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
+        self.titleLabel = Label(self.titleFrame, font=titleFont, text="Configuration", bg=self.mainBGColour, fg=self.mainFGColour)
+        self.titleLabel.pack(side=TOP)
+        self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
+
+        self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
+        self.topPayne.create_image(880, 15, anchor='nw', image=self.imgReturnButton)
+        self.topPayne.bind('<ButtonPress-1>', self.clickTopPayne)
+
+        self.topPayne.pack(fill='x')
+        self.topPayne.pack_propagate(0)
+
+        self.midPayneContainer = Canvas(self.mainFrameCanvas, width=1004, height=500, bg='#222222', highlightthickness=0)
+        self.midPayneContainer.bind('<ButtonPress-1>', self.clickConfigCanvas)
+
+        self.midPayneContainer.create_text(300, 50, width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Overall brightness:')
+        self.midPayneContainer.create_rectangle(self.brightnessBarRect[0]-2, self.brightnessBarRect[1]-2, self.brightnessBarRect[2]+2, self.brightnessBarRect[3]+2, fill='#000000', outline='#000000')
+        self.brightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.brightnessBarRect, self.currentBrightnessPercent), fill='#cccccc', outline='#cccccc')
+        self.brightnessText = self.midPayneContainer.create_text(530, 50, width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentBrightnessPercent)+'%')
+
+        self.midPayneContainer.create_text(300, 80, width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Warmth:')
+        self.midPayneContainer.create_rectangle(self.warmthBarRect[0]-2, self.warmthBarRect[1]-2, self.warmthBarRect[2]+2, self.warmthBarRect[3]+2, fill='#000000', outline='#000000')
+        self.warmthBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.warmthBarRect, self.currentWarmthPercent), fill='#cccccc', outline='#cccccc')
+        self.warmthText = self.midPayneContainer.create_text(530, 80, width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentWarmthPercent)+'%')
+
+        self.midPayneContainer.pack(padx=10, pady=5)
+
+    def clickConfigCanvas(self, event):
+
+        percent = self.getIfMouseIsInBar(event, self.brightnessBarRect)
+        if(percent > 0):
+            self.currentBrightnessPercent = round(percent)
+            self.midPayneContainer.delete(self.brightnessBar)
+            self.brightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.brightnessBarRect, self.currentBrightnessPercent), fill='#cccccc', outline='#cccccc')
+            self.midPayneContainer.itemconfig(self.brightnessText, text=str(self.currentBrightnessPercent)+'%')
+            self.updateArduinoConfigs()
+            return
+
+        percent = self.getIfMouseIsInBar(event, self.warmthBarRect)
+        if(percent > 0):
+            self.currentWarmthPercent = round(percent)
+            self.midPayneContainer.delete(self.warmthBar)
+            self.warmthBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.warmthBarRect, self.currentWarmthPercent), fill='#cccccc', outline='#cccccc')
+            self.midPayneContainer.itemconfig(self.warmthText, text=str(self.currentWarmthPercent)+'%')
+            self.updateArduinoConfigs()
+            return
+        return
+
+    def getBarActualWidth(self, bar, percent):
+        newWidth = ((bar[2] - bar[0]) / 100) * percent
+        return (bar[0], bar[1], bar[0] + newWidth, bar[3])
+
+    def getIfMouseIsInBar(self, mouseEvent, bar):
+        isIn = -1
+        if((mouseEvent.x > bar[0]) & (mouseEvent.x <= bar[2])):
+            if((mouseEvent.y > bar[1]) & (mouseEvent.y <= bar[3])):
+                total = bar[2] - bar[0]
+                new = mouseEvent.x - bar[0]
+                isIn = ((new / total) * 100)
+        return isIn
+
+    def updateArduinoConfigs(self):
+        self.sendMessageToArduino("BRI"+str(self.currentBrightnessPercent))
+        self.sendMessageToArduino("WAR"+str(self.currentWarmthPercent))
+        return
 
     def drawIngredientRow(self, name, yPos, height):
         if name in self.ingredientRows:
@@ -1175,7 +1244,7 @@ class Application(Frame):
     def homepage(self):
         pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
         pygame.mixer.music.play()
-        self.sendMessageToArduino("RGB#FFFFFF")
+        self.sendMessageToArduino("RGBDEF")
         self.currentPageIndex = 0
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
@@ -1233,8 +1302,10 @@ class Application(Frame):
         option = self.menuString.get()
         if(option == 'Ingredients'):
             self.openIngredientsManager()
-        elif(option == 'Lights'):
+        elif(option == 'Lights On'):
             print("MKMKKM")
+        elif(option == 'Configuration'):
+            self.openConfigPage()
 
     def randomRecipe(self):
         self.openRecipe(self.recipes['recipies'][random.randint(0, len(self.recipes['recipies'])-1)]);
@@ -1392,13 +1463,23 @@ class Application(Frame):
     def openIngredientsManager(self):
         pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
-        self.sendMessageToArduino("RGB#FFFFFF")
+        #self.sendMessageToArduino("RGB#FFFFFF")
         self.currentPageIndex = 2
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
         #self.closeKeyboard()
         #self.closePickerBox()
+        self.pages[self.currentPageIndex]()
+
+    def openConfigPage(self):
+        pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
+        pygame.mixer.music.play()
+        #self.sendMessageToArduino("RGB#FFFFFF")
+        self.currentPageIndex = 3
+        self.lastActive = datetime.now()
+        for child in self.mainFrameCanvas.winfo_children():
+            child.destroy()
         self.pages[self.currentPageIndex]()
 
     def sendMessageToArduino(self, message):
@@ -1463,11 +1544,13 @@ applicationInstance = Application(root)
 # print(ReceivedString.decode())
 # applicationInstance.SerialObj.flush()
 
-root.after(2000, lambda: applicationInstance.goLight())
+#root.after(3000, lambda: applicationInstance.goLight())
+root.after(1000, lambda: applicationInstance.updateArduinoConfigs())
+root.after(500, lambda: applicationInstance.sendMessageToArduino("asdasd"))
 
-if(platform.system() != 'Windows'):
-    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
-    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
+#if(platform.system() != 'Windows'):
+#    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
+#    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
 
 
 
