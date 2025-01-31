@@ -155,8 +155,8 @@ class Application(Frame):
            #self.usb = serial.Serial("COM5", 9600, timeout=2)
            #self.usb = serial.Serial("/dev/ttyACM0", 9600, timeout=2)
         except:
-           print("ERROR - Could not open USB serial port.  Please check your port name and permissions.")
-           print("Exiting program.")
+           self.SerialObj = None
+           print("Lighting Arduino not found!")
 
         
     
@@ -240,7 +240,6 @@ class Application(Frame):
     isDark = False
     def goDark(self):
         self.homepage()
-
         self.isDark = True
 
         self.titleLabel.configure(fg=self.mainFGColourDark)
@@ -265,7 +264,7 @@ class Application(Frame):
         self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsDark)
         self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsDark)
         self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeDark)
-        self.midPayneLeftCanvas.itemconfig(self.ingredientsButton, image=self.imgIngredientManagerDark)
+        self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButtonDark)
 
         self.upDownBtnCanvas.itemconfig(self.upButton, image=self.upImageDark)
         self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImageDark)
@@ -275,40 +274,40 @@ class Application(Frame):
         self.sendMessageToArduino("fadeOut")
 
     def goLight(self):
-        print("light")
-        self.isDark = False
-        self.lastActive = datetime.now()
+        if(self.currentPageIndex == 0):
+            self.isDark = False
+            self.lastActive = datetime.now()
 
-        self.titleLabel.configure(fg=self.mainFGColour)
-        self.dateTimeLabel.configure(fg=self.mainFGColour)
+            self.titleLabel.configure(fg=self.mainFGColour)
+            self.dateTimeLabel.configure(fg=self.mainFGColour)
 
-        self.midPayne.configure(bg=self.mainBGColour)
-        self.topPayne.configure(bg=self.mainBGColour)
-        self.titleLabel.configure(bg=self.mainBGColour)
-        self.dateTimeLabel.configure(bg=self.mainBGColour)
-        self.upDownBtnCanvas.configure(bg=self.mainBGColour)
-        self.midPayneLeftCanvas.configure(bg=self.mainBGColour)
-        self.midPayneContainerContainer.configure(bg=self.mainBGColour)
-        self.mainFrameCanvas.configure(bg=self.mainBGColour)
-        self.dateTimeFrame.configure(bg=self.mainBGColour)
-        self.recipeScrollBarCanvas.configure(bg=self.mainBGColour)
+            self.midPayne.configure(bg=self.mainBGColour)
+            self.topPayne.configure(bg=self.mainBGColour)
+            self.titleLabel.configure(bg=self.mainBGColour)
+            self.dateTimeLabel.configure(bg=self.mainBGColour)
+            self.upDownBtnCanvas.configure(bg=self.mainBGColour)
+            self.midPayneLeftCanvas.configure(bg=self.mainBGColour)
+            self.midPayneContainerContainer.configure(bg=self.mainBGColour)
+            self.mainFrameCanvas.configure(bg=self.mainBGColour)
+            self.dateTimeFrame.configure(bg=self.mainBGColour)
+            self.recipeScrollBarCanvas.configure(bg=self.mainBGColour)
 
-        for i in self.recipeButtons.keys():
-            self.midPayne.itemconfig(self.recipeButtons[i], image=self.recipeButtonImages.get(i))
-            self.midPayne.itemconfig(self.recipeTexts[i], fill=self.mainFGColour)
+            for i in self.recipeButtons.keys():
+                self.midPayne.itemconfig(self.recipeButtons[i], image=self.recipeButtonImages.get(i))
+                self.midPayne.itemconfig(self.recipeTexts[i], fill=self.mainFGColour)
 
-        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
-        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
-        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
-        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
-        self.midPayneLeftCanvas.itemconfig(self.ingredientsButton, image=self.imgIngredientManager)
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButton)
 
-        self.upDownBtnCanvas.itemconfig(self.upButton, image=self.upImage)
-        self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImage)
-        self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColour, outline=self.mainFGColour)
-        self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColour, outline=self.mainFGColour)
+            self.upDownBtnCanvas.itemconfig(self.upButton, image=self.upImage)
+            self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImage)
+            self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColour, outline=self.mainFGColour)
+            self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColour, outline=self.mainFGColour)
 
-        self.sendMessageToArduino("fadeIn")
+            self.sendMessageToArduino("fadeIn")
 
     def getIfIngredientIsSpirit(self, ing):
         for word in str(ing).split(' '):
@@ -604,7 +603,8 @@ class Application(Frame):
         elif((event.y > 300) & (event.y <= 375)):
             self.openGlassTypes()
         elif((event.y > 400) & (event.y <= 475)):
-            self.openIngredientsManager()
+            self.openMenu()
+            #self.openIngredientsManager()
 
     def openSearch(self):
         if(self.pickerCanvas != None):
@@ -625,6 +625,8 @@ class Application(Frame):
             self.pickSpirit()
         elif(self.pickerType == 'glassTypes'):
             self.pickGlassType()
+        elif(self.pickerType == 'menu'):
+            self.pickMenu()
         self.closePickerBox()
 
     pickerCanvas = None
@@ -655,6 +657,7 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
             self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButton)
             self.pickerType = ''
 
     categoryString = StringVar()
@@ -693,6 +696,20 @@ class Application(Frame):
             self.openPickerBox(self.glassTypes, 110, 337, self.glassTypeString)
             self.pickerType = 'glassTypes'
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
+        else:
+            self.pickerType = ''
+
+    menuItems = ['Ingredients', 'Lights']
+    menuString = StringVar() 
+    def openMenu(self):
+        formerPickerType = self.pickerType
+        if(self.pickerCanvas != None):
+            self.closePickerBox()
+
+        if(formerPickerType != 'menu'):
+            self.openPickerBox(self.menuItems, 110, 475, self.menuString)
+            self.pickerType = 'menu'
+            self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButtonOn)
         else:
             self.pickerType = ''
 
@@ -759,10 +776,15 @@ class Application(Frame):
         self.imgGlassTypeOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType_on.png")), Image.BICUBIC)
         self.glassTypesButton = self.midPayneLeftCanvas.create_image(0, 275, anchor='nw', image=self.imgGlassType)
 
-        self.imgIngredientManager = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients.png")), Image.BICUBIC)
-        self.imgIngredientManagerDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredientsDark.png")), Image.BICUBIC)
-        self.imgIngredientManagerOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients_on.png")), Image.BICUBIC)
-        self.ingredientsButton = self.midPayneLeftCanvas.create_image(0, 390, anchor='nw', image=self.imgIngredientManager)
+        self.imgMenuButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/menu.png")), Image.BICUBIC)
+        self.imgMenuButtonDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/menuDark.png")), Image.BICUBIC)
+        self.imgMenuButtonOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/menu_on.png")), Image.BICUBIC)
+        self.menuButton = self.midPayneLeftCanvas.create_image(0, 390, anchor='nw', image=self.imgMenuButton)
+
+        # self.imgIngredientManager = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients.png")), Image.BICUBIC)
+        # self.imgIngredientManagerDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredientsDark.png")), Image.BICUBIC)
+        # self.imgIngredientManagerOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients_on.png")), Image.BICUBIC)
+        # self.ingredientsButton = self.midPayneLeftCanvas.create_image(0, 390, anchor='nw', image=self.imgIngredientManager)
 
         self.midPayneLeftCanvas.bind('<ButtonPress-1>', self.clickLeftButtonCanvas)
         self.midPayneLeftCanvas.pack(pady=5, padx=20, side=LEFT, anchor='nw')
@@ -1206,6 +1228,14 @@ class Application(Frame):
         self.filterValues = ('Any', 'Any', self.glassTypeString.get(), '')
         self.getRecipesByGlassType(self.glassTypeString.get())
 
+    def pickMenu(self):
+        self.closePickerBox()
+        option = self.menuString.get()
+        if(option == 'Ingredients'):
+            self.openIngredientsManager()
+        elif(option == 'Lights'):
+            print("MKMKKM")
+
     def randomRecipe(self):
         self.openRecipe(self.recipes['recipies'][random.randint(0, len(self.recipes['recipies'])-1)]);
 
@@ -1372,11 +1402,12 @@ class Application(Frame):
         self.pages[self.currentPageIndex]()
 
     def sendMessageToArduino(self, message):
-        msg = message + "\n"
-        self.SerialObj.write(msg.encode('utf-8'))
-        ReceivedString = self.SerialObj.readline()
-        print(ReceivedString.decode())
-        self.SerialObj.flush()
+        if(self.SerialObj != None):
+            msg = message + "\n"
+            self.SerialObj.write(msg.encode('utf-8'))
+            ReceivedString = self.SerialObj.readline()
+            print(ReceivedString.decode())
+            self.SerialObj.flush()
 
 def HexToRGB(rgb):
     if (type(rgb) != str):
