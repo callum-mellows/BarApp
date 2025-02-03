@@ -13,6 +13,7 @@ import tkinter
 from tkinter.messagebox import showerror
 from tkinter.font import Font
 from turtle import width
+from xmlrpc.client import boolean
 dirname = os.path.dirname(__file__)
 from functools import partial
 from datetime import datetime
@@ -89,6 +90,7 @@ class Application(Frame):
     overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")), Image.BICUBIC)
     recipeColours = dict()
     recipeButtonImages = dict()
+    recipeButtonImagesDisabled = dict()
     recipeButtonImagesDark = dict()
     recipeButtonFiles = dict()
     recipeButtonFilesDark = dict()
@@ -295,8 +297,15 @@ class Application(Frame):
             self.recipeScrollBarCanvas.configure(bg=self.mainBGColour)
 
             for i in self.recipeButtons.keys():
-                self.midPayne.itemconfig(self.recipeButtons[i], image=self.recipeButtonImages.get(i))
-                self.midPayne.itemconfig(self.recipeTexts[i], fill=self.mainFGColour)
+                if(self.recipeCanBeMade[i] == True):
+                    colour = self.mainFGColour
+                    img = self.recipeButtonImages[i]
+                else:
+                    colour = self.mainFGColourDark
+                    img = self.recipeButtonImagesDisabled[i]
+
+                self.midPayne.itemconfig(self.recipeButtons[i], image=img)
+                self.midPayne.itemconfig(self.recipeTexts[i], fill=colour)
 
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
@@ -320,20 +329,13 @@ class Application(Frame):
 
     def getSearchables(self, recipes):
 
-        # buttonFileDir = os.path.join(dirname, "images/cocktails/buttons")
-        # buttonFiles = [f for f in listdir(buttonFileDir) if isfile(join(buttonFileDir, f))]
-        # for file in buttonFiles:
-        #     self.recipeButtonFiles[file.split('_')[0]] = (file.split('_')[1].split('.')[0], ImageTk.PhotoImage(Image.open(buttonFileDir + '/' + file), Image.BICUBIC))
-        #     self.recipeButtonFilesDark[file.split('_')[0]] = (file.split('_')[1].split('.')[0], ImageTk.PhotoImage(Image.open(buttonFileDir + '/dark/' + file), Image.BICUBIC))
-
         seasons2 = set([])
         names2 = set([])
         ingredients2 = set([])
         spirits = set([])
         glassTypes2 = set([])
         garnishes2 = ([])
-        # recipeButton = PhotoImage(file = os.path.join(dirname, "images/buttons/recipeButton.png"))
-        # recipeButtonMask = PhotoImage(file = os.path.join(dirname, "images/buttons/recipeButtonMask.png"))
+
         for recipe in recipes['recipies']:
             temp = recipe['season']
             if len(temp) > 1:
@@ -360,6 +362,7 @@ class Application(Frame):
                     if temp != "":
                         spirits.add(temp)
             self.recipeButtonImages[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
+            self.recipeButtonImagesDisabled[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/disabled/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
             self.recipeButtonImagesDark[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/dark/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
 
             self.seasons = sorted(seasons2)
@@ -375,11 +378,12 @@ class Application(Frame):
                 self.glassTypes.insert(0, 'Any')
             self.garnishes = sorted(garnishes2)
     
-    def recipeIngredientsInStock(self, recipe):
+    def recipeIngredientsMising(self, recipe):
+        rtn = 0
         for ingredient in recipe['ingredients']:
             if (self.ingredientsInStock.get(ingredient['name'], 0)) != '1':
-                return False
-        return True
+                rtn = rtn + 1
+        return rtn
 
     keyboard = None
     keyCanvas = None
@@ -483,7 +487,7 @@ class Application(Frame):
         RecipeListInStock = []
         RecipeListNotInStock = []
         for recipe in recipes:
-            if self.recipeIngredientsInStock(recipe) == True:
+            if self.recipeIngredientsMising(recipe) == 0:
                 RecipeListInStock.append(recipe)
             else:
                 RecipeListNotInStock.append(recipe)
@@ -506,7 +510,9 @@ class Application(Frame):
     recipeButtons = dict()
     recipeTextBacks = dict()  
     recipeTexts = dict()  
+    recipeCanBeMade = dict()
     recipeButtonAreas = []
+    recipeMissingIngredientsText = dict()  
     
     def addRecipeButtons(self, recipes):
         self.recipeButtonAreas.clear()
@@ -535,17 +541,24 @@ class Application(Frame):
 
             action_with_arg = partial(self.openRecipe, recipe)
             mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
-            #self.buttonImages[recipe['ID']] = PhotoImage(file = os.path.join(dirname, "images/cocktails/buttons/"+recipe['ID']+".jpg"))
 
-            if self.recipeIngredientsInStock(recipe) == True:
+            missingIngredients = self.recipeIngredientsMising(recipe)
+            if missingIngredients == 0:
                 colour = self.mainFGColour
+                img = self.recipeButtonImages.get(recipe['name'])
+                self.recipeCanBeMade[recipe['name']] = True
+                missingText = ''
             else:
                 colour = self.disabledFGColour
+                img = self.recipeButtonImagesDisabled.get(recipe['name'])
+                self.recipeCanBeMade[recipe['name']] = False
+                missingText = '-'+str(missingIngredients)
 
-            self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=self.recipeButtonImages.get(recipe['name']))
+            self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=img)
             self.recipeTextBacks[recipe['name']] = self.midPayne.create_text(self.left + 17, self.top + 17, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill='#000000', text=recipe['name'])
             self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name'])
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
+            self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
 
             self.left = self.left+self.w+10;
             x = x + 1
@@ -958,12 +971,21 @@ class Application(Frame):
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack()
 
-    mainBrightnessBarRect = (320, 50, 520, 70)
-    sideBrightnessBarRect = (320, 80, 520, 100)
-    warmthBarRect = (320, 110, 520, 130)
+    mainBrightnessBarRect = (320, 50, 720, 70)
+    sideBrightnessBarRect = (320, 90, 720, 110)
+    warmthBarRect = (320, 130, 720, 150)
+
+    barLightsOnRect = (320, 170, 340, 190)
+    screenLightsOnRect = (700, 170, 720, 190)
+    mainLightsOnRect = (320, 210, 340, 230)
+
     currentMainBrightnessPercent = 25
     currentSideBrightnessPercent = 25
     currentWarmthPercent = 75
+    currentBarLightChecked = True
+    currentScreenLightChecked = True
+    currentMainLightChecked = True
+
     def Page3(self):
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
@@ -982,89 +1004,113 @@ class Application(Frame):
         self.midPayneContainer.bind('<ButtonPress-1>', self.clickConfigCanvas)
         self.midPayneContainer.bind('<Motion>', self.dragConfigCanvas)
 
-        self.midPayneContainer.create_text(self.mainBrightnessBarRect[0]-20, self.mainBrightnessBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Main brightness:')
+        self.midPayneContainer.create_text(self.mainBrightnessBarRect[0]-10, self.mainBrightnessBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Main brightness:')
         self.midPayneContainer.create_rectangle(self.mainBrightnessBarRect[0]-2, self.mainBrightnessBarRect[1]-2, self.mainBrightnessBarRect[2]+2, self.mainBrightnessBarRect[3]+2, fill='#000000', outline='#000000')
         self.mainBrightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.mainBrightnessBarRect, self.currentMainBrightnessPercent), fill='#cccccc', outline='#cccccc')
-        self.mainBrightnessText = self.midPayneContainer.create_text(self.mainBrightnessBarRect[0]+210, self.mainBrightnessBarRect[1], width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentMainBrightnessPercent)+'%')
+        self.mainBrightnessText = self.midPayneContainer.create_text(self.mainBrightnessBarRect[0]+410, self.mainBrightnessBarRect[1], width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentMainBrightnessPercent)+'%')
 
-        self.midPayneContainer.create_text(self.sideBrightnessBarRect[0]-20, self.sideBrightnessBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Side brightness:')
+        self.midPayneContainer.create_text(self.sideBrightnessBarRect[0]-10, self.sideBrightnessBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Colour brightness:')
         self.midPayneContainer.create_rectangle(self.sideBrightnessBarRect[0]-2, self.sideBrightnessBarRect[1]-2, self.sideBrightnessBarRect[2]+2, self.sideBrightnessBarRect[3]+2, fill='#000000', outline='#000000')
         self.sideBrightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.sideBrightnessBarRect, self.currentSideBrightnessPercent), fill='#cccccc', outline='#cccccc')
-        self.sideBrightnessText = self.midPayneContainer.create_text(self.sideBrightnessBarRect[0]+210, self.sideBrightnessBarRect[1], width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentSideBrightnessPercent)+'%')
+        self.sideBrightnessText = self.midPayneContainer.create_text(self.sideBrightnessBarRect[0]+410, self.sideBrightnessBarRect[1], width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentSideBrightnessPercent)+'%')
 
-        self.midPayneContainer.create_text(self.warmthBarRect[0]-20, self.warmthBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Warmth:')
+        self.midPayneContainer.create_text(self.warmthBarRect[0]-10, self.warmthBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Warmth:')
         self.midPayneContainer.create_rectangle(self.warmthBarRect[0]-2, self.warmthBarRect[1]-2, self.warmthBarRect[2]+2, self.warmthBarRect[3]+2, fill='#000000', outline='#000000')
         self.warmthBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.warmthBarRect, self.currentWarmthPercent), fill='#cccccc', outline='#cccccc')
-        self.warmthText = self.midPayneContainer.create_text(self.warmthBarRect[0]+210, self.warmthBarRect[1], width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentWarmthPercent)+'%')
+        self.warmthText = self.midPayneContainer.create_text(self.warmthBarRect[0]+410, self.warmthBarRect[1], width=50, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentWarmthPercent)+'%')
+
+        self.midPayneContainer.create_text(self.barLightsOnRect[0]-10, self.barLightsOnRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Bar Lights:')
+        self.midPayneContainer.create_rectangle(self.barLightsOnRect[0]-2, self.barLightsOnRect[1]-2, self.barLightsOnRect[2]+2, self.barLightsOnRect[3]+2, fill='#000000', outline='#000000')
+        if(self.currentBarLightChecked == True):
+            self.barLightsOnCheck = self.midPayneContainer.create_rectangle(self.barLightsOnRect[0], self.barLightsOnRect[1], self.barLightsOnRect[2], self.barLightsOnRect[3], fill='#cccccc', outline='#cccccc')
+
+        self.midPayneContainer.create_text(self.screenLightsOnRect[0]-10, self.screenLightsOnRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Screen Lights:')
+        self.midPayneContainer.create_rectangle(self.screenLightsOnRect[0]-2, self.screenLightsOnRect[1]-2, self.screenLightsOnRect[2]+2, self.screenLightsOnRect[3]+2, fill='#000000', outline='#000000')
+        if(self.currentScreenLightChecked == True):
+            self.screenLightsOnCheck = self.midPayneContainer.create_rectangle(self.screenLightsOnRect[0], self.screenLightsOnRect[1], self.screenLightsOnRect[2], self.screenLightsOnRect[3], fill='#cccccc', outline='#cccccc')
+
+        self.midPayneContainer.create_text(self.mainLightsOnRect[0]-10, self.mainLightsOnRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Main Lights:')
+        self.midPayneContainer.create_rectangle(self.mainLightsOnRect[0]-2, self.mainLightsOnRect[1]-2, self.mainLightsOnRect[2]+2, self.mainLightsOnRect[3]+2, fill='#000000', outline='#000000')
+        if(self.currentMainLightChecked == True):
+            self.mainLightsOnCheck = self.midPayneContainer.create_rectangle(self.mainLightsOnRect[0], self.mainLightsOnRect[1], self.mainLightsOnRect[2], self.mainLightsOnRect[3], fill='#cccccc', outline='#cccccc')
 
         self.midPayneContainer.pack(padx=10, pady=5)
 
     clickedConfigBar = ''
     def clickConfigCanvas(self, event):
         self.clickedConfigBar = ''
+
         percent = self.getIfMouseIsInBar(event, self.mainBrightnessBarRect)
         if(percent > 0):
-            self.currentMainBrightnessPercent = round(percent)
-            self.midPayneContainer.delete(self.mainBrightnessBar)
-            self.mainBrightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.mainBrightnessBarRect, self.currentMainBrightnessPercent), fill='#cccccc', outline='#cccccc')
-            self.midPayneContainer.itemconfig(self.mainBrightnessText, text=str(self.currentMainBrightnessPercent)+'%')
-            self.updateArduinoConfigs()
             self.clickedConfigBar = 'mainBrightness'
+            self.dragConfigCanvas(event)
             return
-
         percent = self.getIfMouseIsInBar(event, self.sideBrightnessBarRect)
         if(percent > 0):
-            self.currentSideBrightnessPercent = round(percent)
-            self.midPayneContainer.delete(self.sideBrightnessBar)
-            self.sideBrightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.sideBrightnessBarRect, self.currentSideBrightnessPercent), fill='#cccccc', outline='#cccccc')
-            self.midPayneContainer.itemconfig(self.sideBrightnessText, text=str(self.currentSideBrightnessPercent)+'%')
-            self.updateArduinoConfigs()
             self.clickedConfigBar = 'sideBrightness'
+            self.dragConfigCanvas(event)
             return
-
         percent = self.getIfMouseIsInBar(event, self.warmthBarRect)
         if(percent > 0):
-            self.currentWarmthPercent = round(percent)
-            self.midPayneContainer.delete(self.warmthBar)
-            self.warmthBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.warmthBarRect, self.currentWarmthPercent), fill='#cccccc', outline='#cccccc')
-            self.midPayneContainer.itemconfig(self.warmthText, text=str(self.currentWarmthPercent)+'%')
-            self.updateArduinoConfigs()
             self.clickedConfigBar = 'warmth'
+            self.dragConfigCanvas(event)
             return
-        return
+        percent = self.getIfMouseIsInBar(event, self.barLightsOnRect)
+        if(percent > 0):
+            self.currentBarLightChecked = not self.currentBarLightChecked
+            if(self.currentBarLightChecked == True):
+                self.barLightsOnCheck = self.midPayneContainer.create_rectangle(self.barLightsOnRect[0], self.barLightsOnRect[1], self.barLightsOnRect[2], self.barLightsOnRect[3], fill='#cccccc', outline='#cccccc')
+            else:
+                self.midPayneContainer.delete(self.barLightsOnCheck)
+            return
+        percent = self.getIfMouseIsInBar(event, self.screenLightsOnRect)
+        if(percent > 0):
+            self.currentScreenLightChecked = not self.currentScreenLightChecked
+            if(self.currentScreenLightChecked == True):
+                self.screenLightsOnCheck = self.midPayneContainer.create_rectangle(self.screenLightsOnRect[0], self.screenLightsOnRect[1], self.screenLightsOnRect[2], self.screenLightsOnRect[3], fill='#cccccc', outline='#cccccc')
+            else:
+                self.midPayneContainer.delete(self.screenLightsOnCheck)
+            return
+        percent = self.getIfMouseIsInBar(event, self.mainLightsOnRect)
+        if(percent > 0):
+            self.currentMainLightChecked = not self.currentMainLightChecked
+            if(self.currentMainLightChecked == True):
+                self.mainLightsOnCheck = self.midPayneContainer.create_rectangle(self.mainLightsOnRect[0], self.mainLightsOnRect[1], self.mainLightsOnRect[2], self.mainLightsOnRect[3], fill='#cccccc', outline='#cccccc')
+            else:
+                self.midPayneContainer.delete(self.mainLightsOnCheck)
+            return
+
 
     def dragConfigCanvas(self, event):
         if(self.clickedConfigBar == 'mainBrightness'):
-            total = self.mainBrightnessBarRect[2] - self.mainBrightnessBarRect[0]
-            new = event.x - self.mainBrightnessBarRect[0]
-            isIn = min(100, max(0, ((new / total) * 100)))
-            self.currentMainBrightnessPercent = round(isIn)
-            self.midPayneContainer.delete(self.mainBrightnessBar)
-            self.mainBrightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.mainBrightnessBarRect, self.currentMainBrightnessPercent), fill='#cccccc', outline='#cccccc')
-            self.midPayneContainer.itemconfig(self.mainBrightnessText, text=str(self.currentMainBrightnessPercent)+'%')
-           
+            tup = self.drawConfigBar(event.x, self.midPayneContainer, self.mainBrightnessBarRect, self.mainBrightnessBar, self.currentMainBrightnessPercent, self.mainBrightnessText)
+            self.currentMainBrightnessPercent = tup[0] 
+            self.mainBrightnessBar = tup[1]
+
         if(self.clickedConfigBar == 'sideBrightness'):
-            total = self.sideBrightnessBarRect[2] - self.sideBrightnessBarRect[0]
-            new = event.x - self.sideBrightnessBarRect[0]
-            isIn = min(100, max(0, ((new / total) * 100)))
-            self.currentSideBrightnessPercent = round(isIn)
-            self.midPayneContainer.delete(self.sideBrightnessBar)
-            self.sideBrightnessBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.sideBrightnessBarRect, self.currentSideBrightnessPercent), fill='#cccccc', outline='#cccccc')
-            self.midPayneContainer.itemconfig(self.sideBrightnessText, text=str(self.currentSideBrightnessPercent)+'%')
-            
+            tup = self.drawConfigBar(event.x, self.midPayneContainer, self.sideBrightnessBarRect, self.sideBrightnessBar, self.currentSideBrightnessPercent, self.sideBrightnessText)
+            self.currentSideBrightnessPercent = tup[0] 
+            self.sideBrightnessBar = tup[1]
+
         if(self.clickedConfigBar == 'warmth'):
-            total = self.warmthBarRect[2] - self.warmthBarRect[0]
-            new = event.x - self.warmthBarRect[0]
-            isIn = min(100, max(0, ((new / total) * 100)))
-            self.currentWarmthPercent = round(isIn)
-            self.midPayneContainer.delete(self.warmthBar)
-            self.warmthBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.warmthBarRect, self.currentWarmthPercent), fill='#cccccc', outline='#cccccc')
-            self.midPayneContainer.itemconfig(self.warmthText, text=str(self.currentWarmthPercent)+'%')
+            tup = self.drawConfigBar(event.x, self.midPayneContainer, self.warmthBarRect, self.warmthBar, self.currentWarmthPercent, self.warmthText)
+            self.currentWarmthPercent = tup[0] 
+            self.warmthBar = tup[1]
             
+    def drawConfigBar(self, mouseX, container, barRect, bar, value, text):
+        total = barRect[2] - barRect[0]
+        new = mouseX - barRect[0]
+        percent = min(100, max(0, ((new / total) * 100)))
+        value = round(percent)
+        container.delete(bar)
+        bar = container.create_rectangle(self.getBarActualWidth(barRect, value), fill='#cccccc', outline='#cccccc')
+        container.itemconfig(text, text=str(value)+'%')
+        return (value, bar)
 
 
     def releaseConfigCanvas(self, event):
         self.clickedConfigBar = ''
+        self.updateArduinoConfigs()
             
 
     def getBarActualWidth(self, bar, percent):
@@ -1084,6 +1130,19 @@ class Application(Frame):
         self.sendMessageToArduino("MBR"+str(self.currentMainBrightnessPercent))
         self.sendMessageToArduino("SBR"+str(self.currentSideBrightnessPercent))
         self.sendMessageToArduino("WAR"+str(self.currentWarmthPercent))
+        if(self.currentBarLightChecked == True):
+            self.sendMessageToArduino("BLC1")
+        else:
+            self.sendMessageToArduino("BLC0")
+        if(self.currentScreenLightChecked == True):
+            self.sendMessageToArduino("SLC1")
+        else:
+            self.sendMessageToArduino("SLC0")
+        
+        if(self.currentMainLightChecked == True):
+            self.sendMessageToArduino("MLC1")
+        else:
+            self.sendMessageToArduino("MLC0")
         self.saveConfig()
         return
 
@@ -1093,9 +1152,20 @@ class Application(Frame):
         self.currentMainBrightnessPercent = int(config['currentMainBrightnessPercent'])
         self.currentSideBrightnessPercent = int(config['currentSideBrightnessPercent'])
         self.currentWarmthPercent = int(config['currentWarmthPercent'])
+        self.currentBarLightChecked = config['currentBarLightChecked'] == 'True'
+        self.currentScreenLightChecked = config['currentScreenLightChecked'] == 'True'
+        self.currentMainLightChecked = config['currentMainLightChecked'] == 'True'
 
     def saveConfig(self):
-        JSONString = '{"currentMainBrightnessPercent": "'+str(self.currentMainBrightnessPercent)+'","currentSideBrightnessPercent": "'+str(self.currentSideBrightnessPercent)+'","currentWarmthPercent": "'+str(self.currentWarmthPercent)+'"}'
+        JSONString = '{'
+        JSONString = JSONString + '"currentMainBrightnessPercent": "'+str(self.currentMainBrightnessPercent)+'",'
+        JSONString = JSONString + '"currentSideBrightnessPercent": "'+str(self.currentSideBrightnessPercent)+'",'
+        JSONString = JSONString + '"currentWarmthPercent": "'+str(self.currentWarmthPercent)+'",'
+        JSONString = JSONString + '"currentBarLightChecked": "'+str(self.currentBarLightChecked)+'",'
+        JSONString = JSONString + '"currentScreenLightChecked": "'+str(self.currentScreenLightChecked)+'",'
+        JSONString = JSONString + '"currentMainLightChecked": "'+str(self.currentMainLightChecked)+'"'
+        JSONString = JSONString + '}'
+
         f = open(os.path.join(dirname, "config.JSON"), "w")
         f.write(JSONString)
         f.close()

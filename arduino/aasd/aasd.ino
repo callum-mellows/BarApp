@@ -2,7 +2,7 @@
 #include <string.h>
 
 #define NUM_SIDE_LIGHTS 5
-#define PIN_SIDE_LIGHTS 3
+#define PIN_BAR_LIGHTS 3
 
 #define NUM_SCREEN_LIGHTS 5
 #define PIN_SCREEN_LIGHTS 9
@@ -25,6 +25,10 @@ int BrightnessMainLightAlpha = 255;
 int maxBrightnessMainLight = 128;
 bool mainLightOverride = false;
 
+bool mainLightsOn = true;
+bool barLightsOn = true;
+bool screenLightsOn = true;
+
 CRGB previousColour = CRGB::Black;
 CRGB currentColour = CRGB::Black;
 CRGB nextColour = CRGB::Black;
@@ -33,14 +37,14 @@ int colourChangeAlpha = 255;
 CRGB defaultColour = CRGB::White;
 ColorTemperature colourTemps[9] = {ColorTemperature::Candle, ColorTemperature::Tungsten40W, ColorTemperature::Tungsten100W, ColorTemperature::Halogen, ColorTemperature::CarbonArc, ColorTemperature::HighNoonSun, ColorTemperature::DirectSunlight, ColorTemperature::OvercastSky, ColorTemperature::ClearBlueSky};
 
-CRGB sideLeds[NUM_SIDE_LIGHTS];
+CRGB barLeds[NUM_SIDE_LIGHTS];
 CRGB screenLeds[NUM_SCREEN_LIGHTS];
 
 void setup() { 
   Serial.begin(15200);
   previousColour = defaultColour;
   nextColour = defaultColour;
-  FastLED.addLeds<WS2811, PIN_SIDE_LIGHTS, BRG>(sideLeds, NUM_SIDE_LIGHTS);
+  FastLED.addLeds<WS2811, PIN_BAR_LIGHTS, BRG>(barLeds, NUM_SIDE_LIGHTS);
   FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
   changeAllLEDs(defaultColour);
   FastLED.setMaxPowerInMilliWatts(12000);
@@ -55,11 +59,25 @@ void changeAllLEDs(CRGB newColour)
     FastLED.clear();
     for(int i = 0; i < NUM_SIDE_LIGHTS; i++)
     {
-      sideLeds[i] = newColour;
+      if(barLightsOn == true)
+      {
+        barLeds[i] = newColour;
+      }
+      else
+      {
+        barLeds[i] = CRGB::Black;
+      }
     }
     for(int i = 0; i < NUM_SCREEN_LIGHTS; i++)
     {
-      screenLeds[i] = newColour;
+      if(screenLightsOn == true)
+      {
+        screenLeds[i] = newColour;
+      }
+      else
+      {
+        screenLeds[i] = CRGB::Black;
+      }
     }
 }
 
@@ -269,6 +287,8 @@ void loop() {
     }
     else if (checkFirstThree(serialData, "MLO") == true)
     {
+      Serial.println(serialData);
+      Serial.flush();
       if(serialData[3] == '1')
       {
         lightsOn();
@@ -276,6 +296,45 @@ void loop() {
       else
       {
         lightsOff();
+      }
+    }
+    else if (checkFirstThree(serialData, "BLC") == true)
+    {
+      Serial.println(serialData);
+      Serial.flush();
+      if(serialData[3] == '1')
+      {
+        barLightsOn = true;
+      }
+      else
+      {
+        barLightsOn = false;
+      }
+    }
+    else if (checkFirstThree(serialData, "MLC") == true)
+    {
+      Serial.println(serialData);
+      Serial.flush();
+      if(serialData[3] == '1')
+      {
+        mainLightsOn = true;
+      }
+      else
+      {
+        mainLightsOn = false;
+      }
+    }
+    else if (checkFirstThree(serialData, "SLC") == true)
+    {
+      Serial.println(serialData);
+      Serial.flush();
+      if(serialData[3] == '1')
+      {
+        screenLightsOn = true;
+      }
+      else
+      {
+        screenLightsOn = false;
       }
     }
 
@@ -306,7 +365,15 @@ void loop() {
 
   FastLED.setBrightness(currentBrightnessSideLight);
   FastLED.show();
-  analogWrite(PIN_MAIN_LIGHT_1, currentBrightnessMainLight);
-  analogWrite(PIN_MAIN_LIGHT_2, currentBrightnessMainLight);
+  if(mainLightsOn == true)
+  {
+    analogWrite(PIN_MAIN_LIGHT_1, currentBrightnessMainLight);
+    analogWrite(PIN_MAIN_LIGHT_2, currentBrightnessMainLight);
+  }
+  else
+  {
+    analogWrite(PIN_MAIN_LIGHT_1, 0);
+    analogWrite(PIN_MAIN_LIGHT_2, 0);
+  }
   delay(5);
 }
