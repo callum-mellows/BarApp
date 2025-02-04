@@ -416,10 +416,10 @@ class Application(Frame):
         self.keyTexts.append(self.keyCanvas.create_text(492, 242, width=375, text='Space', font=titleFont, fill=self.mainFGColour))
 
         self.keys.append(self.keyCanvas.create_rectangle(765, 205, 915, 280, fill=self.secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='Close', font=subSubTitleFont, fill=self.mainFGColour))
+        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='Clear', font=subSubTitleFont, fill=self.mainFGColour))
         Misc.lift(self.keyboard)
         self.keyboardOpen = True
-        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
+        #self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
 
     def keyboardClickCheck(self, event):
         if(self.keyboardOpen == True):
@@ -438,8 +438,12 @@ class Application(Frame):
                         self.searchTerm.set('')
                         self.closeKeyboard()
                 self.keyboardTextEntry.icursor(len(self.searchTerm.get()))
-                return
-            #self.closeKeyboard()
+
+        if(self.searchTerm.get() != ''):
+            self.setCurrentFilter('search')
+        else:
+            if(self.currentFilter == 'search'):
+                self.setCurrentFilter('')
 
     def closeKeyboard(self):
         if(self.keyboard != None):
@@ -449,6 +453,7 @@ class Application(Frame):
             root.focus()
             self.keyboardOpen = False
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+            #self.currentFilter = ''
 
     def getRecipesByCategory(self, season):
         self.recipeList = []
@@ -475,6 +480,7 @@ class Application(Frame):
         self.addRecipeButtons(self.recipeList)
 
     def updateSearchBox(self, searchTerm):
+        print("KKNK")
         self.filterValues = ('Any', 'Any', 'Any', searchTerm.get())
         self.recipeList = []
         search = str.lower(str(searchTerm.get()))
@@ -619,7 +625,7 @@ class Application(Frame):
         if(self.keyboard == None):
             self.openKeyboard()
         else:
-            self.searchTerm.set('')
+            #self.searchTerm.set('')
             self.closeKeyboard()
 
     def pickerClick(self, options, event):
@@ -672,24 +678,26 @@ class Application(Frame):
         if(self.pickerCanvas != None):
             self.pickerCanvas.place_forget()
             self.pickerCanvas = None
-            if(self.currentFilter == 'seasons'):
-                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
-            else:
-                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
-
-            if(self.currentFilter == 'spirits'):
-                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
-            else:
-                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
-
-            if(self.currentFilter == 'glassTypes'):
-                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
-            else:
-                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButton)
             self.pickerType = ''
 
     currentFilter = ''
+    def setCurrentFilter(self, newFilter):
+        currentFilter = newFilter
+
+        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+
+        if(newFilter == 'search'):
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOpen)
+        if(newFilter == 'seasons'):
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOpen)
+        if(newFilter == 'spirits'):
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOpen)
+        if(newFilter == 'glassTypes'):
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOpen)
 
     categoryString = StringVar()
     def openSeasons(self):
@@ -700,7 +708,7 @@ class Application(Frame):
         if(formerPickerType != 'seasons'):
             self.openPickerBox(self.seasons, 110, 137, self.categoryString)
             self.pickerType = 'seasons'
-            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
+            #self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
         else:
             self.pickerType = ''
 
@@ -713,7 +721,7 @@ class Application(Frame):
         if(formerPickerType != 'spirits'):
             self.openPickerBox(self.spirits, 110, 237, self.ingredientsString)
             self.pickerType = 'spirits'
-            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
+            #self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
         else:
             self.pickerType = ''
 
@@ -726,7 +734,7 @@ class Application(Frame):
         if(formerPickerType != 'glassTypes'):
             self.openPickerBox(self.glassTypes, 110, 300, self.glassTypeString)
             self.pickerType = 'glassTypes'
-            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
+            #self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
             self.pickerType = ''
 
@@ -796,21 +804,25 @@ class Application(Frame):
         self.imgSearch = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search.png")), Image.BICUBIC)
         self.imgSearchDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/searchDark.png")), Image.BICUBIC)
         self.imgSearchOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search_on.png")), Image.BICUBIC)
+        self.imgSearchOpen = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/search_open.png")), Image.BICUBIC)
         self.searchButton = self.midPayneLeftCanvas.create_image(0, 10, anchor='nw', image=self.imgSearch)
 
         self.imgSeasons = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season.png")), Image.BICUBIC)
         self.imgSeasonsDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/seasonDark.png")), Image.BICUBIC)
         self.imgSeasonsOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season_on.png")), Image.BICUBIC)
+        self.imgSeasonsOpen = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/season_open.png")), Image.BICUBIC)
         self.seasonsButton = self.midPayneLeftCanvas.create_image(0, 125, anchor='nw', image=self.imgSeasons)
 
         self.imgSpirits = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit.png")), Image.BICUBIC)
         self.imgSpiritsDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spiritDark.png")), Image.BICUBIC)
         self.imgSpiritsOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit_on.png")), Image.BICUBIC)
+        self.imgSpiritsOpen = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/spirit_open.png")), Image.BICUBIC)
         self.spiritsButton = self.midPayneLeftCanvas.create_image(0, 200, anchor='nw', image=self.imgSpirits)
 
         self.imgGlassType = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType.png")), Image.BICUBIC)
         self.imgGlassTypeDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassTypeDark.png")), Image.BICUBIC)
         self.imgGlassTypeOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType_on.png")), Image.BICUBIC)
+        self.imgGlassTypeOpen = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/glassType_open.png")), Image.BICUBIC)
         self.glassTypesButton = self.midPayneLeftCanvas.create_image(0, 275, anchor='nw', image=self.imgGlassType)
 
         self.imgMenuButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/menu.png")), Image.BICUBIC)
@@ -1459,30 +1471,33 @@ class Application(Frame):
         self.ingredientsString.set("Any")
         self.glassTypeString.set("Any")
         self.filterValues = (self.categoryString.get(), 'Any', 'Any', '')
+        self.searchTerm.set('')
         if(self.categoryString.get() == 'Any'):
-            self.currentFilter = ''
+            self.setCurrentFilter('')
         else:
-            self.currentFilter = 'seasons'
+            self.setCurrentFilter('seasons')
         self.getRecipesByCategory(self.categoryString.get())
 
     def pickSpirit(self):
         self.categoryString.set("Any")
         self.glassTypeString.set("Any")
         self.filterValues = ('Any', self.ingredientsString.get(), 'Any', '')
+        self.searchTerm.set('')
         if(self.ingredientsString.get() == 'Any'):
-            self.currentFilter = ''
+            self.setCurrentFilter('')
         else:
-            self.currentFilter = 'spirits'
+            self.setCurrentFilter('spirits')
         self.getRecipesBySpirit(self.ingredientsString.get())
 
     def pickGlassType(self):
         self.categoryString.set("Any")
         self.ingredientsString.set("Any")
         self.filterValues = ('Any', 'Any', self.glassTypeString.get(), '')
+        self.searchTerm.set('')
         if(self.glassTypeString.get() == 'Any'):
-            self.currentFilter = ''
+            self.setCurrentFilter('')
         else:
-            self.currentFilter = 'glassTypes'
+            self.setCurrentFilter('glassTypes')
         self.getRecipesByGlassType(self.glassTypeString.get())
 
     def pickMenu(self):
