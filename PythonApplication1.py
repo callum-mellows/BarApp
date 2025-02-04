@@ -113,10 +113,10 @@ class Application(Frame):
 
         self.loadConfig()
 
-        self.f = open(os.path.join(dirname, "recipes.JSON"), "r", encoding='utf-8')
-        self.recipes = json.load(self.f, )
+        self.f = open(os.path.join(dirname, "recipes.JSON"), mode='r', encoding='utf-8-sig')
+        self.recipes = json.load(self.f)
 
-        self.f = open(os.path.join(dirname, "ingredients.JSON"), "r")
+        self.f = open(os.path.join(dirname, "ingredients.JSON"), mode='r')
         tempIngredients = json.load(self.f)
 
         for ingredient in tempIngredients['ingredients']:
@@ -171,9 +171,9 @@ class Application(Frame):
         if self.mouseIsDown == True:
             scrollOffset = root.winfo_pointery() - self.initialMouseY
             if scrollOffset > 0:
-                self.scrollVelocity = max(self.scrollVelocity, scrollOffset)
+                self.scrollVelocity = max(self.scrollVelocity, scrollOffset*1.5)
             else:
-                self.scrollVelocity = min(self.scrollVelocity, scrollOffset)
+                self.scrollVelocity = min(self.scrollVelocity, scrollOffset*1.5)
             
             self.initialMouseY = root.winfo_pointery()
             self.scrolling.yview_scroll(int(scrollOffset)*-1, "units")
@@ -217,9 +217,9 @@ class Application(Frame):
 
     def update(self):
         if self.scrollVelocity > 0:
-            self.scrollVelocity = max(0, self.scrollVelocity - 2)
+            self.scrollVelocity = max(0, self.scrollVelocity - 1.5)
         elif self.scrollVelocity < 0:
-            self.scrollVelocity = min(0, self.scrollVelocity + 2)
+            self.scrollVelocity = min(0, self.scrollVelocity + 1.5)
         now = datetime.now()
         dtString = now.strftime("%H:%M:%S")
         applicationInstance.setTimeString(dtString)
@@ -244,6 +244,7 @@ class Application(Frame):
     isDark = False
     def goDark(self):
         self.homepage(False)
+        self.getRecipesByCategory('Any')
         self.isDark = True
 
         self.titleLabel.configure(fg=self.mainFGColourDark)
@@ -456,6 +457,7 @@ class Application(Frame):
                 self.recipeList.append(recipe)
         self.addRecipeButtons(self.recipeList)
 
+
     def getRecipesBySpirit(self, spirit):
         self.recipeList = []
         for recipe in self.recipes['recipies']:
@@ -523,6 +525,8 @@ class Application(Frame):
         for child in self.recipeTextBacks.values():
             self.midPayne.delete(child)
         for child in self.recipeTexts.values():
+            self.midPayne.delete(child)
+        for child in self.recipeMissingIngredientsText.values():
             self.midPayne.delete(child)
         self.recipeButtons.clear()
 
@@ -668,11 +672,24 @@ class Application(Frame):
         if(self.pickerCanvas != None):
             self.pickerCanvas.place_forget()
             self.pickerCanvas = None
-            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
-            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
-            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            if(self.currentFilter == 'seasons'):
+                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
+            else:
+                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+
+            if(self.currentFilter == 'spirits'):
+                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
+            else:
+                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+
+            if(self.currentFilter == 'glassTypes'):
+                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
+            else:
+                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButton)
             self.pickerType = ''
+
+    currentFilter = ''
 
     categoryString = StringVar()
     def openSeasons(self):
@@ -1395,7 +1412,7 @@ class Application(Frame):
             self.ingredientsColour.update({str(i[0]):temp})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
-        f = open(os.path.join(dirname, "ingredients.JSON"), "w")
+        f = open(os.path.join(dirname, "ingredients.JSON"), "w", encoding='utf-8')
         f.write(JSONString)
         f.close()
 
@@ -1442,18 +1459,30 @@ class Application(Frame):
         self.ingredientsString.set("Any")
         self.glassTypeString.set("Any")
         self.filterValues = (self.categoryString.get(), 'Any', 'Any', '')
+        if(self.categoryString.get() == 'Any'):
+            self.currentFilter = ''
+        else:
+            self.currentFilter = 'seasons'
         self.getRecipesByCategory(self.categoryString.get())
 
     def pickSpirit(self):
         self.categoryString.set("Any")
         self.glassTypeString.set("Any")
         self.filterValues = ('Any', self.ingredientsString.get(), 'Any', '')
+        if(self.ingredientsString.get() == 'Any'):
+            self.currentFilter = ''
+        else:
+            self.currentFilter = 'spirits'
         self.getRecipesBySpirit(self.ingredientsString.get())
 
     def pickGlassType(self):
         self.categoryString.set("Any")
         self.ingredientsString.set("Any")
         self.filterValues = ('Any', 'Any', self.glassTypeString.get(), '')
+        if(self.glassTypeString.get() == 'Any'):
+            self.currentFilter = ''
+        else:
+            self.currentFilter = 'glassTypes'
         self.getRecipesByGlassType(self.glassTypeString.get())
 
     def pickMenu(self):
