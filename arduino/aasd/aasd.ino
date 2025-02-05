@@ -410,6 +410,10 @@ void checkSerialData(String &serialData)
       Serial.flush();
 
       clearAllIngredients();
+      if(serialData.length() <= 3)
+      {
+        return;
+      }
       //ING1:2|2:5|1:10
       String tempStrip = "";
       String tempIndex = "";

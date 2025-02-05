@@ -480,7 +480,6 @@ class Application(Frame):
         self.addRecipeButtons(self.recipeList)
 
     def updateSearchBox(self, searchTerm):
-        print("KKNK")
         self.filterValues = ('Any', 'Any', 'Any', searchTerm.get())
         self.recipeList = []
         search = str.lower(str(searchTerm.get()))
@@ -499,7 +498,7 @@ class Application(Frame):
                 RecipeListInStock.append(recipe)
             else:
                 RecipeListNotInStock.append(recipe)
-        return RecipeListInStock + RecipeListNotInStock
+        return (RecipeListInStock, RecipeListNotInStock)
 
     def getRecipeColour(self, recipe):
         RGB = [0, 0, 0]
@@ -521,10 +520,19 @@ class Application(Frame):
     recipeCanBeMade = dict()
     recipeButtonAreas = []
     recipeMissingIngredientsText = dict()  
+
+    def sortRecipes(self, recipes):
+        sortedRecipes = []
+        sortedRecipes = sorted(recipes, key=lambda x: x['name'], reverse=False)
+        return sortedRecipes
+
     
     def addRecipeButtons(self, recipes):
         self.recipeButtonAreas.clear()
-        orderedRecipes = self.orderRecipeListByInStock(recipes)
+        orderedRecipesInStock = self.sortRecipes(self.orderRecipeListByInStock(recipes)[0])
+        orderedRecipesNotInStock = self.sortRecipes(self.orderRecipeListByInStock(recipes)[1])
+        orderedRecipes = orderedRecipesInStock + orderedRecipesNotInStock
+
 
         for child in self.recipeButtons.values():
             self.midPayne.delete(child)
@@ -859,7 +867,6 @@ class Application(Frame):
                 self.homepage(True)
 
     def Page1(self):
-
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1050, height=75);
 
         self.topPayne.pack(side=TOP)
@@ -1226,10 +1233,18 @@ class Application(Frame):
         self.ingredientColourButtons[name] = self.midPayne.create_rectangle(600, yPos+10, 675, yPos+height-10, fill=colour)
 
         self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=self.secondaryBGColour)
-        rowLEDStripText = self.midPayne.create_text(737, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=LEDStrip)
+        string = LEDStrip
+        #print("LEDStrip: " + LEDStrip)
+        if(str(LEDStrip) == "0"):
+            string = "-"
+        rowLEDStripText = self.midPayne.create_text(737, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=string)
 
         self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=self.secondaryBGColour)
-        rowLEDIndexText = self.midPayne.create_text(837, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=LEDIndex)
+        string = LEDIndex
+        #print("LEDIndex: " + LEDIndex)
+        if(str(LEDIndex) == "0"):
+            string = "-"
+        rowLEDIndexText = self.midPayne.create_text(837, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=string)
 
         tup=(rowBack, rowName, self.ingredientCheckBoxes[name], self.ingredientColourButtons[name], self.ingredientLEDStripButtons[name], self.ingredientLEDIndexButtons[name], rowLEDStripText, rowLEDIndexText)
         self.ingredientRows[name] = tup
@@ -1288,11 +1303,11 @@ class Application(Frame):
                         return
                     if ((x > clickArea[0][0] + 700) & (x < clickArea[0][0] + 775)):
                         tup = (clickArea[0][0] + 700, clickArea[0][1], clickArea[0][0] + 775, clickArea[0][1] + clickArea[0][3])
-                        self.openNumberPicker(1, 5, tup[0], tup[1], clickArea[1]+'a', 'LEDStrip', clickArea[1], clickArea[0][1], clickArea[0][3])
+                        self.openNumberPicker(0, 2, tup[0], tup[1], clickArea[1]+'a', 'LEDStrip', clickArea[1], clickArea[0][1], clickArea[0][3])
                         return
                     if ((x > clickArea[0][0] + 800) & (x < clickArea[0][0] + 875)):
                         tup = (clickArea[0][0] + 800, clickArea[0][1], clickArea[0][0] + 875, clickArea[0][1] + clickArea[0][3])
-                        self.openNumberPicker(1, 15, tup[0], tup[1], clickArea[1]+'b', 'LEDIndex', clickArea[1], clickArea[0][1], clickArea[0][3])
+                        self.openNumberPicker(0, 15, tup[0], tup[1], clickArea[1]+'b', 'LEDIndex', clickArea[1], clickArea[0][1], clickArea[0][3])
                         return
 
         
@@ -1344,7 +1359,7 @@ class Application(Frame):
     numberPickButtons = []
     numberPickText = []
     def openNumberPicker(self, start, end, xPos, yPos, ID, callback, ingredientName, rowYPos, rowHeight): 
-        bHeight = 35
+        bHeight = 55
 
         if(self.closeNumberPicker(ID) == True):
 
@@ -1362,8 +1377,11 @@ class Application(Frame):
             self.numberPickerClickArea = tup
             x = 0
             for i in range(start, end+1):
-                self.numberPickButtons.append(self.midPayne.create_rectangle(xPos, (yPos + (bHeight * x)), xPos+75, (yPos + ((bHeight * x) + bHeight)), fill='#222222'))
-                self.numberPickText.append(self.midPayne.create_text((xPos + 37), (yPos + (bHeight * x) + 20), width=75, font=subSubTitleFont, fill=self.mainFGColour, text=i))
+                self.numberPickButtons.append(self.midPayne.create_rectangle(xPos-5, (yPos + (bHeight * x)), xPos+80, (yPos + ((bHeight * x) + bHeight)), fill='#222222'))
+                string = str(i)
+                if(i == 0):
+                    string = "-"
+                self.numberPickText.append(self.midPayne.create_text((xPos + 37), (yPos + (bHeight * x) + 28), width=75, font=subSubTitleFont, fill=self.mainFGColour, text=string))
                 x = x + 1
         return
     
@@ -1433,6 +1451,7 @@ class Application(Frame):
             pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
             pygame.mixer.music.play()
         self.sendMessageToArduino("RGBDEF")
+        self.sendMessageToArduino("ING")
         self.currentPageIndex = 0
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
@@ -1545,6 +1564,19 @@ class Application(Frame):
 
             self.sendMessageToArduino("RGB"+recipeColour)
 
+            ingredientsLights = dict()
+            ingredientsLightsString = ''
+            for ingredient in recipe['ingredients']:
+                ledStrip = int(self.ingredientsLEDPosition.get(ingredient['name'], (0,0))[0])-1
+                ledIndex = int(self.ingredientsLEDPosition.get(ingredient['name'], (0,0))[1])-1
+                if((ledStrip >= 0) & (ledIndex >= 0)):
+                    ingredientsLightsString += str(ledStrip) + ':' + str(ledIndex) + '|'
+                    ingredientsLights[ingredient['name']] = (ledStrip, ledIndex)
+            ingredientsLightsString = ingredientsLightsString[:-1]
+
+            self.sendMessageToArduino("ING"+ingredientsLightsString)
+
+
             width = self.winfo_width()
             height = self.winfo_height()
             (r1,g1,b1) = self.winfo_rgb(recipeColour)
@@ -1557,9 +1589,7 @@ class Application(Frame):
                 ng = int(g1 + (g_ratio * i))
                 nb = int(b1 + (b_ratio * i))
                 color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
-                #self.topPayne.create_line(i, 0, i+1, 100, tags=("gradient",), fill=color)
                 self.topPayne.create_rectangle(i, 0, i+9, 100, tags=("gradient",), fill=color, outline=color)
-                #self.bottomPayne.create_line(i, 0, i, 20, tags=("gradient",), fill=color)
                 self.bottomPayne.create_rectangle(i, 0, i+9, 20, tags=("gradient",), fill=color, outline=color)
             self.topPayne.lower("gradient")
             self.bottomPayne.lower("gradient")
@@ -1612,15 +1642,19 @@ class Application(Frame):
                         colour = '#00ff00'
                         string = "+ "
 
+                ingredientsLightsString = ""
+                if(ingredientsLights.get(ingredient['name'])):
+                    ingredientsLightsString += "✨\n"
 
-                ingredientString = ingredientString + ingredient['name'][:18] + "\n"
+                ingredientString = ingredientString + ingredient['name'][:28] + "\n"
                 quantitiesString = quantitiesString + ingredient['quantity'] + " " + ingredient['unit'] + "\n"
                 lineHeight = smallFont.metrics("linespace")
-                self.cocktailIngredients.create_text(10, (i*lineHeight), text=string, anchor='n', fill=colour, font=smallFont, width=20)
+                self.cocktailIngredients.create_text(300, (i*lineHeight), text=ingredientsLightsString, anchor='n', fill='#ffff00', font=smallFont, width=20)
+                self.cocktailIngredients.create_text(5, (i*lineHeight), text=string, anchor='n', fill=colour, font=smallFont, width=20)
                 i = i+1
             ingredientString = ingredientString[:-1]
             quantitiesString = quantitiesString[:-1]
-            ingredientText = self.cocktailIngredients.create_text(25, 0, text=ingredientString, anchor='nw', fill=self.mainFGColour, font=smallFont, width=295, justify='left')
+            ingredientText = self.cocktailIngredients.create_text(15, 0, text=ingredientString, anchor='nw', fill=self.mainFGColour, font=smallFont, width=295, justify='left')
             ingredientWidth = self.cocktailIngredients.bbox(ingredientText)[2] - self.cocktailIngredients.bbox(ingredientText)[0]
             newString = ingredientString
             if(ingredientWidth > 185):
@@ -1631,7 +1665,7 @@ class Application(Frame):
                 newString = newString + "..."
                 self.cocktailIngredients.itemconfig(ingredientText, text=newString)
 
-            quantitiesText = self.cocktailIngredients.create_text(300, 0, text=quantitiesString, anchor='ne', fill=self.mainFGColour, font=smallFont, width=290, justify='right')
+            quantitiesText = self.cocktailIngredients.create_text(290, 0, text=quantitiesString, anchor='ne', fill=self.mainFGColour, font=smallFont, width=290, justify='right')
             #bulletsText = self.cocktailIngredients.create_text(15, 0, text=bulletsString, anchor='n', fill=self.mainFGColour, font=font, width=20)
             self.cocktailIngredients.configure(height=max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]), self.bottomLeftPayne.winfo_height()))
             self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1])+15, 140)))
@@ -1754,9 +1788,6 @@ root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
 applicationInstance = Application(root)
 
-
-
-root.after(2000, lambda: applicationInstance.sendMessageToArduino("ING1:2|2:5|1:4|1:10"))
 root.after(1500, lambda: applicationInstance.goLight())
 root.after(1000, lambda: applicationInstance.updateArduinoConfigs())
 root.after(500, lambda: applicationInstance.sendMessageToArduino("asdasd"))
