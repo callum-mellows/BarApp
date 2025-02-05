@@ -1754,12 +1754,9 @@ root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
 applicationInstance = Application(root)
 
-# applicationInstance.SerialObj.write("abcdefghijkl\n".encode('utf-8'))
-# ReceivedString = applicationInstance.SerialObj.readline()
-# print(ReceivedString.decode())
-# applicationInstance.SerialObj.flush()
 
-#root.after(3000, lambda: applicationInstance.goLight())
+
+root.after(2000, lambda: applicationInstance.sendMessageToArduino("ING1:2|2:5|1:4|1:10"))
 root.after(1500, lambda: applicationInstance.goLight())
 root.after(1000, lambda: applicationInstance.updateArduinoConfigs())
 root.after(500, lambda: applicationInstance.sendMessageToArduino("asdasd"))
