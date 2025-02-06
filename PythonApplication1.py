@@ -87,7 +87,10 @@ class Application(Frame):
     glassTypes = set([])
     garnishes = ([])
     overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflow.png")), Image.BICUBIC)
-    overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")), Image.BICUBIC)
+    overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")).resize((309, 15), Image.BICUBIC))
+    starImageOff = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/star.png")).resize((43, 43), Image.BICUBIC))
+    starImageOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starOn.png")).resize((43, 43), Image.BICUBIC))
+    smallStar = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starSmall.png")).resize((15, 15), Image.BICUBIC))
     recipeColours = dict()
     recipeButtonImages = dict()
     recipeButtonImagesDisabled = dict()
@@ -517,6 +520,7 @@ class Application(Frame):
     recipeButtons = dict()
     recipeTextBacks = dict()  
     recipeTexts = dict()  
+    recipeStars = dict()
     recipeCanBeMade = dict()
     recipeButtonAreas = []
     recipeMissingIngredientsText = dict()  
@@ -542,6 +546,10 @@ class Application(Frame):
             self.midPayne.delete(child)
         for child in self.recipeMissingIngredientsText.values():
             self.midPayne.delete(child)
+        for child in self.recipeStars.values():
+            for star in child:
+                self.midPayne.delete(star)
+            
         self.recipeButtons.clear()
 
         self.w = 190
@@ -577,6 +585,11 @@ class Application(Frame):
             self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name'])
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
             self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
+
+            self.recipeStars[recipe['name']] = []
+            for i in range(0, int(recipe['stars'])):
+                self.recipeStars[recipe['name']].append(self.midPayne.create_image((self.left+(i*17)+15), self.top+75, anchor='nw', image=self.smallStar))
+
 
             self.left = self.left+self.w+10;
             x = x + 1
@@ -767,7 +780,7 @@ class Application(Frame):
             self.pickerType = ''
 
     def Page0(self):
-
+        self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Cocktails 'n shit", bg=self.mainBGColour, fg=self.mainFGColour)
@@ -867,6 +880,7 @@ class Application(Frame):
                 self.homepage(True)
 
     def Page1(self):
+        self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1050, height=75);
 
         self.topPayne.pack(side=TOP)
@@ -881,27 +895,38 @@ class Application(Frame):
 
         self.middleContainer = Frame(self.mainFrameCanvas, bg=self.mainBGColour)
 
-        self.leftPaynesContainer = Frame(self.middleContainer)
+        self.leftPaynesContainer = Frame(self.middleContainer, bg=self.mainBGColour)
         self.bottomLeftPayneContainer = Frame(self.leftPaynesContainer, bg=self.mainBGColour)
-        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=self.mainBGColour, scrollregion="0 0 2000 500", width=315, height=140)
+        self.bottomLeftPayne = Canvas(self.bottomLeftPayneContainer, highlightthickness=0, bg=self.mainBGColour, scrollregion="0 0 2000 110", width=315, height=114)
         self.bottomLeftPayne.configure(yscrollincrement='1')
         self.bottomLeftPayne.bind("<MouseWheel>", self.scrollRecipeIngredients)
-        self.cocktailIngredients = Canvas(self.bottomLeftPayne, width=310, height=130, bg=self.mainBGColour, highlightthickness=0)
+        self.cocktailIngredients = Canvas(self.bottomLeftPayne, width=300, height=110, bg=self.mainBGColour, highlightthickness=0)
         mouse_action_with_arg = partial(self.mouseDown, self.bottomLeftPayne, True)
         self.cocktailIngredients.bind('<ButtonPress-1>', mouse_action_with_arg)
         self.cocktailIngredients.bind('<Leave>', self.mouseUp)
         self.cocktailIngredients.bind("<MouseWheel>", self.scrollRecipeIngredients)
-        self.bottomLeftPayne.create_window((5, 10), anchor=NW, window=self.cocktailIngredients)
+        self.bottomLeftPayne.create_window((9, 5), anchor=NW, window=self.cocktailIngredients)
         self.bottomLeftPayne.pack()
 
         self.overFlowContainerSmall = Canvas(self.bottomLeftPayneContainer, bg=self.mainBGColour, width=315, height=15, highlightthickness=0)
+        self.overFlowContainerSmall.create_rectangle(0, 0, 315, 15, fill=self.mainFGColour, outline=self.mainFGColour)
+        self.overFlowContainerSmall.create_rectangle(4, 0, 312, 15, fill=self.mainBGColour, outline=self.mainBGColour)
         self.overFlowContainerSmall.pack(side=BOTTOM)
 
         self.bottomLeftPayneContainer.pack(side=TOP, padx=0, pady=0)
 
         self.underLeftPayneContainer = Frame(self.leftPaynesContainer, bg=self.mainBGColour)
-        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=self.mainBGColour, height=350, width=315)
+        self.underLeftPayne = Canvas(self.underLeftPayneContainer, highlightthickness=0, bg=self.mainBGColour, height=380, width=315)
+        
+        
 
+        self.underLeftPayne.create_rectangle(0, 0, 315, 52, fill=self.mainFGColour, outline=self.mainFGColour)
+        self.underLeftPayne.create_rectangle(4, 2, 312, 50, fill=self.mainBGColour, outline=self.mainBGColour)
+        self.underLeftPayne.bind('<ButtonPress-1>', self.clickUnderLeftPayne)
+
+        self.underLeftPayne.create_rectangle(0, 52, 315, 115, fill=self.mainFGColour, outline=self.mainFGColour)
+        self.underLeftPayne.create_rectangle(4, 54, 312, 115, fill=self.mainBGColour, outline=self.mainBGColour)
+        
         self.underLeftPayne.pack()
         self.underLeftPayne.pack_propagate(0)
         self.underLeftPayneContainer.pack(side=BOTTOM, padx=0, pady=0)
@@ -934,6 +959,7 @@ class Application(Frame):
         self.bottomPayneContainer.pack(side=BOTTOM)
 
     def Page2(self):
+        self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=self.mainBGColour, fg=self.mainFGColour)
@@ -1023,6 +1049,7 @@ class Application(Frame):
     currentMainLightChecked = True
 
     def Page3(self):
+        self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Configuration", bg=self.mainBGColour, fg=self.mainFGColour)
@@ -1071,6 +1098,13 @@ class Application(Frame):
             self.mainLightsOnCheck = self.midPayneContainer.create_rectangle(self.mainLightsOnRect[0], self.mainLightsOnRect[1], self.mainLightsOnRect[2], self.mainLightsOnRect[3], fill='#cccccc', outline='#cccccc')
 
         self.midPayneContainer.pack(padx=10, pady=5)
+
+    def clickUnderLeftPayne(self, event):
+        if((event.x > 4) & (event.x <= 312)):
+            if((event.y > 2) & (event.y <= 50)):
+                clickedStar = max(1, min(6, int((event.x - 4) / 52)+1))
+                self.changeRecipeStars(self.currentRecipe['name'], clickedStar)
+
 
     clickedConfigBar = ''
     def clickConfigCanvas(self, event):
@@ -1206,6 +1240,32 @@ class Application(Frame):
         f.write(JSONString)
         f.close()
 
+    def changeRecipeStars(self, recipeName, stars):
+
+        f = open(os.path.join(dirname, "recipes.JSON"), mode='r', encoding='utf-8-sig')
+        recipesJSON = json.load(f)
+
+        for i in recipesJSON['recipies']:
+            if(i['name'] == recipeName):
+                i['stars'] = str(stars)
+
+        self.recipes = recipesJSON
+        f.close()
+
+        for i in range(0, 6):
+            if(i < stars):
+                self.underLeftPayne.itemconfig(self.imageStars[i], image=self.starImageOn)
+            else:
+                self.underLeftPayne.itemconfig(self.imageStars[i], image=self.starImageOff)
+            
+
+        f = open(os.path.join(dirname, "recipes.JSON"), "w", encoding='utf-8')
+        f.write(json.dumps(recipesJSON))
+        f.close()
+
+        #with open("replayScript.json", "w") as jsonFile:
+        #    json.dump(data, jsonFile)
+
     def drawIngredientRow(self, name, yPos, height):
         if name in self.ingredientRows:
             for i in self.ingredientRows[name]:
@@ -1234,14 +1294,12 @@ class Application(Frame):
 
         self.ingredientLEDStripButtons[name] = self.midPayne.create_rectangle(700, yPos+10, 775, yPos+height-10, fill=self.secondaryBGColour)
         string = LEDStrip
-        #print("LEDStrip: " + LEDStrip)
         if(str(LEDStrip) == "0"):
             string = "-"
         rowLEDStripText = self.midPayne.create_text(737, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=string)
 
         self.ingredientLEDIndexButtons[name] = self.midPayne.create_rectangle(800, yPos+10, 875, yPos+height-10, fill=self.secondaryBGColour)
         string = LEDIndex
-        #print("LEDIndex: " + LEDIndex)
         if(str(LEDIndex) == "0"):
             string = "-"
         rowLEDIndexText = self.midPayne.create_text(837, yPos+30, width=100, font=subSubTitleFont, fill=self.mainFGColour, text=string)
@@ -1453,6 +1511,7 @@ class Application(Frame):
         self.sendMessageToArduino("RGBDEF")
         self.sendMessageToArduino("ING")
         self.currentPageIndex = 0
+        self.currentRecipe = None
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
@@ -1543,6 +1602,7 @@ class Application(Frame):
     def randomRecipe(self):
         self.openRecipe(self.recipes['recipies'][random.randint(0, len(self.recipes['recipies'])-1)]);
 
+    currentRecipe = None
     def openRecipe(self, recipe):
         if (((abs(self.scrollVelocity) < 0.1) & (self.hasScrolled == False)) | (self.currentPageIndex == 1)):
             pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
@@ -1550,8 +1610,7 @@ class Application(Frame):
             if(self.currentPageIndex == 0):
                 self.recipesScroll = self.midPayne.yview()[0]
            
-            #self.closeKeyboard()
-            #self.closePickerBox()
+            self.currentRecipe = recipe
 
             self.mouseIsDown = False
             self.currentPageIndex = 1
@@ -1644,12 +1703,12 @@ class Application(Frame):
 
                 ingredientsLightsString = ""
                 if(ingredientsLights.get(ingredient['name'])):
-                    ingredientsLightsString += "✨\n"
+                    ingredientsLightsString += "🔥\n"
 
                 ingredientString = ingredientString + ingredient['name'][:28] + "\n"
                 quantitiesString = quantitiesString + ingredient['quantity'] + " " + ingredient['unit'] + "\n"
                 lineHeight = smallFont.metrics("linespace")
-                self.cocktailIngredients.create_text(300, (i*lineHeight), text=ingredientsLightsString, anchor='n', fill='#ffff00', font=smallFont, width=20)
+                self.cocktailIngredients.create_text(294, (i*lineHeight)-1, text=ingredientsLightsString, anchor='n', fill='#ffff00', font=smallFont, width=20)
                 self.cocktailIngredients.create_text(5, (i*lineHeight), text=string, anchor='n', fill=colour, font=smallFont, width=20)
                 i = i+1
             ingredientString = ingredientString[:-1]
@@ -1665,13 +1724,17 @@ class Application(Frame):
                 newString = newString + "..."
                 self.cocktailIngredients.itemconfig(ingredientText, text=newString)
 
-            quantitiesText = self.cocktailIngredients.create_text(290, 0, text=quantitiesString, anchor='ne', fill=self.mainFGColour, font=smallFont, width=290, justify='right')
+            quantitiesText = self.cocktailIngredients.create_text(286, 0, text=quantitiesString, anchor='ne', fill=self.mainFGColour, font=smallFont, width=270, justify='right')
             #bulletsText = self.cocktailIngredients.create_text(15, 0, text=bulletsString, anchor='n', fill=self.mainFGColour, font=font, width=20)
             self.cocktailIngredients.configure(height=max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]), self.bottomLeftPayne.winfo_height()))
-            self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1])+15, 140)))
+            height = max((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1])+5, 114)
+            self.bottomLeftPayne.configure(scrollregion=(0, 0, 1000, height))
             
-            if((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]) > 140):
-                 self.overFlowContainerSmall.create_image(0, 0, anchor='nw', image=self.overflowImageSmall)
+            self.bottomLeftPayne.create_rectangle(0, 0, 315, height, fill=self.mainFGColour, outline=self.mainFGColour)
+            self.bottomLeftPayne.create_rectangle(4, 0, 312, height, fill=self.mainBGColour, outline=self.mainBGColour)
+
+            if((self.cocktailIngredients.bbox(ingredientText)[3] - self.cocktailIngredients.bbox(ingredientText)[1]) > 114):
+                 self.overFlowContainerSmall.create_image(4, 0, anchor='nw', image=self.overflowImageSmall)
 
             stepsString = ''
             for step in recipe['steps']:
@@ -1685,11 +1748,23 @@ class Application(Frame):
             if((self.cocktailSteps.bbox(stepsText)[3] - self.cocktailSteps.bbox(stepsText)[1]) > 465):
                  self.overFlowContainer.create_image(0, 0, anchor='nw', image=self.overflowImage)
 
-            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/glasses/" + recipe['glassType'].split(' ')[0] + ".png")).resize((60, 75), Image.BICUBIC))
-            self.underLeftPayne.create_image(5, 0, anchor='nw', image=self.imgGlass)
+            self.imageStars = []
+            for i in self.recipes['recipies']:
+                if(i['name'] == recipe['name']):
+                    starsNum = int(i['stars'])
+
+            for i in range(0, 6):
+                if(i < starsNum):
+                    self.imageStars.append(self.underLeftPayne.create_image((i*52)+7, 5, anchor='nw', image=self.starImageOn))
+                else:
+                    self.imageStars.append(self.underLeftPayne.create_image((i*52)+7, 5, anchor='nw', image=self.starImageOff))
+            
+
+            self.imgGlass = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/glasses/" + recipe['glassType'].split(' ')[0] + ".png")).resize((61, 61), Image.BICUBIC))
+            self.underLeftPayne.create_image(7, 54, anchor='nw', image=self.imgGlass)
         
-            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
-            self.underLeftPayne.create_image(5, 75, anchor='nw', image=self.imgCocktail)
+            self.imgCocktail = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/" + recipe['ID'] + ".jpg")).resize((315, 255), Image.BICUBIC))
+            self.underLeftPayne.create_image(0, 115, anchor='nw', image=self.imgCocktail)
 
             self.imgGarnishes = []
             x = 0
@@ -1699,8 +1774,8 @@ class Application(Frame):
                     break
                 if (temp[0] == 'a') & (temp[1] == ' '):
                     temp = temp[2:]
-                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/garnishes/" + temp + ".png")).resize((60, 75), Image.BICUBIC)))
-                self.underLeftPayne.create_image((255 - (x * 60)) , 0, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
+                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/garnishes/" + temp + ".png")).resize((61, 61), Image.BICUBIC)))
+                self.underLeftPayne.create_image((252 - (x * 61)) , 54, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
                 x = x + 1
 
             
