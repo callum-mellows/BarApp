@@ -10,7 +10,7 @@
 #define PIN_MAIN_LIGHT_1 5
 #define PIN_MAIN_LIGHT_2 6
 
-#define NUM_INGREDIENT_STRIP_LIGHTS 15
+#define NUM_INGREDIENT_LIGHTS_PER_STRIP 15
 #define NUM_LEDS_PER_LIGHT 7
 #define PIN_INGREDIENT_STRIP_1 10
 #define PIN_INGREDIENT_STRIP_2 11
@@ -34,10 +34,10 @@ bool mainLightsOn = true;
 bool barLightsOn = true;
 bool screenLightsOn = true;
 
-int strip1currentBrightness[NUM_INGREDIENT_STRIP_LIGHTS];
-int strip2currentBrightness[NUM_INGREDIENT_STRIP_LIGHTS];
-int strip1nextBrightness[NUM_INGREDIENT_STRIP_LIGHTS];
-int strip2nextBrightness[NUM_INGREDIENT_STRIP_LIGHTS];
+int strip1currentBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
+int strip2currentBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
+int strip1nextBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
+int strip2nextBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 
 CRGB previousColour = CRGB::Black;
 CRGB currentColour = CRGB::Black;
@@ -49,29 +49,31 @@ ColorTemperature colourTemps[9] = {ColorTemperature::Candle, ColorTemperature::T
 
 CRGB barLeds[NUM_SIDE_LIGHTS];
 CRGB screenLeds[NUM_SCREEN_LIGHTS];
-CRGB ingredientLeds1[NUM_INGREDIENT_STRIP_LIGHTS * NUM_LEDS_PER_LIGHT];
-CRGB ingredientLeds2[NUM_INGREDIENT_STRIP_LIGHTS * NUM_LEDS_PER_LIGHT];
+CRGB ingredientLeds1[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
+CRGB ingredientLeds2[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 
 void setup() { 
   Serial.begin(15200);
+  FastLED.setBrightness(0);
+  
   previousColour = defaultColour;
   nextColour = defaultColour;
   FastLED.addLeds<WS2811, PIN_BAR_LIGHTS, BRG>(barLeds, NUM_SIDE_LIGHTS);
   FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
   
-  FastLED.addLeds<WS2812, PIN_INGREDIENT_STRIP_1, RGB>(ingredientLeds1, NUM_INGREDIENT_STRIP_LIGHTS);  // GRB ordering is typical
-  FastLED.addLeds<WS2812, PIN_INGREDIENT_STRIP_2, RGB>(ingredientLeds2, NUM_INGREDIENT_STRIP_LIGHTS);  // GRB ordering is typical
+  FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_1, GRB>(ingredientLeds1, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
+  FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_2, GRB>(ingredientLeds2, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
   
-  for(int i = 0; i < NUM_INGREDIENT_STRIP_LIGHTS; i++)
+  for(int i = 0; i < NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT; i++)
   {
-    strip1currentBrightness[i] = 0;
-    strip2currentBrightness[i] = 0;
-    clearAllIngredients();
+      strip1currentBrightness[i] = 0;
+      strip2currentBrightness[i] = 0;
   }
+  clearAllIngredients();
 
   changeAllLEDs(defaultColour);
   FastLED.setMaxPowerInMilliWatts(12000);
-  FastLED.setBrightness(0);
+  
 
   pinMode(PIN_MAIN_LIGHT_1, OUTPUT);
   pinMode(PIN_MAIN_LIGHT_2, OUTPUT);
@@ -83,10 +85,10 @@ void setup() {
 
 void clearAllIngredients()
 {
-  for(int i = 0; i < NUM_INGREDIENT_STRIP_LIGHTS; i++)
+  for(int i = 0; i < NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT; i++)
   {
-    strip1nextBrightness[i] = 0;
-    strip2nextBrightness[i] = 0;
+      strip1nextBrightness[i] = 0;
+      strip2nextBrightness[i] = 0;
   }
 }
 
@@ -94,25 +96,39 @@ void setIngredientOn(int strip, int index)
 {
   if(strip == 0)
   {
-    strip1nextBrightness[index] = 255;
+    for(int j = 0; j < NUM_LEDS_PER_LIGHT; j++)
+    {
+      strip1nextBrightness[(index*NUM_LEDS_PER_LIGHT)+j] = 255;
+    }
   }
   else if(strip == 1)
   {
-    strip2nextBrightness[index] = 255;
+    for(int j = 0; j < NUM_LEDS_PER_LIGHT; j++)
+    {
+      strip2nextBrightness[(index*NUM_LEDS_PER_LIGHT)+j] = 255;
+    }
   }
 }
 
+/*
 void setIngredientLedBrightness(int strip, int index, int brightness)
 {
   if(strip == 0)
   {
-    ingredientLeds1[index] = CRGB(brightness, brightness, brightness);
+    for(int j = 0; j < NUM_LEDS_PER_LIGHT; j++)
+    {
+      ingredientLeds1[(index*NUM_LEDS_PER_LIGHT)+j] = CRGB(brightness, brightness, brightness);
+    }
   }
   else if(strip == 1)
   {
-    ingredientLeds2[index] = CRGB(brightness, brightness, brightness);
+    for(int j = 0; j < NUM_LEDS_PER_LIGHT; j++)
+    {
+      ingredientLeds2[(index*NUM_LEDS_PER_LIGHT)+j] = CRGB(brightness, brightness, brightness);
+    }
   }
 }
+*/
 
 void changeAllLEDs(CRGB newColour)
 {
@@ -234,9 +250,8 @@ bool checkFirstThree(String str, String checkStr)
   return ((str[0] == checkStr[0]) && (str[1] == checkStr[1]) && (str[2] == checkStr[2]));
 }
 
-void checkSerialData(String &serialData)
+void checkSerialData(String serialData)
 {
-
   Serial.println("In: " + serialData);
 
     if (serialData == "asd")
@@ -404,6 +419,7 @@ void checkSerialData(String &serialData)
       }
       return;
     }
+    /*
     else if (checkFirstThree(serialData, "ING") == true)
     {
       Serial.println(serialData);
@@ -444,6 +460,7 @@ void checkSerialData(String &serialData)
         }
       }
     }
+    */
 }
 
 void loop() {
@@ -476,7 +493,8 @@ void loop() {
     colourChangeAlpha++;
   }
 
-  for(int i = 0; i < NUM_INGREDIENT_STRIP_LIGHTS; i++)
+  
+  for(int i = 0; i < NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT; i++)
   {
     if(strip1nextBrightness[i] > strip1currentBrightness[i])
     {
@@ -486,8 +504,10 @@ void loop() {
     {
       strip1currentBrightness[i]--;
     }
-    setIngredientLedBrightness(0, i, strip1currentBrightness[i]);
-    
+    //ingredientLeds1[i] = CRGB(strip1currentBrightness[i], strip1currentBrightness[i], strip1currentBrightness[i]);
+    ingredientLeds1[i] = CRGB::Red;
+    //setIngredientLedBrightness(0, i, strip1currentBrightness[i]);
+    /*
     if(strip2nextBrightness[i] > strip2currentBrightness[i])
     {
       strip2currentBrightness[i]++;
@@ -496,8 +516,10 @@ void loop() {
     {
       strip2currentBrightness[i]--;
     }
-    setIngredientLedBrightness(1, i, strip2currentBrightness[i]);
+    //setIngredientLedBrightness(1, i, strip2currentBrightness[i]);
+  */
   }
+  
 
 
   
