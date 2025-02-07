@@ -25,6 +25,7 @@ import pygame
 import math
 import random
 import serial
+import threading
 
 root = Tk()
 
@@ -158,6 +159,7 @@ class Application(Frame):
             self.SerialObj.bytesize = 8   # Number of data bits = 8
             self.SerialObj.parity  ='N'   # No parity
             self.SerialObj.stopbits = 1   # Number of Stop bits = 1
+            self.SerialObj.timeout = 10
 
            #self.usb = serial.Serial("COM5", 9600, timeout=2)
            #self.usb = serial.Serial("/dev/ttyACM0", 9600, timeout=2)
@@ -218,6 +220,9 @@ class Application(Frame):
         if(self.currentPageIndex == 3):
             self.releaseConfigCanvas(event)
 
+    waitingForArduino = False
+    thr = None
+    currentMsg = ""
     def update(self):
         if self.scrollVelocity > 0:
             self.scrollVelocity = max(0, self.scrollVelocity - 1.5)
@@ -241,7 +246,26 @@ class Application(Frame):
         if(sinceActive.seconds >= self.sleepSeconds):
             if(self.isDark == False):
                 self.goDark()
+        
+        if(self.waitingForArduino == False):
+            if(len(self.ArduinoMessageQueue) > 0):
+                self.currentMsg = self.ArduinoMessageQueue.pop(0)
+                #self.sendToArduinoAndGetResponse(msg)
+                self.thr = threading.Thread(target=self.sendToArduinoAndGetResponse, args=(), kwargs={})
+                self.thr.start()
+                
 
+    def sendToArduinoAndGetResponse(self):
+        self.SerialObj.write(self.currentMsg.encode('utf-8'))
+        print("Sending: " + str(self.currentMsg.encode('utf-8')))
+        self.SerialObj.flush()
+        self.waitingForArduino = True
+
+        ReceivedString = self.SerialObj.read_until(b"\n")
+        print("Recieve: " + str(ReceivedString))
+        self.SerialObj.flush()
+        self.waitingForArduino = False
+        
 
 
     isDark = False
@@ -1805,14 +1829,16 @@ class Application(Frame):
             child.destroy()
         self.pages[self.currentPageIndex]()
 
+    ArduinoMessageQueue = []
     def sendMessageToArduino(self, message):
         if(self.SerialObj != None):
             msg = message + "\n"
-            self.SerialObj.write(msg.encode('utf-8'))
-            self.SerialObj.flush()
-            ReceivedString = self.SerialObj.readline()
-            print(ReceivedString)
-            self.SerialObj.flush()
+            self.ArduinoMessageQueue.append(msg)
+            # self.SerialObj.write(msg.encode('utf-8'))
+            # self.SerialObj.flush()
+            # ReceivedString = self.SerialObj.readline()
+            # print(ReceivedString)
+            # self.SerialObj.flush()
 
 def HexToRGB(rgb):
     if (type(rgb) != str):
@@ -1867,9 +1893,9 @@ root.after(1500, lambda: applicationInstance.goLight())
 root.after(1000, lambda: applicationInstance.updateArduinoConfigs())
 root.after(500, lambda: applicationInstance.sendMessageToArduino("asdasd"))
 
-if(platform.system() != 'Windows'):
-    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
-    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
+#if(platform.system() != 'Windows'):
+#    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
+#    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
 
 
 

@@ -10,7 +10,7 @@
 #define PIN_MAIN_LIGHT_1 5
 #define PIN_MAIN_LIGHT_2 6
 
-#define NUM_INGREDIENT_LIGHTS_PER_STRIP 15
+#define NUM_INGREDIENT_LIGHTS_PER_STRIP 2
 #define NUM_LEDS_PER_LIGHT 7
 #define PIN_INGREDIENT_STRIP_1 10
 #define PIN_INGREDIENT_STRIP_2 11
@@ -34,6 +34,8 @@ bool mainLightsOn = true;
 bool barLightsOn = true;
 bool screenLightsOn = true;
 
+CRGB rainbow[7] = { CRGB::Red, CRGB::Orange, CRGB::Yellow, CRGB::Green, CRGB::Blue, CRGB::Indigo, CRGB::Violet };
+
 int strip1currentBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 int strip2currentBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 int strip1nextBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
@@ -54,7 +56,7 @@ CRGB ingredientLeds2[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 
 void setup() { 
   Serial.begin(15200);
-  FastLED.setBrightness(0);
+  FastLED.setBrightness(255);
   
   previousColour = defaultColour;
   nextColour = defaultColour;
@@ -71,8 +73,8 @@ void setup() {
   }
   clearAllIngredients();
 
-  changeAllLEDs(defaultColour);
-  FastLED.setMaxPowerInMilliWatts(12000);
+  updateSideAndScreenLEDs();
+  //FastLED.setMaxPowerInMilliWatts(12000);
   
 
   pinMode(PIN_MAIN_LIGHT_1, OUTPUT);
@@ -110,34 +112,13 @@ void setIngredientOn(int strip, int index)
   }
 }
 
-/*
-void setIngredientLedBrightness(int strip, int index, int brightness)
+void updateSideAndScreenLEDs()
 {
-  if(strip == 0)
-  {
-    for(int j = 0; j < NUM_LEDS_PER_LIGHT; j++)
-    {
-      ingredientLeds1[(index*NUM_LEDS_PER_LIGHT)+j] = CRGB(brightness, brightness, brightness);
-    }
-  }
-  else if(strip == 1)
-  {
-    for(int j = 0; j < NUM_LEDS_PER_LIGHT; j++)
-    {
-      ingredientLeds2[(index*NUM_LEDS_PER_LIGHT)+j] = CRGB(brightness, brightness, brightness);
-    }
-  }
-}
-*/
-
-void changeAllLEDs(CRGB newColour)
-{
-    FastLED.clear();
     for(int i = 0; i < NUM_SIDE_LIGHTS; i++)
     {
       if(barLightsOn == true)
       {
-        barLeds[i] = newColour;
+        barLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
       }
       else
       {
@@ -148,13 +129,21 @@ void changeAllLEDs(CRGB newColour)
     {
       if(screenLightsOn == true)
       {
-        screenLeds[i] = newColour;
+        screenLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
       }
       else
       {
         screenLeds[i] = CRGB::Black;
       }
     }
+}
+
+CRGB getColourWithBrightness(CRGB colour, int brightness)
+{
+    int r = map(brightness, 0, 255, 0, colour.r);
+    int g = map(brightness, 0, 255, 0, colour.g);
+    int b = map(brightness, 0, 255, 0, colour.b);
+    return CRGB(r, g, b);
 }
 
 void StartFadeIn()
@@ -252,7 +241,7 @@ bool checkFirstThree(String str, String checkStr)
 
 void checkSerialData(String serialData)
 {
-  Serial.println("In: " + serialData);
+  //Serial.println("In: " + serialData);
 
     if (serialData == "asd")
     {
@@ -263,35 +252,35 @@ void checkSerialData(String serialData)
     else if (serialData == "fadeIn") 
     {
       StartFadeIn();
-      Serial.println(serialData);
+      Serial.println("Do FadeIn");
       Serial.flush();
       return;
     }
     else if (serialData == "fadeOut") 
     {
       StartFadeOut();
-      Serial.println(serialData);
+      Serial.println("Do FadeOut");
       Serial.flush();
       return;
     }
     else if (serialData == "mainLightsOn") 
     {
       lightsOn();
-      Serial.println(serialData);
+      Serial.println("Do Main Lights On");
       Serial.flush();
       return;
     }
     else if (serialData == "mainLightsOff") 
     {
       lightsOff();
-      Serial.println(serialData);
+      Serial.println("Do Main Lights Off");
       Serial.flush();
       return;
     }
     else if (serialData == "mainLightsAuto") 
     {
       lightsAuto();
-      Serial.println(serialData);
+      Serial.println("Do Main Lights Auto");
       Serial.flush();
       return;
     }
@@ -301,14 +290,14 @@ void checkSerialData(String serialData)
       if((serialData[3] == 'D') && (serialData[4] == 'E') && (serialData[5] == 'F'))
       {
         DefaultColour();
-        Serial.println(serialData);
+        Serial.println("Default colour");
         Serial.flush();
         return;
       }
       else
       {
         //colour
-        Serial.println(serialData);
+        Serial.println("Custom colour: " + String(serialData).substring(4,6) + String(serialData).substring(6,8) + String(serialData).substring(8,10));
         Serial.flush();
         int r, g, b;
         String rStr = String(serialData).substring(4,6);
@@ -332,7 +321,7 @@ void checkSerialData(String serialData)
       {
         temp += serialData[i];
       }
-      Serial.println(serialData);
+      Serial.println("Main Lights Brightness");
       Serial.flush();
       ChangeBrightnessMainLight(temp.toInt());
       return;
@@ -345,7 +334,7 @@ void checkSerialData(String serialData)
       {
         temp += serialData[i];
       }
-      Serial.println(serialData);
+      Serial.println("Side Lights Brightness");
       Serial.flush();
       ChangeBrightnessSideLight(temp.toInt());
       return;
@@ -358,14 +347,14 @@ void checkSerialData(String serialData)
       {
         temp += serialData[i];
       }
-      Serial.println(serialData);
+      Serial.println("Warmth");
       Serial.flush();
       ChangeWarmth(temp.toInt());
       return;
     }
     else if (checkFirstThree(serialData, "MLO") == true)
     {
-      Serial.println(serialData);
+      Serial.println("Main Lights Override");
       Serial.flush();
       if(serialData[3] == '1')
       {
@@ -379,7 +368,7 @@ void checkSerialData(String serialData)
     }
     else if (checkFirstThree(serialData, "BLC") == true)
     {
-      Serial.println(serialData);
+      Serial.println("Bar Lights On/Off");
       Serial.flush();
       if(serialData[3] == '1')
       {
@@ -393,7 +382,7 @@ void checkSerialData(String serialData)
     }
     else if (checkFirstThree(serialData, "MLC") == true)
     {
-      Serial.println(serialData);
+      Serial.println("Main Lights On/Off");
       Serial.flush();
       if(serialData[3] == '1')
       {
@@ -407,7 +396,7 @@ void checkSerialData(String serialData)
     }
     else if (checkFirstThree(serialData, "SLC") == true)
     {
-      Serial.println(serialData);
+      Serial.println("Side Lights On/Off");
       Serial.flush();
       if(serialData[3] == '1')
       {
@@ -419,10 +408,10 @@ void checkSerialData(String serialData)
       }
       return;
     }
-    /*
+    
     else if (checkFirstThree(serialData, "ING") == true)
     {
-      Serial.println(serialData);
+      Serial.println("Ingredient Lights");
       Serial.flush();
 
       clearAllIngredients();
@@ -460,7 +449,7 @@ void checkSerialData(String serialData)
         }
       }
     }
-    */
+    
 }
 
 void loop() {
@@ -470,11 +459,12 @@ void loop() {
     checkSerialData(sData);
   }
 
+  FastLED.clear();
+
   if(BrightnessSideLightAlpha < 255)
   {
     currentBrightnessSideLight = map(BrightnessSideLightAlpha, 0, 254, previousBrightnessSideLight, nextBrightnessSideLight);
     BrightnessSideLightAlpha++;
-    FastLED.setBrightness(currentBrightnessSideLight);
   }
 
   if(BrightnessMainLightAlpha < 255)
@@ -488,42 +478,47 @@ void loop() {
     currentColour.r = map(colourChangeAlpha, 0, 254, previousColour.r, nextColour.r);
     currentColour.g = map(colourChangeAlpha, 0, 254, previousColour.g, nextColour.g);
     currentColour.b = map(colourChangeAlpha, 0, 254, previousColour.b, nextColour.b);
-
-    changeAllLEDs(currentColour);
     colourChangeAlpha++;
   }
 
-  
+
+  int j = 0;
   for(int i = 0; i < NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT; i++)
   {
     if(strip1nextBrightness[i] > strip1currentBrightness[i])
     {
-      strip1currentBrightness[i]++;
+      strip1currentBrightness[i] = min(strip1currentBrightness[i] + 3, 255);
+      //strip1currentBrightness[i]++;
     }
     else if(strip1nextBrightness[i] < strip1currentBrightness[i])
     {
-      strip1currentBrightness[i]--;
+      strip1currentBrightness[i] = max(strip1currentBrightness[i] - 3, 0);
+      //strip1currentBrightness[i]--;
     }
-    //ingredientLeds1[i] = CRGB(strip1currentBrightness[i], strip1currentBrightness[i], strip1currentBrightness[i]);
-    ingredientLeds1[i] = CRGB::Red;
-    //setIngredientLedBrightness(0, i, strip1currentBrightness[i]);
-    /*
+    int r = map(strip1currentBrightness[i], 0, 255, 0, defaultColour.r);
+    int g = map(strip1currentBrightness[i], 0, 255, 0, defaultColour.g);
+    int b = map(strip1currentBrightness[i], 0, 255, 0, defaultColour.b);
+    ingredientLeds1[i] = CRGB(r, g, b);
+
     if(strip2nextBrightness[i] > strip2currentBrightness[i])
     {
-      strip2currentBrightness[i]++;
+      strip2currentBrightness[i] = min(strip2currentBrightness[i] + 3, 255);
+      //strip2currentBrightness[i]++;
     }
     else if(strip2nextBrightness[i] < strip2currentBrightness[i])
     {
-      strip2currentBrightness[i]--;
+      strip2currentBrightness[i] = max(strip2currentBrightness[i] - 3, 0);
+      //strip2currentBrightness[i]--;
     }
-    //setIngredientLedBrightness(1, i, strip2currentBrightness[i]);
-  */
+    r = map(strip2currentBrightness[i], 0, 255, 0, defaultColour.r);
+    g = map(strip2currentBrightness[i], 0, 255, 0, defaultColour.g);
+    b = map(strip2currentBrightness[i], 0, 255, 0, defaultColour.b);
+    ingredientLeds2[i] = CRGB(r, g, b);
   }
-  
 
-
-  
+  updateSideAndScreenLEDs();
   FastLED.show();
+
   if(mainLightsOn == true)
   {
     analogWrite(PIN_MAIN_LIGHT_1, currentBrightnessMainLight);
