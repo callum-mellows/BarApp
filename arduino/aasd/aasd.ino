@@ -57,13 +57,12 @@ CRGB ingredientLeds1[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 CRGB ingredientLeds2[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 
 void setup() { 
-  Serial.begin(2000000);
+  Serial.begin(115200);
   while (!Serial) {
     ;
   }
-  Serial.flush();
+  
   Serial.setTimeout(5000);
-  serialData.reserve(200);
   FastLED.setBrightness(255);
   
   previousColour = defaultColour;
@@ -241,50 +240,48 @@ bool checkFirstThree(String str, String checkStr)
   return ((str[0] == checkStr[0]) && (str[1] == checkStr[1]) && (str[2] == checkStr[2]));
 }
 
+void sendSerialData(String data)
+{
+  Serial.println(data);
+  Serial.flush();
+}
+
 void checkSerialData(String serialData)
 {
-
-    
-
     if (serialData == "asd" || serialData == "asdasd")
     {
-      Serial.print("garbage!\n");
-      Serial.flush();
+      sendSerialData("garbage");
       return;
     }
     else if (serialData == "fadeIn") 
     {
       StartFadeIn();
-      Serial.print("Do FadeIn\n");
-      Serial.flush();
+      sendSerialData("Do FadeIn");
       return;
     }
     else if (serialData == "fadeOut") 
     {
       StartFadeOut();
-      Serial.print("Do FadeOut\n");
-      Serial.flush();
+      sendSerialData("Do FadeOut");
       return;
     }
     else if (serialData == "mainLightsOn") 
     {
       lightsOn();
-      Serial.print("Do Main Lights On\n");
-      Serial.flush();
+      sendSerialData("Do Main Lights On");
       return;
     }
     else if (serialData == "mainLightsOff") 
     {
       lightsOff();
-      Serial.print("Do Main Lights Off\n");
-      Serial.flush();
+      sendSerialData("Do Main Lights Off");
       return;
     }
     else if (serialData == "mainLightsAuto") 
     {
       lightsAuto();
-      Serial.print("Do Main Lights Auto\n");
-      Serial.flush();
+      sendSerialData("Do Main Lights Auto");
+      
       return;
     }
     else if (checkFirstThree(serialData, "RGB") == true)
@@ -293,15 +290,15 @@ void checkSerialData(String serialData)
       if((serialData[3] == 'D') && (serialData[4] == 'E') && (serialData[5] == 'F'))
       {
         DefaultColour();
-        Serial.print("Default colour\n");
-        Serial.flush();
+        sendSerialData("Default colour");
+        
         return;
       }
       else
       {
         //colour
-        Serial.print("Custom colour: " + String(serialData).substring(4,6) + String(serialData).substring(6,8) + String(serialData).substring(8,10) + "\n");
-        Serial.flush();
+        sendSerialData("Custom colour");
+        
         int r, g, b;
         String rStr = String(serialData).substring(4,6);
         String gStr = String(serialData).substring(6,8);
@@ -319,13 +316,12 @@ void checkSerialData(String serialData)
     else if (checkFirstThree(serialData, "MBR") == true)
     {
       //BrightnessMainLight
+      sendSerialData("Main Lights Brightness");
       String temp = "";
       for(int i = 3; i < serialData.length(); i++)
       {
         temp += serialData[i];
       }
-      Serial.print("Main Lights Brightness\n");
-      Serial.flush();
       ChangeBrightnessMainLight(temp.toInt());
       return;
     }
@@ -337,8 +333,8 @@ void checkSerialData(String serialData)
       {
         temp += serialData[i];
       }
-      Serial.print("Side Lights Brightness\n");
-      Serial.flush();
+      sendSerialData("Side Lights Brightness");
+      
       ChangeBrightnessSideLight(temp.toInt());
       return;
     }
@@ -350,15 +346,15 @@ void checkSerialData(String serialData)
       {
         temp += serialData[i];
       }
-      Serial.print("Warmth\n");
-      Serial.flush();
+      sendSerialData("Warmth");
+      
       ChangeWarmth(temp.toInt());
       return;
     }
     else if (checkFirstThree(serialData, "MLO") == true)
     {
-      Serial.print("Main Lights Override\n");
-      Serial.flush();
+      sendSerialData("Main Lights Override");
+      
       if(serialData[3] == '1')
       {
         lightsOn();
@@ -371,8 +367,8 @@ void checkSerialData(String serialData)
     }
     else if (checkFirstThree(serialData, "BLC") == true)
     {
-      Serial.print("Bar Lights On/Off\n");
-      Serial.flush();
+      sendSerialData("Bar Lights On/Off");
+      
       if(serialData[3] == '1')
       {
         barLightsOn = true;
@@ -385,8 +381,8 @@ void checkSerialData(String serialData)
     }
     else if (checkFirstThree(serialData, "MLC") == true)
     {
-      Serial.print("Main Lights On/Off\n");
-      Serial.flush();
+      sendSerialData("Main Lights On/Off");
+      
       if(serialData[3] == '1')
       {
         mainLightsOn = true;
@@ -399,8 +395,8 @@ void checkSerialData(String serialData)
     }
     else if (checkFirstThree(serialData, "SLC") == true)
     {
-      Serial.print("Side Lights On/Off\n");
-      Serial.flush();
+      sendSerialData("Side Lights On/Off");
+      
       if(serialData[3] == '1')
       {
         screenLightsOn = true;
@@ -414,8 +410,8 @@ void checkSerialData(String serialData)
     
     else if (checkFirstThree(serialData, "ING") == true)
     {
-      Serial.print("Ingredient Lights\n");
-      Serial.flush();
+      sendSerialData("Ingredient Lights");
+      
 
       clearAllIngredients();
       if(serialData.length() <= 3)
@@ -452,45 +448,41 @@ void checkSerialData(String serialData)
         }
       }
     }
+    else
+    {
+      sendSerialData("!");
+    }
     
 }
 
 bool commandStarted = false;
 void loop() {
   
-
-  if (Serial.available()) {
-
+  
+  while(Serial.available() > 0)
+  {
     char inChar = (char)Serial.read();
 
-    if(commandStarted == false)
+    if(inChar == '>')
     {
-      if(inChar == '<')
-      {
-        commandStarted = true;
-        serialData = "";
-      }
+      checkSerialData(serialData);
+      serialData = "";
     }
     else
     {
-      if(inChar == '>')
-      {
-        commandStarted = false;
-        String ret = "data: " + serialData + "\n";
-        Serial.write(ret.c_str());
-        Serial.flush();
-        serialData = "";
-      }
-      else
-      {
-        serialData += inChar;
-      }
-
+      serialData += inChar;
     }
-
-      //checkSerialData(serialData);
-
+    
   }
+
+  //while(Serial.available() > 0) 
+  //{
+
+  //  String serialData = Serial.readStringUntil('\n');
+  //  sendSerialData(serialData);
+  //  delay(100);
+
+  //}
 
   //if(Serial.available() > 0) {
   //  serialData = Serial.readStringUntil('\n');
@@ -573,5 +565,5 @@ void loop() {
     analogWrite(PIN_MAIN_LIGHT_1, 0);
     analogWrite(PIN_MAIN_LIGHT_2, 0);
   }
-  //delay(5);
+  delay(5);
 }

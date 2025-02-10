@@ -21,6 +21,7 @@ from difflib import SequenceMatcher
 from PIL import Image, ImageEnhance, ImageTk
 from pathlib import Path
 import time
+
 import pygame
 import math
 import random
@@ -109,6 +110,7 @@ class Application(Frame):
     filterValues = ('Any', 'Any', 'Any', '')
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
+
     overlay = None
     overlayImage = None
     mainFrameCanvas = None
@@ -153,21 +155,21 @@ class Application(Frame):
 
         try:
             if(platform.system() == 'Windows'):
-                self.SerialObj = serial.Serial('COM5') # COMxx  format on Windows
+                self.SerialObj = serial.Serial('COM5')
             else:
                 self.SerialObj = serial.Serial('/dev/ttyUSB0')
-            self.SerialObj.baudrate = 2000000  # set Baud rate to 9600
-            self.SerialObj.bytesize = 8   # Number of data bits = 8
-            self.SerialObj.parity  ='N'   # No parity
-            self.SerialObj.stopbits = 1   # Number of Stop bits = 1
-            self.SerialObj.timeout = 0.1
-            self.SerialObj.flush()
 
-           #self.usb = serial.Serial("COM5", 9600, timeout=2)
-           #self.usb = serial.Serial("/dev/ttyACM0", 9600, timeout=2)
-        except:
+            self.SerialObj.baudrate = 115200
+            self.SerialObj.bytesize = 8
+            self.SerialObj.parity  ='N'
+            self.SerialObj.stopbits = 1
+            self.SerialObj.timeout = 5
+            self.SerialObj.flush()
+            time.sleep(1)
+
+        except Exception as error:
            self.SerialObj = None
-           print("Lighting Arduino not found!")
+           print("Lighting Arduino not found! Error: ", error)
 
     scrolling = root
     mouseIsDown = False
@@ -259,26 +261,19 @@ class Application(Frame):
 
     def sendToArduinoAndGetResponse(self):
         
-        self.SerialObj.write(self.currentMsg.encode('utf-8'))
-        print("Sending: " + str(self.currentMsg.encode('utf-8')))
+        x = 0
+        while x < 100:
+            self.SerialObj.write(self.currentMsg.encode('utf-8'))
+            print("Sending: " + str(self.currentMsg.encode('utf-8')))
 
-        ReceivedString = ""
-        print(self.getArduinoResponse())
-        #print("Recieve: " + str(ReceivedString))
+            ReceivedString = self.SerialObj.readline()
+            x = x + 1
+            if(ReceivedString.__contains__(b"!") == False):
+                break
+                
+        print("Recieve: " + str(ReceivedString))
         self.waitingForArduino = False
 
-    def getArduinoResponse(self):
-        responseComplete = False
-        tempString = ""
-        x = 0
-        while (x < 100):
-            tempChar = self.SerialObj.read().decode()
-            if(tempChar == '\n'):
-                return tempString
-            else:
-                tempString += tempChar
-            x = x + 1
-        return tempString
 
 
     isDark = False
@@ -753,6 +748,8 @@ class Application(Frame):
 
     currentFilter = ''
     def setCurrentFilter(self, newFilter):
+        if(self.currentPageIndex != 0):
+            return
         currentFilter = newFilter
 
         self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
@@ -1569,6 +1566,16 @@ class Application(Frame):
         self.pages[self.currentPageIndex]()
         self.midPayne.yview_moveto(self.recipesScroll)
         self.moveScrollBar()
+        if (self.filterValues[0] != 'Any'):
+            self.getRecipesByCategory(self.filterValues[0])
+        elif(self.filterValues[1] != 'Any'):
+            self.getRecipesBySpirit(self.filterValues[1])
+        elif(self.filterValues[2] != 'Any'):
+            self.getRecipesByGlassType(self.filterValues[2])
+        elif(self.filterValues[3] != ''):
+            print("search")
+        else:
+            self.getRecipesByCategory('Any')
 
     def recipesMove(self, direction):
         pygame.mixer.music.load(os.path.join(dirname, "click.mp3"))
@@ -1859,7 +1866,7 @@ class Application(Frame):
     ArduinoMessageQueue = []
     def sendMessageToArduino(self, message):
         if(self.SerialObj != None):
-            msg = '<' + message + '>'
+            msg = message + '>'
             self.ArduinoMessageQueue.append(msg)
             # self.SerialObj.write(msg.encode('utf-8'))
             # self.SerialObj.flush()
