@@ -88,10 +88,11 @@ class Application(Frame):
     glassTypes = set([])
     garnishes = ([])
     overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflow.png")), Image.BICUBIC)
-    overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")).resize((309, 15), Image.BICUBIC))
+    overflowImageSmall = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflowSmall.png")), Image.BICUBIC)
     starImageOff = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/star.png")).resize((43, 43), Image.BICUBIC))
     starImageOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starOn.png")).resize((43, 43), Image.BICUBIC))
     smallStar = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starSmall.png")).resize((15, 15), Image.BICUBIC))
+    smallStarDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starSmallDark.png")).resize((15, 15), Image.BICUBIC))
     recipeColours = dict()
     recipeButtonImages = dict()
     recipeButtonImagesDisabled = dict()
@@ -155,11 +156,12 @@ class Application(Frame):
                 self.SerialObj = serial.Serial('COM5') # COMxx  format on Windows
             else:
                 self.SerialObj = serial.Serial('/dev/ttyUSB0')
-            self.SerialObj.baudrate = 15200  # set Baud rate to 9600
+            self.SerialObj.baudrate = 2000000  # set Baud rate to 9600
             self.SerialObj.bytesize = 8   # Number of data bits = 8
             self.SerialObj.parity  ='N'   # No parity
             self.SerialObj.stopbits = 1   # Number of Stop bits = 1
-            self.SerialObj.timeout = 10
+            self.SerialObj.timeout = 0.1
+            self.SerialObj.flush()
 
            #self.usb = serial.Serial("COM5", 9600, timeout=2)
            #self.usb = serial.Serial("/dev/ttyACM0", 9600, timeout=2)
@@ -250,22 +252,33 @@ class Application(Frame):
         if(self.waitingForArduino == False):
             if(len(self.ArduinoMessageQueue) > 0):
                 self.currentMsg = self.ArduinoMessageQueue.pop(0)
-                #self.sendToArduinoAndGetResponse(msg)
                 self.thr = threading.Thread(target=self.sendToArduinoAndGetResponse, args=(), kwargs={})
+                self.waitingForArduino = True
                 self.thr.start()
                 
 
     def sendToArduinoAndGetResponse(self):
+        
         self.SerialObj.write(self.currentMsg.encode('utf-8'))
         print("Sending: " + str(self.currentMsg.encode('utf-8')))
-        self.SerialObj.flush()
-        self.waitingForArduino = True
 
-        ReceivedString = self.SerialObj.read_until(b"\n")
-        print("Recieve: " + str(ReceivedString))
-        self.SerialObj.flush()
+        ReceivedString = ""
+        print(self.getArduinoResponse())
+        #print("Recieve: " + str(ReceivedString))
         self.waitingForArduino = False
-        
+
+    def getArduinoResponse(self):
+        responseComplete = False
+        tempString = ""
+        x = 0
+        while (x < 100):
+            tempChar = self.SerialObj.read().decode()
+            if(tempChar == '\n'):
+                return tempString
+            else:
+                tempString += tempChar
+            x = x + 1
+        return tempString
 
 
     isDark = False
@@ -291,6 +304,10 @@ class Application(Frame):
         for i in self.recipeButtons.keys():
             self.midPayne.itemconfig(self.recipeButtons[i], image=self.recipeButtonImagesDark.get(i))
             self.midPayne.itemconfig(self.recipeTexts[i], fill=self.mainFGColourDark)
+        
+        for j in self.recipeStars.values():
+            for k in j:
+                self.midPayne.itemconfig(k, image=self.smallStarDark)
 
         self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchDark)
         self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsDark)
@@ -334,6 +351,14 @@ class Application(Frame):
 
                 self.midPayne.itemconfig(self.recipeButtons[i], image=img)
                 self.midPayne.itemconfig(self.recipeTexts[i], fill=colour)
+
+            for j in self.recipeStars.keys():
+                if(self.recipeCanBeMade[j] == True):
+                    for k in self.recipeStars.get(j):
+                        self.midPayne.itemconfig(k, image=self.smallStar)
+                else:
+                    for k in self.recipeStars.get(j):
+                        self.midPayne.itemconfig(k, image=self.smallStarDark)
 
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
@@ -1727,12 +1752,12 @@ class Application(Frame):
 
                 ingredientsLightsString = ""
                 if(ingredientsLights.get(ingredient['name'])):
-                    ingredientsLightsString += "🔥\n"
+                    ingredientsLightsString += "¤\n"
 
                 ingredientString = ingredientString + ingredient['name'][:28] + "\n"
                 quantitiesString = quantitiesString + ingredient['quantity'] + " " + ingredient['unit'] + "\n"
                 lineHeight = smallFont.metrics("linespace")
-                self.cocktailIngredients.create_text(294, (i*lineHeight)-1, text=ingredientsLightsString, anchor='n', fill='#ffff00', font=smallFont, width=20)
+                self.cocktailIngredients.create_text(294, (i*lineHeight), text=ingredientsLightsString, anchor='n', fill='#ffff00', font=smallFont, width=20)
                 self.cocktailIngredients.create_text(5, (i*lineHeight), text=string, anchor='n', fill=colour, font=smallFont, width=20)
                 i = i+1
             ingredientString = ingredientString[:-1]
@@ -1793,14 +1818,16 @@ class Application(Frame):
             self.imgGarnishes = []
             x = 0
             for garnish in str(recipe['garnish']).replace(" or ", " , ").split(','):
-                temp = str(garnish).strip(' ').lstrip(' ').lower()
-                if len(temp) <= 1:
-                    break
-                if (temp[0] == 'a') & (temp[1] == ' '):
-                    temp = temp[2:]
-                self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/garnishes/" + temp + ".png")).resize((61, 61), Image.BICUBIC)))
-                self.underLeftPayne.create_image((252 - (x * 61)) , 54, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
-                x = x + 1
+                if(x < 4):
+                    temp = str(garnish).strip(' ').lstrip(' ').lower()
+                    if len(temp) <= 1:
+                        break
+                    if (temp[0] == 'a') & (temp[1] == ' '):
+                        temp = temp[2:]
+                    self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/garnishes/" + temp + ".png")).resize((61, 61), Image.BICUBIC)))
+                    self.underLeftPayne.create_image((252 - (x * 61)) , 54, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
+                    x = x + 1
+                
 
             
 
@@ -1832,7 +1859,7 @@ class Application(Frame):
     ArduinoMessageQueue = []
     def sendMessageToArduino(self, message):
         if(self.SerialObj != None):
-            msg = message + "\n"
+            msg = '<' + message + '>'
             self.ArduinoMessageQueue.append(msg)
             # self.SerialObj.write(msg.encode('utf-8'))
             # self.SerialObj.flush()
