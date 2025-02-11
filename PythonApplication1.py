@@ -469,9 +469,9 @@ class Application(Frame):
         #self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
 
     def keyboardClickCheck(self, event):
+
         if(self.keyboardOpen == True):
             if(event.widget == self.keyCanvas):
-
                 if((event.y > 55) & (event.y <= 130) & (event.x > 5) & (event.x < 980)):
                     self.searchTerm.set(self.searchTerm.get() + self.alphabet[math.floor((event.x - 5) / 75)])
                 elif((event.y > 130) & (event.y <= 205) & (event.x > 5) & (event.x < 980)):
@@ -527,7 +527,10 @@ class Application(Frame):
         self.addRecipeButtons(self.recipeList)
 
     def updateSearchBox(self, searchTerm):
-        self.filterValues = ('Any', 'Any', 'Any', searchTerm.get())
+        if(searchTerm.get() != ''):
+            self.filterValues = ('Any', 'Any', 'Any', searchTerm.get())
+        else:
+            self.filterValues = (self.filterValues[0], self.filterValues[1], self.filterValues[2], '')
         self.recipeList = []
         search = str.lower(str(searchTerm.get()))
         for recipe in self.recipes['recipies']:
@@ -660,10 +663,10 @@ class Application(Frame):
         self.lastActive = datetime.now()
         if (event.x > 0 & event.x < 75):
             if((event.y > 10) & (event.y < 85)):
-                self.recipesMove(-105)
+                self.recipesMove(-315)
                 return
             if((event.y > 370) & (event.y < 445)):
-                self.recipesMove(105)
+                self.recipesMove(315)
                 return
 
     def clickLeftButtonCanvas(self, event):
@@ -896,11 +899,6 @@ class Application(Frame):
         self.imgMenuButtonDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/menuDark.png")), Image.BICUBIC)
         self.imgMenuButtonOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/menu_on.png")), Image.BICUBIC)
         self.menuButton = self.midPayneLeftCanvas.create_image(0, 390, anchor='nw', image=self.imgMenuButton)
-
-        # self.imgIngredientManager = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients.png")), Image.BICUBIC)
-        # self.imgIngredientManagerDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredientsDark.png")), Image.BICUBIC)
-        # self.imgIngredientManagerOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/ingredients_on.png")), Image.BICUBIC)
-        # self.ingredientsButton = self.midPayneLeftCanvas.create_image(0, 390, anchor='nw', image=self.imgIngredientManager)
 
         self.midPayneLeftCanvas.bind('<ButtonPress-1>', self.clickLeftButtonCanvas)
         self.midPayneLeftCanvas.pack(pady=5, padx=20, side=LEFT, anchor='nw')
@@ -1566,14 +1564,19 @@ class Application(Frame):
         self.pages[self.currentPageIndex]()
         self.midPayne.yview_moveto(self.recipesScroll)
         self.moveScrollBar()
+
         if (self.filterValues[0] != 'Any'):
             self.getRecipesByCategory(self.filterValues[0])
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOpen)
         elif(self.filterValues[1] != 'Any'):
             self.getRecipesBySpirit(self.filterValues[1])
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOpen)
         elif(self.filterValues[2] != 'Any'):
             self.getRecipesByGlassType(self.filterValues[2])
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOpen)
         elif(self.filterValues[3] != ''):
-            print("search")
+            self.searchTerm.set(self.filterValues[3])
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOpen)
         else:
             self.getRecipesByCategory('Any')
 
@@ -1923,15 +1926,14 @@ root.wm_geometry("1024x600")
 root.resizable(width=False, height=False)
 applicationInstance = Application(root)
 
-root.after(1500, lambda: applicationInstance.goLight())
-root.after(1000, lambda: applicationInstance.updateArduinoConfigs())
-root.after(500, lambda: applicationInstance.sendMessageToArduino("asdasd"))
+applicationInstance.sendMessageToArduino("asdasd")
+applicationInstance.updateArduinoConfigs()
+applicationInstance.goLight()
 
-#if(platform.system() != 'Windows'):
-#    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
-#    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
-
-
+if(platform.system() != 'Windows'):
+    root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
+    root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
+    root.config(cursor='none')
 
 root.after(1000, applicationInstance.update)
 root.mainloop()
