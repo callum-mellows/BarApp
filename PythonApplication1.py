@@ -110,10 +110,11 @@ class Application(Frame):
     filterValues = ('Any', 'Any', 'Any', '')
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
-
     overlay = None
     overlayImage = None
     mainFrameCanvas = None
+
+    networkSymbol = None
 
     def __init__(self, root):
         super().__init__(root, bg=self.mainBGColour)
@@ -125,6 +126,10 @@ class Application(Frame):
 
         self.f = open(os.path.join(dirname, "ingredients.JSON"), mode='r')
         tempIngredients = json.load(self.f)
+
+        self.networkSymbol = Label(root, font=font, text='»', bg=self.mainBGColour, fg='#00DD00')
+        self.networkSymbol.place(x=1004, y=-25)
+
 
         for ingredient in tempIngredients['ingredients']:
             self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
@@ -170,6 +175,8 @@ class Application(Frame):
         except Exception as error:
            self.SerialObj = None
            print("Lighting Arduino not found! Error: ", error)
+           self.networkSymbol.configure(fg='#DD0000')
+           self.networkSymbol.place(y=0)
 
     scrolling = root
     mouseIsDown = False
@@ -261,6 +268,7 @@ class Application(Frame):
 
     def sendToArduinoAndGetResponse(self):
         
+        self.networkSymbol.place(y=0)
         x = 0
         while x < 100:
             self.SerialObj.write(self.currentMsg.encode('utf-8'))
@@ -273,7 +281,7 @@ class Application(Frame):
                 
         print("Recieve: " + str(ReceivedString))
         self.waitingForArduino = False
-
+        self.networkSymbol.place(y=-25)
 
 
     isDark = False
@@ -687,27 +695,29 @@ class Application(Frame):
 
     def openSearch(self):
         if(self.pickerCanvas != None):
-            self.closePickerBox()
+            self.closePickerBox('search')
             self.pickerType = ''
 
         if(self.keyboard == None):
             self.openKeyboard()
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
         else:
             #self.searchTerm.set('')
             self.closeKeyboard()
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
 
     def pickerClick(self, options, event):
         self.pickerString.set(options[math.floor(event.y / 45)])
 
         if(self.pickerType == 'seasons'):
             self.pickCategory()
-            self.closePickerBox()
+            self.closePickerBox('seasons')
         elif(self.pickerType == 'spirits'):
             self.pickSpirit()
-            self.closePickerBox()
+            self.closePickerBox('spirits')
         elif(self.pickerType == 'glassTypes'):
             self.pickGlassType()
-            self.closePickerBox()
+            self.closePickerBox('glassTypes')
         elif(self.pickerType == 'menu'):
             self.pickMenu()
         
@@ -742,12 +752,20 @@ class Application(Frame):
         self.pickerCanvas.configure(height=(x*45)-4)
         self.pickerCanvas.place(x=XPos, y=(YPos - (x*10)))
 
-    def closePickerBox(self):
+    def closePickerBox(self, opening=None):
         if(self.pickerCanvas != None):
             self.pickerCanvas.place_forget()
             self.pickerCanvas = None
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButton)
             self.pickerType = ''
+        if(opening != 'search'):
+            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+        if(opening != 'seasons'):
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        if(opening != 'spirits'):
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        if(opening != 'glassTypes'):
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
 
     currentFilter = ''
     def setCurrentFilter(self, newFilter):
@@ -755,10 +773,10 @@ class Application(Frame):
             return
         currentFilter = newFilter
 
-        self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
-        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
-        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
-        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+        #self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+        #self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        #self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        #self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
 
         if(newFilter == 'search'):
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOpen)
@@ -778,9 +796,10 @@ class Application(Frame):
         if(formerPickerType != 'seasons'):
             self.openPickerBox(self.seasons, 110, 137, self.categoryString)
             self.pickerType = 'seasons'
-            #self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
         else:
             self.pickerType = ''
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
 
     ingredientsString = StringVar() 
     def openSpirits(self):
@@ -791,9 +810,10 @@ class Application(Frame):
         if(formerPickerType != 'spirits'):
             self.openPickerBox(self.spirits, 110, 237, self.ingredientsString)
             self.pickerType = 'spirits'
-            #self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
         else:
             self.pickerType = ''
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
 
     glassTypeString = StringVar() 
     def openGlassTypes(self):
@@ -804,10 +824,10 @@ class Application(Frame):
         if(formerPickerType != 'glassTypes'):
             self.openPickerBox(self.glassTypes, 110, 300, self.glassTypeString)
             self.pickerType = 'glassTypes'
-            #self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
             self.pickerType = ''
-
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
 
     
     menuString = StringVar() 
@@ -833,7 +853,7 @@ class Application(Frame):
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Cocktails 'n shit", bg=self.mainBGColour, fg=self.mainFGColour)
-        self.titleLabel.pack(side=BOTTOM)
+        self.titleLabel.pack(side=BOTTOM, padx=20)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
         self.dateTimeFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.dateTimeLabel = Label(self.dateTimeFrame, font=subSubTitleFont, anchor='nw', width=7, bg=self.mainBGColour, fg=self.mainFGColour, text="00:00:00")
@@ -1007,7 +1027,7 @@ class Application(Frame):
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Ingredients", bg=self.mainBGColour, fg=self.mainFGColour)
-        self.titleLabel.pack(side=TOP)
+        self.titleLabel.pack(side=TOP, padx=20)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
 
         self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
@@ -1097,7 +1117,7 @@ class Application(Frame):
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
         self.titleFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Configuration", bg=self.mainBGColour, fg=self.mainFGColour)
-        self.titleLabel.pack(side=TOP)
+        self.titleLabel.pack(side=TOP, padx=20)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
 
         self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
@@ -1172,6 +1192,7 @@ class Application(Frame):
         percent = self.getIfMouseIsInBar(event, self.barLightsOnRect)
         if(percent > 0):
             self.currentBarLightChecked = not self.currentBarLightChecked
+            self.configChanges['currentBarLightChecked'] = 1
             if(self.currentBarLightChecked == True):
                 self.barLightsOnCheck = self.midPayneContainer.create_rectangle(self.barLightsOnRect[0], self.barLightsOnRect[1], self.barLightsOnRect[2], self.barLightsOnRect[3], fill='#cccccc', outline='#cccccc')
             else:
@@ -1180,6 +1201,7 @@ class Application(Frame):
         percent = self.getIfMouseIsInBar(event, self.screenLightsOnRect)
         if(percent > 0):
             self.currentScreenLightChecked = not self.currentScreenLightChecked
+            self.configChanges['currentScreenLightChecked'] = 1
             if(self.currentScreenLightChecked == True):
                 self.screenLightsOnCheck = self.midPayneContainer.create_rectangle(self.screenLightsOnRect[0], self.screenLightsOnRect[1], self.screenLightsOnRect[2], self.screenLightsOnRect[3], fill='#cccccc', outline='#cccccc')
             else:
@@ -1188,6 +1210,7 @@ class Application(Frame):
         percent = self.getIfMouseIsInBar(event, self.mainLightsOnRect)
         if(percent > 0):
             self.currentMainLightChecked = not self.currentMainLightChecked
+            self.configChanges['currentMainLightChecked'] = 1
             if(self.currentMainLightChecked == True):
                 self.mainLightsOnCheck = self.midPayneContainer.create_rectangle(self.mainLightsOnRect[0], self.mainLightsOnRect[1], self.mainLightsOnRect[2], self.mainLightsOnRect[3], fill='#cccccc', outline='#cccccc')
             else:
@@ -1198,17 +1221,20 @@ class Application(Frame):
     def dragConfigCanvas(self, event):
         if(self.clickedConfigBar == 'mainBrightness'):
             tup = self.drawConfigBar(event.x, self.midPayneContainer, self.mainBrightnessBarRect, self.mainBrightnessBar, self.currentMainBrightnessPercent, self.mainBrightnessText)
-            self.currentMainBrightnessPercent = tup[0] 
+            self.currentMainBrightnessPercent = tup[0]
+            self.configChanges['currentMainBrightnessPercent'] = 1
             self.mainBrightnessBar = tup[1]
 
         if(self.clickedConfigBar == 'sideBrightness'):
             tup = self.drawConfigBar(event.x, self.midPayneContainer, self.sideBrightnessBarRect, self.sideBrightnessBar, self.currentSideBrightnessPercent, self.sideBrightnessText)
             self.currentSideBrightnessPercent = tup[0] 
+            self.configChanges['currentSideBrightnessPercent'] = 1
             self.sideBrightnessBar = tup[1]
 
         if(self.clickedConfigBar == 'warmth'):
             tup = self.drawConfigBar(event.x, self.midPayneContainer, self.warmthBarRect, self.warmthBar, self.currentWarmthPercent, self.warmthText)
             self.currentWarmthPercent = tup[0] 
+            self.configChanges['currentWarmthPercent'] = 1
             self.warmthBar = tup[1]
             
     def drawConfigBar(self, mouseX, container, barRect, bar, value, text):
@@ -1241,25 +1267,36 @@ class Application(Frame):
         return isIn
 
     def updateArduinoConfigs(self):
-        self.sendMessageToArduino("MBR"+str(self.currentMainBrightnessPercent))
-        self.sendMessageToArduino("SBR"+str(self.currentSideBrightnessPercent))
-        self.sendMessageToArduino("WAR"+str(self.currentWarmthPercent))
-        if(self.currentBarLightChecked == True):
-            self.sendMessageToArduino("BLC1")
-        else:
-            self.sendMessageToArduino("BLC0")
-        if(self.currentScreenLightChecked == True):
-            self.sendMessageToArduino("SLC1")
-        else:
-            self.sendMessageToArduino("SLC0")
+        if(self.configChanges['currentMainBrightnessPercent'] == 1):
+            self.sendMessageToArduino("MBR"+str(self.currentMainBrightnessPercent))
+
+        if(self.configChanges['currentSideBrightnessPercent'] == 1):
+            self.sendMessageToArduino("SBR"+str(self.currentSideBrightnessPercent))
+
+        if(self.configChanges['currentWarmthPercent'] == 1):
+            self.sendMessageToArduino("WAR"+str(self.currentWarmthPercent))
+
+        if(self.configChanges['currentBarLightChecked'] == 1):
+            if(self.currentBarLightChecked == True):
+                self.sendMessageToArduino("BLC1")
+            else:
+                self.sendMessageToArduino("BLC0")
+
+        if(self.configChanges['currentScreenLightChecked'] == 1):
+            if(self.currentScreenLightChecked == True):
+                self.sendMessageToArduino("SLC1")
+            else:
+                self.sendMessageToArduino("SLC0")
         
-        if(self.currentMainLightChecked == True):
-            self.sendMessageToArduino("MLC1")
-        else:
-            self.sendMessageToArduino("MLC0")
+        if(self.configChanges['currentMainLightChecked'] == 1):
+            if(self.currentMainLightChecked == True):
+                self.sendMessageToArduino("MLC1")
+            else:
+                self.sendMessageToArduino("MLC0")
         self.saveConfig()
         return
 
+    configChanges = None
     def loadConfig(self):
         f = open(os.path.join(dirname, "config.JSON"), "r")
         config = json.load(f)
@@ -1269,6 +1306,14 @@ class Application(Frame):
         self.currentBarLightChecked = config['currentBarLightChecked'] == 'True'
         self.currentScreenLightChecked = config['currentScreenLightChecked'] == 'True'
         self.currentMainLightChecked = config['currentMainLightChecked'] == 'True'
+        
+        self.configChanges = dict(currentMainBrightnessPercent = 0, 
+                                  currentSideBrightnessPercent = 0, 
+                                  currentWarmthPercent = 0, 
+                                  currentBarLightChecked = 0, 
+                                  currentScreenLightChecked = 0, 
+                                  currentMainLightChecked = 0, 
+                                  )
 
     def saveConfig(self):
         JSONString = '{'
@@ -1283,6 +1328,14 @@ class Application(Frame):
         f = open(os.path.join(dirname, "config.JSON"), "w")
         f.write(JSONString)
         f.close()
+
+        self.configChanges = dict(currentMainBrightnessPercent = 0, 
+                                  currentSideBrightnessPercent = 0, 
+                                  currentWarmthPercent = 0, 
+                                  currentBarLightChecked = 0, 
+                                  currentScreenLightChecked = 0, 
+                                  currentMainLightChecked = 0, 
+                                  )
 
     def changeRecipeStars(self, recipeName, stars):
 
@@ -1553,7 +1606,7 @@ class Application(Frame):
             pygame.mixer.music.load(os.path.join(dirname, "closeRecipe.mp3"))
             pygame.mixer.music.play()
         self.sendMessageToArduino("RGBDEF")
-        self.sendMessageToArduino("ING")
+        self.sendMessageToArduino("INGCLR")
         self.currentPageIndex = 0
         self.currentRecipe = None
         self.lastActive = datetime.now()
@@ -1698,11 +1751,11 @@ class Application(Frame):
             width = self.winfo_width()
             height = self.winfo_height()
             (r1,g1,b1) = self.winfo_rgb(recipeColour)
-            (r2,g2,b2) = self.winfo_rgb('#000000')
-            r_ratio = float(r2-r1) / width
-            g_ratio = float(g2-g1) / width
-            b_ratio = float(b2-b1) / width
-            for i in range(0, width, 10):
+            (r2,g2,b2) = self.winfo_rgb(self.mainBGColour)
+            r_ratio = float(r2-r1) / (width-200)
+            g_ratio = float(g2-g1) / (width-200)
+            b_ratio = float(b2-b1) / (width-200)
+            for i in range(0, width-200, 10):
                 nr = int(r1 + (r_ratio * i))
                 ng = int(g1 + (g_ratio * i))
                 nb = int(b1 + (b_ratio * i))
@@ -1868,6 +1921,7 @@ class Application(Frame):
 
     ArduinoMessageQueue = []
     def sendMessageToArduino(self, message):
+        print(message)
         if(self.SerialObj != None):
             msg = message + '>'
             self.ArduinoMessageQueue.append(msg)
