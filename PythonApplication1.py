@@ -447,6 +447,8 @@ class Application(Frame):
     keyTexts = []
     keyboardOpen = False
     searchTerm = StringVar()
+    keyWidth = 75
+    keyHeight = 50
     def openKeyboard(self):
         self.keyboard = Frame(self.mainFrameCanvas)
         self.keyboard.place(x=10, y=307)
@@ -458,47 +460,59 @@ class Application(Frame):
         self.keyboardTextEntry = Entry(self.keyCanvas, font=subTitleFont, textvariable=self.searchTerm, bg=self.mainBGColour, bd=0, fg=self.mainFGColour)
         self.keyboardTextEntry.place(x=15, y=10, height=40, width=975)
 
+        for i in range(0, 10):
+            self.keys.append(self.keyCanvas.create_rectangle((i*self.keyWidth)+15, 55, ((i+1)*self.keyWidth)+15, self.keyHeight+55, fill=self.secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*self.keyWidth)+15)+(self.keyWidth/2), (self.keyHeight/2)+55, width=self.keyWidth, text=i, font=subSubTitleFont, fill=self.mainFGColour))
+
         for i in range(0, 13):
-            self.keys.append(self.keyCanvas.create_rectangle((i*75)+15, 55, ((i+1)*75)+15, 130, fill=self.secondaryBGColour))
-            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 92, width=75, text=self.alphabet[i], font=titleFont, fill=self.mainFGColour))
-            self.keys.append(self.keyCanvas.create_rectangle((i*75)+15, 130, ((i+1)*75)+15, 205, fill=self.secondaryBGColour))
-            self.keyTexts.append(self.keyCanvas.create_text(((i*75)+15)+37, 167, width=75, text=self.alphabet[i+13], font=titleFont, fill=self.mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle((i*self.keyWidth)+15, self.keyHeight+55, ((i+1)*self.keyWidth)+15, (self.keyHeight*2)+55, fill=self.secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*self.keyWidth)+15)+(self.keyWidth/2), self.keyHeight+(self.keyHeight/2)+55, width=self.keyWidth, text=self.alphabet[i], font=subSubTitleFont, fill=self.mainFGColour))
+            self.keys.append(self.keyCanvas.create_rectangle((i*self.keyWidth)+15, (self.keyHeight*2)+55, ((i+1)*self.keyWidth)+15, (self.keyHeight*3)+55, fill=self.secondaryBGColour))
+            self.keyTexts.append(self.keyCanvas.create_text(((i*self.keyWidth)+15)+(self.keyWidth/2), (self.keyHeight*2)+(self.keyHeight/2)+55, width=self.keyWidth, text=self.alphabet[i+13], font=subSubTitleFont, fill=self.mainFGColour))
         
-        self.keys.append(self.keyCanvas.create_rectangle(90, 205, 240, 280, fill=self.secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(165, 242, width=150, text='Delete', font=subSubTitleFont, fill=self.mainFGColour))
+        self.keys.append(self.keyCanvas.create_rectangle(self.keyWidth+15,  (self.keyHeight*3)+55, (self.keyWidth*3)+15,  (self.keyHeight*4)+55, fill=self.secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text((self.keyWidth*2)+15, (self.keyHeight*3)+(self.keyHeight/2)+55, width=150, text='Delete', font=subSubTitleFont, fill=self.mainFGColour))
 
-        self.keys.append(self.keyCanvas.create_rectangle(315, 205, 690, 280, fill=self.secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(492, 242, width=375, text='Space', font=titleFont, fill=self.mainFGColour))
+        self.keys.append(self.keyCanvas.create_rectangle((self.keyWidth*4)+15,  (self.keyHeight*3)+55, (self.keyWidth*9)+15,  (self.keyHeight*4)+55, fill=self.secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text((self.keyWidth*6.5)+15, (self.keyHeight*3)+(self.keyHeight/2)+55, width=375, text='Space', font=subSubTitleFont, fill=self.mainFGColour))
 
-        self.keys.append(self.keyCanvas.create_rectangle(765, 205, 915, 280, fill=self.secondaryBGColour))
-        self.keyTexts.append(self.keyCanvas.create_text(840, 242, width=150, text='Clear', font=subSubTitleFont, fill=self.mainFGColour))
+        self.keys.append(self.keyCanvas.create_rectangle((self.keyWidth*10)+15,  (self.keyHeight*3)+55, (self.keyWidth*12)+15,  (self.keyHeight*4)+55, fill=self.secondaryBGColour))
+        self.keyTexts.append(self.keyCanvas.create_text((self.keyWidth*11)+15, (self.keyHeight*3)+(self.keyHeight/2)+55, width=150, text='Clear', font=subSubTitleFont, fill=self.mainFGColour))
         Misc.lift(self.keyboard)
         self.keyboardOpen = True
-        #self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
 
     def keyboardClickCheck(self, event):
-
         if(self.keyboardOpen == True):
             if(event.widget == self.keyCanvas):
-                if((event.y > 55) & (event.y <= 130) & (event.x > 5) & (event.x < 980)):
-                    self.searchTerm.set(self.searchTerm.get() + self.alphabet[math.floor((event.x - 5) / 75)])
-                elif((event.y > 130) & (event.y <= 205) & (event.x > 5) & (event.x < 980)):
-                    self.searchTerm.set(self.searchTerm.get() + self.alphabet[(math.floor((event.x - 5) / 75)) + 13])
-                elif((event.y > 205) & (event.y <= 280)):
-                    if((event.x > 80) & (event.x <= 230)):
+
+                if((event.y > 55) & (event.y <= (self.keyHeight)+55) & (event.x > 15) & (event.x < (self.keyWidth * 10)+15)):
+                    self.searchTerm.set(self.searchTerm.get() + str(math.floor((event.x - 15) / self.keyWidth)))
+                elif((event.y > self.keyHeight+55) & (event.y <= (self.keyHeight*2)+55) & (event.x > 15) & (event.x < (self.keyWidth * 13)+15)):
+                    self.searchTerm.set(self.searchTerm.get() + self.alphabet[math.floor((event.x - 15) / self.keyWidth)])
+                elif((event.y > (self.keyHeight*2)+55) & (event.y <= (self.keyHeight*3)+55) & (event.x > 15) & (event.x < (self.keyWidth * 13)+15)):
+                    self.searchTerm.set(self.searchTerm.get() + self.alphabet[(math.floor((event.x - 15) / self.keyWidth)) + 13])
+                elif((event.y > (self.keyHeight*3)+55) & (event.y <= (self.keyHeight*4)+55)):
+                    if((event.x > self.keyWidth+15) & (event.x <= (self.keyWidth*3)+15)):
                         self.searchTerm.set(self.searchTerm.get()[:-1])
-                    elif((event.x > 305) & (event.x <= 680)):
+                        if(len(self.searchTerm.get()) <= 0):
+                            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOn)
+                    elif((event.x > (self.keyWidth*4)+15) & (event.x <= (self.keyWidth*9)+15)):
                         self.searchTerm.set(self.searchTerm.get() + ' ')
-                    elif((event.x > 755) & (event.x <= 905)):
+                    elif((event.x > (self.keyWidth*10)+15) & (event.x <= (self.keyWidth*12)+15)):
                         self.searchTerm.set('')
                         self.closeKeyboard()
                 self.keyboardTextEntry.icursor(len(self.searchTerm.get()))
 
         if(self.searchTerm.get() != ''):
             self.setCurrentFilter('search')
+            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
         else:
             if(self.currentFilter == 'search'):
                 self.setCurrentFilter('')
+                
+                
 
     def closeKeyboard(self):
         if(self.keyboard != None):
@@ -759,24 +773,23 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButton)
             self.pickerType = ''
         if(opening != 'search'):
-            self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
+            if(self.filterValues[3] == ''):
+                self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
         if(opening != 'seasons'):
-            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+            if(self.filterValues[0] == 'Any'):
+                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
         if(opening != 'spirits'):
-            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+            if(self.filterValues[1] == 'Any'):
+                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
         if(opening != 'glassTypes'):
-            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            if(self.filterValues[2] == 'Any'):
+                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
 
     currentFilter = ''
     def setCurrentFilter(self, newFilter):
         if(self.currentPageIndex != 0):
             return
         currentFilter = newFilter
-
-        #self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
-        #self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
-        #self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
-        #self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
 
         if(newFilter == 'search'):
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearchOpen)
@@ -799,7 +812,10 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
         else:
             self.pickerType = ''
-            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+            if(self.filterValues[0] == 'Any'):
+                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+            else:
+                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOpen)
 
     ingredientsString = StringVar() 
     def openSpirits(self):
@@ -813,7 +829,10 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
         else:
             self.pickerType = ''
-            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+            if(self.filterValues[1] == 'Any'):
+                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+            else:
+                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOpen)
 
     glassTypeString = StringVar() 
     def openGlassTypes(self):
@@ -827,7 +846,10 @@ class Application(Frame):
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
             self.pickerType = ''
-            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            if(self.filterValues[2] == 'Any'):
+                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            else:
+                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOpen)
 
     
     menuString = StringVar() 
@@ -1658,6 +1680,10 @@ class Application(Frame):
         self.bottomRightPayne.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def pickCategory(self):
+        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+
         self.ingredientsString.set("Any")
         self.glassTypeString.set("Any")
         self.filterValues = (self.categoryString.get(), 'Any', 'Any', '')
@@ -1669,6 +1695,10 @@ class Application(Frame):
         self.getRecipesByCategory(self.categoryString.get())
 
     def pickSpirit(self):
+        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+
         self.categoryString.set("Any")
         self.glassTypeString.set("Any")
         self.filterValues = ('Any', self.ingredientsString.get(), 'Any', '')
@@ -1680,6 +1710,10 @@ class Application(Frame):
         self.getRecipesBySpirit(self.ingredientsString.get())
 
     def pickGlassType(self):
+        self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+        self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+        self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+
         self.categoryString.set("Any")
         self.ingredientsString.set("Any")
         self.filterValues = ('Any', 'Any', self.glassTypeString.get(), '')
