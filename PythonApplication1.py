@@ -71,7 +71,6 @@ class Application(Frame):
     secondaryBGColour = '#333333'
     mainFGColour = '#EEEEEE'
     disabledFGColour = '#333333'
-
     mainBGColourDark = '#040404'
     secondaryBGColourDark = '#111111'
     mainFGColourDark = '#444444'
@@ -349,7 +348,7 @@ class Application(Frame):
                     colour = self.mainFGColour
                     img = self.recipeButtonImages[i]
                 else:
-                    colour = self.mainFGColourDark
+                    colour = self.disabledFGColourDark
                     img = self.recipeButtonImagesDisabled[i]
 
                 self.midPayne.itemconfig(self.recipeButtons[i], image=img)
@@ -636,6 +635,7 @@ class Application(Frame):
 
             action_with_arg = partial(self.openRecipe, recipe)
             mouse_action_with_arg = partial(self.mouseDown, self.midPayne, False)
+            
 
             missingIngredients = self.recipeIngredientsMising(recipe)
             if missingIngredients == 0:
@@ -656,9 +656,12 @@ class Application(Frame):
             self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
 
             self.recipeStars[recipe['name']] = []
-            for i in range(0, int(recipe['stars'])):
-                self.recipeStars[recipe['name']].append(self.midPayne.create_image((self.left+(i*17)+15), self.top+75, anchor='nw', image=self.smallStar))
-
+            if missingIngredients == 0:
+                for i in range(0, int(recipe['stars'])):
+                    self.recipeStars[recipe['name']].append(self.midPayne.create_image((self.left+(i*17)+15), self.top+75, anchor='nw', image=self.smallStar))
+            else:
+                for i in range(0, int(recipe['stars'])):
+                    self.recipeStars[recipe['name']].append(self.midPayne.create_image((self.left+(i*17)+15), self.top+75, anchor='nw', image=self.smallStarDark))
 
             self.left = self.left+self.w+10;
             x = x + 1
@@ -761,7 +764,7 @@ class Application(Frame):
                 else:
                     self.pickerCanvas.create_image(5, (x*45) + 5, anchor='nw', image=self.menuCheckImage)
             else:
-                self.pickerCanvas.create_text(40, (x*45) + 20, width=260, anchor='w', fill=self.mainFGColour, font=font, text=item)
+                self.pickerCanvas.create_text(40, (x*45) + 20, width=260, anchor='w', fill=self.mainFGColour, font=font, text=item.title())
             x = x + 1
         self.pickerCanvas.configure(height=(x*45)-4)
         self.pickerCanvas.place(x=XPos, y=(YPos - (x*10)))
@@ -807,7 +810,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'seasons'):
-            self.openPickerBox(self.seasons, 110, 137, self.categoryString)
+            self.openPickerBox(self.seasons, 110, 180, self.categoryString)
             self.pickerType = 'seasons'
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
         else:
@@ -824,7 +827,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'spirits'):
-            self.openPickerBox(self.spirits, 110, 237, self.ingredientsString)
+            self.openPickerBox(self.spirits, 110, 230, self.ingredientsString)
             self.pickerType = 'spirits'
             self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
         else:
@@ -841,7 +844,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'glassTypes'):
-            self.openPickerBox(self.glassTypes, 110, 300, self.glassTypeString)
+            self.openPickerBox(self.glassTypes, 110, 190, self.glassTypeString)
             self.pickerType = 'glassTypes'
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
