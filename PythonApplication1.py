@@ -93,6 +93,7 @@ class Application(Frame):
     starImageOn = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starOn.png")).resize((43, 43), Image.BICUBIC))
     smallStar = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starSmall.png")).resize((15, 15), Image.BICUBIC))
     smallStarDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/starSmallDark.png")).resize((15, 15), Image.BICUBIC))
+    sortButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/sort.png")), Image.BICUBIC)
     recipeColours = dict()
     recipeButtonImages = dict()
     recipeButtonImagesDisabled = dict()
@@ -322,6 +323,10 @@ class Application(Frame):
         self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
         self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColourDark, outline=self.mainFGColourDark)
 
+        self.titleFrame.configure(bg=self.mainBGColourDark)
+        self.networkSymbol.configure(bg=self.mainBGColourDark)
+        
+
         self.sendMessageToArduino("fadeOut")
 
     def goLight(self):
@@ -372,6 +377,9 @@ class Application(Frame):
             self.upDownBtnCanvas.itemconfig(self.downButton, image=self.downImage)
             self.recipeScrollBarCanvas.itemconfig(self.bar, fill=self.mainFGColour, outline=self.mainFGColour)
             self.recipeScrollBarCanvas.itemconfig(self.barBack, fill=self.mainFGColour, outline=self.mainFGColour)
+
+            self.titleFrame.configure(bg=self.mainBGColour)
+            self.networkSymbol.configure(bg=self.mainBGColour)
 
             self.sendMessageToArduino("fadeIn")
 
@@ -595,7 +603,12 @@ class Application(Frame):
 
     def sortRecipes(self, recipes):
         sortedRecipes = []
-        sortedRecipes = sorted(recipes, key=lambda x: x['name'], reverse=False)
+        if(self.currentSortIndex == 0): #name
+            sortedRecipes = sorted(recipes, key=lambda x: x['name'], reverse=False)
+        elif(self.currentSortIndex == 1): #rating
+            sortedRecipes = sorted(recipes, key=lambda x: x['stars'], reverse=True)
+        elif(self.currentSortIndex == 2): #lastOpened
+            sortedRecipes = sorted(recipes, key=lambda x: x['lastAccessed'], reverse=True)
         return sortedRecipes
 
     
@@ -855,19 +868,21 @@ class Application(Frame):
                 self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOpen)
 
     
-    menuString = StringVar() 
+    menuString = StringVar()
+    sortingOptions = ['Name', 'Rating', 'Last Opened']
+    currentSortIndex = 0
     def openMenu(self):
         overrideStr = '|OFF'
         if(self.MainLightsOverride == True):
             overrideStr = '|ON'
-        menuItems = ['Ingredients', 'Configuration', 'Lights Override'+overrideStr]
+        menuItems = ['Ingredients Manager', 'Configuration Page', 'Lights Override'+overrideStr, 'Sort by: '+self.sortingOptions[self.currentSortIndex]]
 
         formerPickerType = self.pickerType
         if(self.pickerCanvas != None):
             self.closePickerBox()
 
         if(formerPickerType != 'menu'):
-            self.openPickerBox(menuItems, 110, 460, self.menuString)
+            self.openPickerBox(menuItems, 110, 430, self.menuString)
             self.pickerType = 'menu'
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButtonOn)
         else:
@@ -880,6 +895,7 @@ class Application(Frame):
         self.titleLabel = Label(self.titleFrame, font=titleFont, text="Cocktails 'n shit", bg=self.mainBGColour, fg=self.mainFGColour)
         self.titleLabel.pack(side=BOTTOM, padx=20)
         self.titleFrame.pack(side=LEFT, fill='y', padx=10, pady=0)
+
         self.dateTimeFrame = Frame(self.topPayne, bg=self.mainBGColour)
         self.dateTimeLabel = Label(self.dateTimeFrame, font=subSubTitleFont, anchor='nw', width=7, bg=self.mainBGColour, fg=self.mainFGColour, text="00:00:00")
         self.dateTimeLabel.pack(side=TOP)
@@ -976,7 +992,7 @@ class Application(Frame):
         self.topPayne.pack_propagate(0)
 
         self.imgShuffleButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/shuffle.png")), Image.BICUBIC)
-        self.topPayne.create_image(810, 15, anchor='nw', image=self.imgShuffleButton)
+        self.topPayne.create_image(820, 15, anchor='nw', image=self.imgShuffleButton)
 
         self.imgReturnButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/home.png")), Image.BICUBIC)
         self.topPayne.create_image(880, 15, anchor='nw', image=self.imgReturnButton)
@@ -1010,7 +1026,7 @@ class Application(Frame):
         
 
         self.underLeftPayne.create_rectangle(0, 0, 315, 52, fill=self.mainFGColour, outline=self.mainFGColour)
-        self.underLeftPayne.create_rectangle(4, 2, 312, 50, fill=self.mainBGColour, outline=self.mainBGColour)
+        self.underLeftPayne.create_rectangle(4, 2, 312, 51, fill=self.mainBGColour, outline=self.mainBGColour)
         self.underLeftPayne.bind('<ButtonPress-1>', self.clickUnderLeftPayne)
 
         self.underLeftPayne.create_rectangle(0, 52, 315, 115, fill=self.mainFGColour, outline=self.mainFGColour)
@@ -1385,8 +1401,21 @@ class Application(Frame):
         f.write(json.dumps(recipesJSON))
         f.close()
 
-        #with open("replayScript.json", "w") as jsonFile:
-        #    json.dump(data, jsonFile)
+    def updateRecipeLastAccessed(self, recipeName):
+        f = open(os.path.join(dirname, "recipes.JSON"), mode='r', encoding='utf-8-sig')
+        recipesJSON = json.load(f)
+                
+        for i in recipesJSON['recipies']:
+            if(i['name'] == recipeName):
+                i['lastAccessed'] = str(time.time())
+                
+
+        self.recipes = recipesJSON
+        f.close()
+
+        f = open(os.path.join(dirname, "recipes.JSON"), "w", encoding='utf-8')
+        f.write(json.dumps(recipesJSON))
+        f.close()
 
     def drawIngredientRow(self, name, yPos, height):
         if name in self.ingredientRows:
@@ -1737,6 +1766,20 @@ class Application(Frame):
         elif(option.__contains__('Configuration')):
             self.closePickerBox()
             self.openConfigPage()
+        elif(option.__contains__('Sort')):
+            self.changeSort()
+
+
+    def changeSort(self):
+        self.currentSortIndex = self.currentSortIndex + 1
+        if(self.currentSortIndex >= len(self.sortingOptions)):
+            self.currentSortIndex = 0
+
+        self.openMenu()
+        self.openMenu()
+
+        self.addRecipeButtons(self.recipeList)
+        return
 
     MainLightsOverride = False
     def clickLightsOn(self):
@@ -1760,6 +1803,7 @@ class Application(Frame):
                 self.recipesScroll = self.midPayne.yview()[0]
            
             self.currentRecipe = recipe
+            self.updateRecipeLastAccessed(recipe['name'])
 
             self.mouseIsDown = False
             self.currentPageIndex = 1
@@ -1789,10 +1833,10 @@ class Application(Frame):
             height = self.winfo_height()
             (r1,g1,b1) = self.winfo_rgb(recipeColour)
             (r2,g2,b2) = self.winfo_rgb(self.mainBGColour)
-            r_ratio = float(r2-r1) / (width-200)
-            g_ratio = float(g2-g1) / (width-200)
-            b_ratio = float(b2-b1) / (width-200)
-            for i in range(0, width-200, 10):
+            r_ratio = float(r2-r1) / (width-250)
+            g_ratio = float(g2-g1) / (width-250)
+            b_ratio = float(b2-b1) / (width-250)
+            for i in range(0, width-250, 10):
                 nr = int(r1 + (r_ratio * i))
                 ng = int(g1 + (g_ratio * i))
                 nb = int(b1 + (b_ratio * i))
