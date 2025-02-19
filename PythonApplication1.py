@@ -37,8 +37,7 @@ titleFont = Font(family="Hemi Head", size=45, weight="bold")
 subTitleFont = Font(family="Hemi Head", size=35, weight="bold")
 subSubTitleFont = Font(family="Hemi Head", size=25, weight="bold")
 
-spiritList = ("whisky", "whiskey", "vodka", "rum", "brandy", "gin", "tequila")
-
+#spiritList = ("whisky", "whiskey", "vodka", "rum", "brandy", "gin", "tequila")
 
 def on_escape(event=None):
     root.destroy()
@@ -81,10 +80,12 @@ class Application(Frame):
 
     seasons = set([])
     names = set([])
+    spiritList = set([])
     ingredients = set([])
     ingredientsInStock = dict()
     ingredientsLEDPosition = dict()
     ingredientsColour = dict()
+    ingredientsType = dict()
     glassTypes = set([])
     garnishes = ([])
     overflowImage = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/overflow.png")), Image.BICUBIC)
@@ -133,6 +134,7 @@ class Application(Frame):
             self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
             self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
             self.ingredientsColour.update({ingredient['name']:ingredient['Colour']})
+            self.ingredientsType.update({ingredient['name']:ingredient['type']})
             
         checkGarnishImagesExist(self.recipes)
         checkGlassImagesExist(self.recipes)
@@ -381,12 +383,12 @@ class Application(Frame):
 
             self.sendMessageToArduino("fadeIn")
 
-    def getIfIngredientIsSpirit(self, ing):
-        for word in str(ing).split(' '):
-            for spirit in spiritList:
-                if spirit.__contains__(str(word).lower()):
-                    return spirit
-        return ""
+    # def getIfIngredientIsSpirit(self, ing):
+    #     for word in str(ing).split(' '):
+    #         for spirit in self.spiritList:
+    #             if spirit.__contains__(str(word).lower()):
+    #                 return spirit
+    #     return ""
 
     def getSearchables(self, recipes):
 
@@ -418,10 +420,15 @@ class Application(Frame):
             for ingredient in recipe['ingredients']:
                 if len(ingredient['name']) > 1:
                     ingredients2.add(ingredient['name'])
+
+                    if(self.ingredientsType.get(ingredient['name'], "1") == "0"):
+                        print(ingredient['name'])
+                        self.spiritList.add(ingredient['name'])
+                        spirits.add(ingredient['name'])
                     
-                    temp = self.getIfIngredientIsSpirit(ingredient['name'])
-                    if temp != "":
-                        spirits.add(temp)
+                    #temp = self.getIfIngredientIsSpirit(ingredient['name'])
+                    #if temp != "":
+                        #spirits.add(temp)
             self.recipeButtonImages[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
             self.recipeButtonImagesDisabled[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/disabled/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
             self.recipeButtonImagesDark[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/dark/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
@@ -508,14 +515,15 @@ class Application(Frame):
                         self.closeKeyboard()
                 self.keyboardTextEntry.icursor(len(self.searchTerm.get()))
 
-        if(self.searchTerm.get() != ''):
-            self.setCurrentFilter('search')
-            self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
-            self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
-            self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
-        else:
-            if(self.currentFilter == 'search'):
-                self.setCurrentFilter('')
+        if(self.currentPageIndex == 0):
+            if(self.searchTerm.get() != ''):
+                self.setCurrentFilter('search')
+                self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasons)
+                self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpirits)
+                self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassType)
+            else:
+                if(self.currentFilter == 'search'):
+                    self.setCurrentFilter('')
                 
                 
 
@@ -541,7 +549,7 @@ class Application(Frame):
         self.recipeList = []
         for recipe in self.recipes['recipies']:
             for ing in recipe['ingredients']:
-                if str(ing['name']).lower().__contains__(spirit) | (spirit == 'Any'):
+                if str(ing['name']).lower().__contains__(spirit.lower()) | (spirit == 'Any'):
                     self.recipeList.append(recipe)
                     break
         self.addRecipeButtons(self.recipeList)
@@ -577,19 +585,64 @@ class Application(Frame):
                 RecipeListNotInStock.append(recipe)
         return (RecipeListInStock, RecipeListNotInStock)
 
+    def getNormalizedQuantity(self, quant, unit):
+
+        if(unit == 'oz'):
+            num = 0.1
+            for i in str(quant):
+
+                if(i.isdigit()):
+                    num += float(i)
+                elif(i == '½'):
+                    num += 0.5
+                elif(i == '¼'):
+                    num += 0.25
+                elif(i == '¾'):
+                    num += 0.75
+                elif(i == '⅓'):
+                    num += 0.33
+                elif(i == '⅔'):
+                    num += 0.66
+                elif(i == '⅛'):
+                    num += 0.125
+                elif(i == '⅜'):
+                    num += 0.375
+                elif(i == '⅝'):
+                    num += 0.625
+                elif(i == '⅞'):
+                    num += 0.875
+            return float(num)
+        return 0.5
+
     def getRecipeColour(self, recipe):
         RGB = [0, 0, 0]
         ingredientsCount = 0
+        d = dict()
+
         for ingredient in recipe['ingredients']:
-            ingredientsCount = ingredientsCount + 1
-            tempRGB = HexToRGB(self.ingredientsColour.get(ingredient['name']))
-            RGB[0] = RGB[0] + tempRGB[0]
-            RGB[1] = RGB[1] + tempRGB[1]
-            RGB[2] = RGB[2] + tempRGB[2]
-        RGB[0] = RGB[0] / max(ingredientsCount, 1)
-        RGB[1] = RGB[1] / max(ingredientsCount, 1)
-        RGB[2] = RGB[2] / max(ingredientsCount, 1)
-        return RGBToHex(int(RGB[0]), int(RGB[1]), int(RGB[2]))
+            strength = 0.05
+            if(self.ingredientsColour.get(ingredient['name'], '#000000')[1:] != "000000"):
+                match self.ingredientsType.get(ingredient['name']):
+                    case "0":
+                        strength = 0.75
+                    case "1":
+                        strength = 0.75
+                    case "2":
+                        strength = 1
+                    case "3":
+                        strength = 0.15
+
+                strength = strength * self.getNormalizedQuantity(ingredient['quantity'], ingredient['unit'])
+
+                d[self.ingredientsColour.get(ingredient['name'])[1:]] = strength
+
+        d_items = sorted(d.items())
+        tot_weight = sum(d.values())
+        red = int(sum([int(k[:2], 16)*v for k, v in d_items])/tot_weight)
+        green = int(sum([int(k[2:4], 16)*v for k, v in d_items])/tot_weight)
+        blue = int(sum([int(k[4:6], 16)*v for k, v in d_items])/tot_weight)
+        zpad = lambda x: x if len(x)==2 else '0' + x
+        return "#" + zpad(hex(red)[2:]) + zpad(hex(green)[2:]) + zpad(hex(blue)[2:])
 
     recipeButtons = dict()
     recipeTextBacks = dict()  
@@ -734,8 +787,12 @@ class Application(Frame):
             self.closeKeyboard()
             self.midPayneLeftCanvas.itemconfig(self.searchButton, image=self.imgSearch)
 
-    def pickerClick(self, options, event):
-        self.pickerString.set(options[math.floor(event.y / 45)])
+    def pickerClick(self, options, itemWidth, event):
+        col = math.floor(event.x / itemWidth)
+        if(((math.floor(event.y / 45))+(col*10)) >= len(options)):
+            return
+
+        self.pickerString.set(options[(math.floor(event.y / 45))+(col*10)])
 
         if(self.pickerType == 'seasons'):
             self.pickCategory()
@@ -763,22 +820,31 @@ class Application(Frame):
 
         self.pickerString = string
         self.pickerCanvas = Canvas(self.mainFrameCanvas, width=261, height=400, bg='#000000', highlightthickness=0)
-        action_with_arg = partial(self.pickerClick, options)
+        itemWidth = 260
+        action_with_arg = partial(self.pickerClick, options, itemWidth)
         self.pickerCanvas.bind('<ButtonPress-1>', action_with_arg)
         x = 0
+        y = 0
+        
+        cols = 1
         for item in options:
-            self.pickerCanvas.create_rectangle(0, (x*45), 260, ((x*45)+40), fill='#222222')
+            self.pickerCanvas.create_rectangle((x*itemWidth)+(x*5), (y*45), ((x*itemWidth)+(x*5))+itemWidth, ((y*45)+40), fill='#222222')
             if(item.__contains__('|') == True):
-                self.pickerCanvas.create_text(40, (x*45) + 20, width=260, anchor='w', fill=self.mainFGColour, font=font, text=item.split('|')[0])
+                self.pickerCanvas.create_text(((x*itemWidth)+(x*5))+40, (y*45) + 20, width=itemWidth, anchor='w', fill=self.mainFGColour, font=font, text=item.split('|')[0])
                 if(item.split('|')[1] == 'ON'):
-                    self.pickerCanvas.create_image(5, (x*45) + 5, anchor='nw', image=self.menuCheckImageChecked)
+                    self.pickerCanvas.create_image(((x*itemWidth)+(x*5))+5, (y*45) + 5, anchor='nw', image=self.menuCheckImageChecked)
                 else:
-                    self.pickerCanvas.create_image(5, (x*45) + 5, anchor='nw', image=self.menuCheckImage)
+                    self.pickerCanvas.create_image(((x*itemWidth)+(x*5))+5, (y*45) + 5, anchor='nw', image=self.menuCheckImage)
             else:
-                self.pickerCanvas.create_text(40, (x*45) + 20, width=260, anchor='w', fill=self.mainFGColour, font=font, text=item.title())
-            x = x + 1
-        self.pickerCanvas.configure(height=(x*45)-4)
-        self.pickerCanvas.place(x=XPos, y=(YPos - (x*10)))
+                self.pickerCanvas.create_text(((x*itemWidth)+(x*5))+40, (y*45) + 20, width=itemWidth, anchor='w', fill=self.mainFGColour, font=font, text=item.title())
+            y = y + 1
+            if(y >= 10):
+                x = x + 1
+                y = 0
+                cols = cols + 1
+        
+        self.pickerCanvas.configure(height=(min((x*10)+y, 10)*45)-4, width=((itemWidth*cols + ((cols-1)*5))+1))
+        self.pickerCanvas.place(x=XPos, y=YPos)
 
     def closePickerBox(self, opening=None):
         if(self.pickerCanvas != None):
@@ -821,7 +887,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'seasons'):
-            self.openPickerBox(self.seasons, 110, 180, self.categoryString)
+            self.openPickerBox(self.seasons, 110, 130, self.categoryString)
             self.pickerType = 'seasons'
             self.midPayneLeftCanvas.itemconfig(self.seasonsButton, image=self.imgSeasonsOn)
         else:
@@ -838,7 +904,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'spirits'):
-            self.openPickerBox(self.spirits, 110, 230, self.ingredientsString)
+            self.openPickerBox(self.spirits, 110, 95, self.ingredientsString)
             self.pickerType = 'spirits'
             self.midPayneLeftCanvas.itemconfig(self.spiritsButton, image=self.imgSpiritsOn)
         else:
@@ -855,7 +921,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'glassTypes'):
-            self.openPickerBox(self.glassTypes, 110, 190, self.glassTypeString)
+            self.openPickerBox(self.glassTypes, 110, 210, self.glassTypeString)
             self.pickerType = 'glassTypes'
             self.midPayneLeftCanvas.itemconfig(self.glassTypesButton, image=self.imgGlassTypeOn)
         else:
@@ -880,7 +946,7 @@ class Application(Frame):
             self.closePickerBox()
 
         if(formerPickerType != 'menu'):
-            self.openPickerBox(menuItems, 110, 430, self.menuString)
+            self.openPickerBox(menuItems, 110, 395, self.menuString)
             self.pickerType = 'menu'
             self.midPayneLeftCanvas.itemconfig(self.menuButton, image=self.imgMenuButtonOn)
         else:
@@ -1122,8 +1188,9 @@ class Application(Frame):
                 ledStrip = self.ingredientsLEDPosition.get(ingredient, (0,0))[0]
                 ledIndex = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
                 colour = self.ingredientsColour.get(ingredient, '#ffffff')
+                ingType = self.ingredientsType.get(ingredient, 3)
 
-                tpl = (ingredient, checked, ledStrip, ledIndex, colour)
+                tpl = (ingredient, checked, ledStrip, ledIndex, colour, ingType)
                 self.ingredientsData.append(tpl)
 
                 self.drawIngredientRow(ingredient, itemYPos, self.itemHeight)
@@ -1426,6 +1493,7 @@ class Application(Frame):
                 LEDStrip = i[2]
                 LEDIndex = i[3]
                 colour = i[4]
+                ingType = i[5]
 
         if checked == '1':
             img = self.checkImage
@@ -1527,7 +1595,7 @@ class Application(Frame):
                     temp = '0'
                 else:
                     temp = '1'
-                tpl = (i[0], temp, i[2], i[3], i[4])
+                tpl = (i[0], temp, i[2], i[3], i[4], i[5])
                 self.ingredientsData[x] = tpl
                 self.updateIngredientsFile()
                 self.drawIngredientRow(clickArea[1], clickArea[0][1], clickArea[0][3])
@@ -1542,7 +1610,7 @@ class Application(Frame):
         x = 0
         for i in self.ingredientsData:
             if (i[0] == name):
-                tpl = (i[0], i[1], value, i[3], i[4])
+                tpl = (i[0], i[1], value, i[3], i[4], i[5])
                 self.ingredientsData[x] = tpl
                 self.updateIngredientsFile()
                 self.drawIngredientRow(name, rowYPos, rowHeight)
@@ -1553,7 +1621,7 @@ class Application(Frame):
         x = 0
         for i in self.ingredientsData:
             if (i[0] == name):
-                tpl = (i[0], i[1], i[2], value, i[4])
+                tpl = (i[0], i[1], i[2], value, i[4], i[5])
                 self.ingredientsData[x] = tpl
                 self.updateIngredientsFile()
                 self.drawIngredientRow(name, rowYPos, rowHeight)
@@ -1614,7 +1682,7 @@ class Application(Frame):
             x = 0
             for i in self.ingredientsData:  
                 if (i[0] == clickArea[1]):
-                    tpl = (i[0], i[1], i[2], i[3], str(colourCode))
+                    tpl = (i[0], i[1], i[2], i[3], str(colourCode), i[5])
                     self.ingredientsData[x] = tpl
                     self.updateIngredientsFile()
                     self.drawIngredientRow(clickArea[1], clickArea[0][1], clickArea[0][3])
@@ -1642,7 +1710,8 @@ class Application(Frame):
             JSONString = JSONString + '"inStock": "' + str(i[1]) + '",'
             JSONString = JSONString + '"LEDStrip": "' + str(i[2]) + '",'
             JSONString = JSONString + '"LEDIndex": "' + str(i[3]) + '",'
-            JSONString = JSONString + '"Colour": "' + temp + '"},'
+            JSONString = JSONString + '"Colour": "' + temp + '",'
+            JSONString = JSONString + '"type": "' + str(i[5]) + '"},'
 
             self.ingredientsInStock.update({str(i[0]):str(i[1])})
             self.ingredientsLEDPosition.update({str(i[0]):(str(i[2]), str(i[3]))})
