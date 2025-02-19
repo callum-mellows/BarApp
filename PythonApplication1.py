@@ -69,11 +69,13 @@ class Application(Frame):
     mainBGColour = '#111111'
     secondaryBGColour = '#333333'
     mainFGColour = '#EEEEEE'
-    disabledFGColour = '#333333'
+    halfDisabledFGColour = '#444444'
+    disabledFGColour = '#222222'
     mainBGColourDark = '#040404'
     secondaryBGColourDark = '#111111'
     mainFGColourDark = '#444444'
-    disabledFGColourDark = '#333333'
+    halfDisabledFGColourDark = '#444444'
+    disabledFGColourDark = '#222222'
 
     sleepSeconds = 60
     lastActive = datetime.now()
@@ -97,6 +99,7 @@ class Application(Frame):
     sortButton = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/sort.png")), Image.BICUBIC)
     recipeColours = dict()
     recipeButtonImages = dict()
+    recipeButtonImagesHalfDisabled = dict()
     recipeButtonImagesDisabled = dict()
     recipeButtonImagesDark = dict()
     recipeButtonFiles = dict()
@@ -349,9 +352,12 @@ class Application(Frame):
             self.recipeScrollBarCanvas.configure(bg=self.mainBGColour)
 
             for i in self.recipeButtons.keys():
-                if(self.recipeCanBeMade[i] == True):
+                if(self.recipeCanBeMade[i] == 2):
                     colour = self.mainFGColour
                     img = self.recipeButtonImages[i]
+                elif(self.recipeCanBeMade[i] == 1):
+                    colour = self.halfDisabledFGColourDark
+                    img = self.recipeButtonImagesHalfDisabled[i]
                 else:
                     colour = self.disabledFGColourDark
                     img = self.recipeButtonImagesDisabled[i]
@@ -360,7 +366,7 @@ class Application(Frame):
                 self.midPayne.itemconfig(self.recipeTexts[i], fill=colour)
 
             for j in self.recipeStars.keys():
-                if(self.recipeCanBeMade[j] == True):
+                if(self.recipeCanBeMade[j] == 2):
                     for k in self.recipeStars.get(j):
                         self.midPayne.itemconfig(k, image=self.smallStar)
                 else:
@@ -382,13 +388,6 @@ class Application(Frame):
             self.networkSymbol.configure(bg=self.mainBGColour)
 
             self.sendMessageToArduino("fadeIn")
-
-    # def getIfIngredientIsSpirit(self, ing):
-    #     for word in str(ing).split(' '):
-    #         for spirit in self.spiritList:
-    #             if spirit.__contains__(str(word).lower()):
-    #                 return spirit
-    #     return ""
 
     def getSearchables(self, recipes):
 
@@ -422,7 +421,6 @@ class Application(Frame):
                     ingredients2.add(ingredient['name'])
 
                     if(self.ingredientsType.get(ingredient['name'], "1") == "0"):
-                        print(ingredient['name'])
                         self.spiritList.add(ingredient['name'])
                         spirits.add(ingredient['name'])
                     
@@ -430,6 +428,7 @@ class Application(Frame):
                     #if temp != "":
                         #spirits.add(temp)
             self.recipeButtonImages[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
+            self.recipeButtonImagesHalfDisabled[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/halfDisabled/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
             self.recipeButtonImagesDisabled[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/disabled/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
             self.recipeButtonImagesDark[recipe['name']] = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/cocktails/buttons/dark/" + recipe['ID'] + ".jpg")), Image.BICUBIC)
 
@@ -448,10 +447,13 @@ class Application(Frame):
     
     def recipeIngredientsMising(self, recipe):
         rtn = 0
+        almostString = 'almost'
         for ingredient in recipe['ingredients']:
             if (self.ingredientsInStock.get(ingredient['name'], 0)) != '1':
                 rtn = rtn + 1
-        return rtn
+                if(self.ingredientsType.get(ingredient['name']) != "3"):
+                    almostString = ''
+        return (rtn, almostString)
 
     keyboard = None
     keyCanvas = None
@@ -579,7 +581,7 @@ class Application(Frame):
         RecipeListInStock = []
         RecipeListNotInStock = []
         for recipe in recipes:
-            if self.recipeIngredientsMising(recipe) == 0:
+            if self.recipeIngredientsMising(recipe)[0] == 0:
                 RecipeListInStock.append(recipe)
             else:
                 RecipeListNotInStock.append(recipe)
@@ -702,16 +704,22 @@ class Application(Frame):
             
 
             missingIngredients = self.recipeIngredientsMising(recipe)
-            if missingIngredients == 0:
+            if missingIngredients[0] == 0:
                 colour = self.mainFGColour
                 img = self.recipeButtonImages.get(recipe['name'])
-                self.recipeCanBeMade[recipe['name']] = True
+                self.recipeCanBeMade[recipe['name']] = 2
                 missingText = ''
             else:
-                colour = self.disabledFGColour
-                img = self.recipeButtonImagesDisabled.get(recipe['name'])
-                self.recipeCanBeMade[recipe['name']] = False
-                missingText = '-'+str(missingIngredients)
+                missingText = '-'+str(missingIngredients[0])
+
+                if(missingIngredients[1] == 'almost'):
+                    img = self.recipeButtonImagesHalfDisabled.get(recipe['name'])
+                    colour = self.halfDisabledFGColour
+                    self.recipeCanBeMade[recipe['name']] = 1
+                else:
+                    img = self.recipeButtonImagesDisabled.get(recipe['name'])
+                    colour = self.disabledFGColour
+                    self.recipeCanBeMade[recipe['name']] = 0
 
             self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=img)
             self.recipeTextBacks[recipe['name']] = self.midPayne.create_text(self.left + 17, self.top + 17, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill='#000000', text=recipe['name'])
@@ -720,7 +728,7 @@ class Application(Frame):
             self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
 
             self.recipeStars[recipe['name']] = []
-            if missingIngredients == 0:
+            if missingIngredients[0] == 0:
                 for i in range(0, int(recipe['stars'])):
                     self.recipeStars[recipe['name']].append(self.midPayne.create_image((self.left+(i*17)+15), self.top+75, anchor='nw', image=self.smallStar))
             else:
