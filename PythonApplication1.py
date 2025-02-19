@@ -119,12 +119,10 @@ class Application(Frame):
     def __init__(self, root):
         super().__init__(root, bg=self.mainBGColour)
 
-        self.loadConfig()
-
         self.f = open(os.path.join(dirname, "recipes.JSON"), mode='r', encoding='utf-8-sig')
         self.recipes = json.load(self.f)
 
-        self.f = open(os.path.join(dirname, "ingredients.JSON"), mode='r')
+        self.f = open(os.path.join(dirname, "ingredients.JSON"), mode='r', encoding='utf-8-sig')
         tempIngredients = json.load(self.f)
 
         self.networkSymbol = Label(root, font=font, text='»', bg=self.mainBGColour, fg='#00DD00')
@@ -1338,7 +1336,7 @@ class Application(Frame):
         return
 
     configChanges = None
-    def loadConfig(self):
+    def loadConfig(self, forceUpdate=0):
         f = open(os.path.join(dirname, "config.JSON"), "r")
         config = json.load(f)
         self.currentMainBrightnessPercent = int(config['currentMainBrightnessPercent'])
@@ -1348,12 +1346,12 @@ class Application(Frame):
         self.currentScreenLightChecked = config['currentScreenLightChecked'] == 'True'
         self.currentMainLightChecked = config['currentMainLightChecked'] == 'True'
         
-        self.configChanges = dict(currentMainBrightnessPercent = 0, 
-                                  currentSideBrightnessPercent = 0, 
-                                  currentWarmthPercent = 0, 
-                                  currentBarLightChecked = 0, 
-                                  currentScreenLightChecked = 0, 
-                                  currentMainLightChecked = 0, 
+        self.configChanges = dict(currentMainBrightnessPercent = forceUpdate, 
+                                  currentSideBrightnessPercent = forceUpdate, 
+                                  currentWarmthPercent = forceUpdate, 
+                                  currentBarLightChecked = forceUpdate, 
+                                  currentScreenLightChecked = forceUpdate, 
+                                  currentMainLightChecked = forceUpdate, 
                                   )
 
     def saveConfig(self):
@@ -1971,29 +1969,19 @@ class Application(Frame):
                     self.imgGarnishes.append(ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/garnishes/" + temp + ".png")).resize((61, 61), Image.BICUBIC)))
                     self.underLeftPayne.create_image((252 - (x * 61)) , 54, anchor='nw', image=self.imgGarnishes[len(self.imgGarnishes)-1])
                     x = x + 1
-                
-
-            
-
-            #self.cocktailGarnish.config(text=recipe['garnish'])
-            #self.cocktailGlass.config(text=recipe['glassType'])
 
     def openIngredientsManager(self):
         pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
-        #self.sendMessageToArduino("RGB#FFFFFF")
         self.currentPageIndex = 2
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
             child.destroy()
-        #self.closeKeyboard()
-        #self.closePickerBox()
         self.pages[self.currentPageIndex]()
 
     def openConfigPage(self):
         pygame.mixer.music.load(os.path.join(dirname, "openRecipe.mp3"))
         pygame.mixer.music.play()
-        #self.sendMessageToArduino("RGB#FFFFFF")
         self.currentPageIndex = 3
         self.lastActive = datetime.now()
         for child in self.mainFrameCanvas.winfo_children():
@@ -2002,15 +1990,9 @@ class Application(Frame):
 
     ArduinoMessageQueue = []
     def sendMessageToArduino(self, message):
-        print(message)
         if(self.SerialObj != None):
             msg = message + '>'
             self.ArduinoMessageQueue.append(msg)
-            # self.SerialObj.write(msg.encode('utf-8'))
-            # self.SerialObj.flush()
-            # ReceivedString = self.SerialObj.readline()
-            # print(ReceivedString)
-            # self.SerialObj.flush()
 
 def HexToRGB(rgb):
     if (type(rgb) != str):
@@ -2037,16 +2019,10 @@ def tintImage(image, colour, mask):
                 r = max(min(255, (image.get(x,y)[0] + rgb[0])/2) - 64, 0)
                 g = max(min(255, (image.get(x,y)[1] + rgb[1])/2) - 64, 0)
                 b = max(min(255, (image.get(x,y)[2] + rgb[2])/2) - 64, 0)
-                # r2 = int(r/4)
-                # g2 = int(g/4)
-                # b2 = int(b/4)
             else:
                 r = mask.get(x,y)[0]
                 g = mask.get(x,y)[1]
                 b = mask.get(x,y)[2]
-                # r2 = mask.get(x,y)[0]
-                # g2 = mask.get(x,y)[1]
-                # b2 = mask.get(x,y)[2]
 
             newImage.put("#%02x%02x%02x" % (int(r), int(g), int(b)), (x, y))
             newImageDark.put("#%02x%02x%02x" % (int(r/4), int(g/4), int(b/4)), (x, y))
@@ -2062,6 +2038,7 @@ root.resizable(width=False, height=False)
 applicationInstance = Application(root)
 
 applicationInstance.sendMessageToArduino("asdasd")
+applicationInstance.loadConfig(1)
 applicationInstance.updateArduinoConfigs()
 applicationInstance.goLight()
 

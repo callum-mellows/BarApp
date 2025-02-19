@@ -43,13 +43,14 @@ int strip2currentBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP];
 int strip1nextBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP];
 int strip2nextBrightness[NUM_INGREDIENT_LIGHTS_PER_STRIP];
 
-CRGB previousColour = CRGB::Black;
-CRGB currentColour = CRGB::Black;
-CRGB nextColour = CRGB::Black;
-int colourChangeAlpha = 255;
 
-CRGB defaultColour = CRGB::White;
+CRGB defaultColour = CRGB(ColorTemperature::Halogen);
 ColorTemperature colourTemps[9] = {ColorTemperature::Candle, ColorTemperature::Tungsten40W, ColorTemperature::Tungsten100W, ColorTemperature::Halogen, ColorTemperature::CarbonArc, ColorTemperature::HighNoonSun, ColorTemperature::DirectSunlight, ColorTemperature::OvercastSky, ColorTemperature::ClearBlueSky};
+
+CRGB previousColour = defaultColour;
+CRGB currentColour = CRGB::Black;
+CRGB nextColour = defaultColour;
+int colourChangeAlpha = 255;
 
 CRGB barLeds[NUM_SIDE_LIGHTS];
 CRGB screenLeds[NUM_SCREEN_LIGHTS];
@@ -65,8 +66,6 @@ void setup() {
   Serial.setTimeout(5000);
   FastLED.setBrightness(255);
   
-  previousColour = defaultColour;
-  nextColour = defaultColour;
   FastLED.addLeds<WS2811, PIN_BAR_LIGHTS, BRG>(barLeds, NUM_SIDE_LIGHTS);
   FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
   
@@ -90,6 +89,9 @@ void setup() {
   pinMode(PIN_SCREEN_LIGHTS, OUTPUT);
   pinMode(PIN_INGREDIENT_STRIP_1, OUTPUT);
   pinMode(PIN_INGREDIENT_STRIP_2, OUTPUT);
+
+  analogWrite(PIN_MAIN_LIGHT_1, 0);
+  analogWrite(PIN_MAIN_LIGHT_2, 0);
 }
 
 void clearAllIngredients()
@@ -414,7 +416,7 @@ void checkSerialData(String serialData)
       
 
       clearAllIngredients();
-      if(serialData.length() <= 3)
+      if((serialData.length() <= 3) || ((serialData[3] == 'C') && (serialData[4] == 'L') && (serialData[5] == 'R')))
       {
         return;
       }
