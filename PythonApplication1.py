@@ -754,17 +754,28 @@ class Application(Frame):
             self.dateTimeLabel.configure(text=timeString)
     
     def clickUpDownCanvas(self, event):
+        print(event.y)
         if(self.isDark == True):
             self.goLight()
             return
         self.lastActive = datetime.now()
         if (event.x > 0 & event.x < 75):
-            if((event.y > 10) & (event.y < 85)):
+            if((event.y > 10) & (event.y <= 85)):
                 self.recipesMove(-315)
                 return
-            if((event.y > 370) & (event.y < 445)):
+            elif((event.y > 370) & (event.y <= 470)):
                 self.recipesMove(315)
                 return
+
+    def holdUpDownCanvasScrollBar(self, event):
+        ratio = self.midPayne.winfo_height() / (self.midPayne.bbox("all")[3] - self.midPayne.bbox("all")[1])
+        location =  ((event.y-5) * (1 - ratio)) / 306
+        self.recipeMoveTo(location, False)
+
+    def clickUpDownCanvasScrollBar(self, event):
+        ratio = self.midPayne.winfo_height() / (self.midPayne.bbox("all")[3] - self.midPayne.bbox("all")[1])
+        location =  ((event.y-5) * (1 - ratio)) / 306
+        self.recipeMoveTo(location)
 
     def clickLeftButtonCanvas(self, event):
         if(self.isDark == True):
@@ -995,6 +1006,8 @@ class Application(Frame):
         self.downImageDark = ImageTk.PhotoImage(Image.open(os.path.join(dirname, "images/buttons/downDark.png")), Image.BICUBIC)
         self.downButton = self.upDownBtnCanvas.create_image(0, 395, anchor='nw', image=self.downImage)
         self.recipeScrollBarCanvas = Canvas(self.upDownBtnCanvas, bg=self.mainBGColour, borderwidth=0, highlightthickness=0, width=75, height=319)
+        self.recipeScrollBarCanvas.bind("<B1-Motion>", self.holdUpDownCanvasScrollBar)
+        self.recipeScrollBarCanvas.bind("<ButtonRelease-1>", self.clickUpDownCanvasScrollBar)
         self.barBack = self.recipeScrollBarCanvas.create_rectangle(37, 0, 38, 345, fill='#cccccc', outline='#cccccc')
         self.bar = self.recipeScrollBarCanvas.create_rectangle(27, 3, 47, 4, fill='#cccccc', outline='#cccccc')
         self.recipeScrollBarCanvas.pack(pady = 79)
@@ -1768,6 +1781,12 @@ class Application(Frame):
         self.midPayne.yview_scroll(int(direction), "units")
         self.moveScrollBar()
         
+    def recipeMoveTo(self, location, makeSound=True):
+        if(makeSound):
+            pygame.mixer.music.load(os.path.join(dirname, "click.mp3"))
+            pygame.mixer.music.play()
+        self.midPayne.yview_moveto(float(location))
+        self.moveScrollBar()
 
     def moveScrollBar(self):
         if self.currentPageIndex == 0:
@@ -2119,10 +2138,38 @@ applicationInstance.loadConfig(1)
 applicationInstance.updateArduinoConfigs()
 applicationInstance.goLight()
 
+root.flipFlop = False
+root.clkLastState = None
 if(platform.system() != 'Windows'):
     root.after(250, lambda: root.wm_attributes('-fullscreen', 'true'))
     root.after(250, lambda: root.wm_attributes('-topmost', 'true'))
     root.config(cursor='none')
+
+    from RPi import GPIO
+    GPIO.setmode(GPIO.BCM)
+    step = 100
+    clk = 17
+    dt = 18
+    
+    GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(dt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    root.clkLastState = GPIO.input(clk)
+
+    def spinEncoder(channel):
+        if(applicationInstance.currentPageIndex == 0):
+            clkState = GPIO.input(clk)
+            dtState = GPIO.input(dt)
+            if clkState != root.clkLastState:
+                if(root.flipFlop == False):
+                    if dtState != clkState:
+                        applicationInstance.recipesMove(step)
+                    else:
+                        applicationInstance.recipesMove(step*-1)
+                root.flipFlop = not root.flipFlop
+            root.clkLastState = clkState
+
+    GPIO.add_event_detect(clk, GPIO.FALLING, callback=spinEncoder, bouncetime=25)
+    GPIO.add_event_detect(dt, GPIO.FALLING, callback=spinEncoder, bouncetime=25)
 
 root.after(1000, applicationInstance.update)
 root.mainloop()
