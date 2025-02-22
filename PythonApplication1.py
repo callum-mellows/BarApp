@@ -77,7 +77,6 @@ class Application(Frame):
     halfDisabledFGColourDark = '#444444'
     disabledFGColourDark = '#222222'
 
-    sleepSeconds = 60
     lastActive = datetime.now()
 
     seasons = set([])
@@ -257,7 +256,7 @@ class Application(Frame):
                     self.moveScrollBar()
         
         sinceActive = now - self.lastActive
-        if(sinceActive.seconds >= self.sleepSeconds):
+        if((sinceActive.seconds / 60) >= self.currentTimeout):
             if(self.isDark == False):
                 self.goDark()
         
@@ -971,6 +970,7 @@ class Application(Frame):
         else:
             self.pickerType = ''
 
+    #homepage
     def Page0(self):
         self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
@@ -1069,6 +1069,7 @@ class Application(Frame):
             elif((event.x > 880) & (event.x <= 1000)):
                 self.homepage(True)
 
+    #recipe page
     def Page1(self):
         self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1050, height=75);
@@ -1148,6 +1149,7 @@ class Application(Frame):
         self.bottomPayne.pack()
         self.bottomPayneContainer.pack(side=BOTTOM)
 
+    #ingredients page
     def Page2(self):
         self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
@@ -1224,14 +1226,17 @@ class Application(Frame):
         self.midPayneContainer.pack(side=LEFT)
         self.midPayneContainerContainer.pack()
 
-    mainBrightnessBarRect = (320, 50, 720, 70)
-    sideBrightnessBarRect = (320, 90, 720, 110)
-    warmthBarRect = (320, 130, 720, 150)
+    timeoutBarRect = (320, 50, 720, 70)
 
-    barLightsOnRect = (320, 170, 340, 190)
-    screenLightsOnRect = (700, 170, 720, 190)
-    mainLightsOnRect = (320, 210, 340, 230)
+    mainBrightnessBarRect = (320, 90, 720, 110)
+    sideBrightnessBarRect = (320, 130, 720, 150)
+    warmthBarRect = (320, 170, 720, 190)
 
+    barLightsOnRect = (320, 210, 340, 230)
+    screenLightsOnRect = (700, 210, 720, 230)
+    mainLightsOnRect = (320, 250, 340, 270)
+
+    currentTimeout = 5
     currentMainBrightnessPercent = 25
     currentSideBrightnessPercent = 25
     currentWarmthPercent = 75
@@ -1239,6 +1244,7 @@ class Application(Frame):
     currentScreenLightChecked = True
     currentMainLightChecked = True
 
+    #config page
     def Page3(self):
         self.scrolling = root
         self.topPayne = Canvas(self.mainFrameCanvas, highlightthickness=0, bg=self.mainBGColour, width=1024, height=70);
@@ -1257,6 +1263,11 @@ class Application(Frame):
         self.midPayneContainer = Canvas(self.mainFrameCanvas, width=1004, height=500, bg='#222222', highlightthickness=0)
         self.midPayneContainer.bind('<ButtonPress-1>', self.clickConfigCanvas)
         self.midPayneContainer.bind('<Motion>', self.dragConfigCanvas)
+
+        self.midPayneContainer.create_text(self.timeoutBarRect[0]-10, self.timeoutBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Sleep:')
+        self.midPayneContainer.create_rectangle(self.timeoutBarRect[0]-2, self.timeoutBarRect[1]-2, self.timeoutBarRect[2]+2, self.timeoutBarRect[3]+2, fill='#000000', outline='#000000')
+        self.timeoutBar = self.midPayneContainer.create_rectangle(self.getBarActualWidth(self.timeoutBarRect, self.currentTimeout, 60), fill='#cccccc', outline='#cccccc')
+        self.timeoutText = self.midPayneContainer.create_text(self.timeoutBarRect[0]+410, self.timeoutBarRect[1], width=250, anchor='nw', font=font, fill=self.mainFGColour, text=str(self.currentTimeout)+' Minutes')
 
         self.midPayneContainer.create_text(self.mainBrightnessBarRect[0]-10, self.mainBrightnessBarRect[1], width=250, anchor='ne', font=font, fill=self.mainFGColour, text='Main brightness:')
         self.midPayneContainer.create_rectangle(self.mainBrightnessBarRect[0]-2, self.mainBrightnessBarRect[1]-2, self.mainBrightnessBarRect[2]+2, self.mainBrightnessBarRect[3]+2, fill='#000000', outline='#000000')
@@ -1301,6 +1312,11 @@ class Application(Frame):
     def clickConfigCanvas(self, event):
         self.clickedConfigBar = ''
 
+        percent = self.getIfMouseIsInBar(event, self.timeoutBarRect)
+        if(percent > 0):
+            self.clickedConfigBar = 'timeout'
+            self.dragConfigCanvas(event)
+            return
         percent = self.getIfMouseIsInBar(event, self.mainBrightnessBarRect)
         if(percent > 0):
             self.clickedConfigBar = 'mainBrightness'
@@ -1346,6 +1362,12 @@ class Application(Frame):
 
 
     def dragConfigCanvas(self, event):
+        if(self.clickedConfigBar == 'timeout'):
+            tup = self.drawConfigBar(event.x, self.midPayneContainer, self.timeoutBarRect, self.timeoutBar, self.currentTimeout, self.timeoutText, ' Minutes', 1, 60)
+            self.currentTimeout = tup[0]
+            self.configChanges['currentTimeout'] = 1
+            self.timeoutBar = tup[1]
+
         if(self.clickedConfigBar == 'mainBrightness'):
             tup = self.drawConfigBar(event.x, self.midPayneContainer, self.mainBrightnessBarRect, self.mainBrightnessBar, self.currentMainBrightnessPercent, self.mainBrightnessText)
             self.currentMainBrightnessPercent = tup[0]
@@ -1364,14 +1386,14 @@ class Application(Frame):
             self.configChanges['currentWarmthPercent'] = 1
             self.warmthBar = tup[1]
             
-    def drawConfigBar(self, mouseX, container, barRect, bar, value, text):
+    def drawConfigBar(self, mouseX, container, barRect, bar, value, text, stringSuffix='%', minValue=0, maxValue=100):
         total = barRect[2] - barRect[0]
         new = mouseX - barRect[0]
-        percent = min(100, max(0, ((new / total) * 100)))
+        percent = min(maxValue, max(minValue, ((new / total) * (maxValue-minValue))))
         value = round(percent)
         container.delete(bar)
-        bar = container.create_rectangle(self.getBarActualWidth(barRect, value), fill='#cccccc', outline='#cccccc')
-        container.itemconfig(text, text=str(value)+'%')
+        bar = container.create_rectangle(self.getBarActualWidth(barRect, value, maxValue), fill='#cccccc', outline='#cccccc')
+        container.itemconfig(text, text=str(value)+str(stringSuffix))
         return (value, bar)
 
 
@@ -1380,8 +1402,8 @@ class Application(Frame):
         self.updateArduinoConfigs()
             
 
-    def getBarActualWidth(self, bar, percent):
-        newWidth = ((bar[2] - bar[0]) / 100) * percent
+    def getBarActualWidth(self, bar, value, maxValue=100):
+        newWidth = ((bar[2] - bar[0]) / maxValue) * value
         return (bar[0], bar[1], bar[0] + newWidth, bar[3])
 
     def getIfMouseIsInBar(self, mouseEvent, bar):
@@ -1427,6 +1449,7 @@ class Application(Frame):
     def loadConfig(self, forceUpdate=0):
         f = open(os.path.join(dirname, "config.JSON"), "r")
         config = json.load(f)
+        self.currentTimeout = int(config['currentTimeout'])
         self.currentMainBrightnessPercent = int(config['currentMainBrightnessPercent'])
         self.currentSideBrightnessPercent = int(config['currentSideBrightnessPercent'])
         self.currentWarmthPercent = int(config['currentWarmthPercent'])
@@ -1434,7 +1457,8 @@ class Application(Frame):
         self.currentScreenLightChecked = config['currentScreenLightChecked'] == 'True'
         self.currentMainLightChecked = config['currentMainLightChecked'] == 'True'
         
-        self.configChanges = dict(currentMainBrightnessPercent = forceUpdate, 
+        self.configChanges = dict(currentTimeout = forceUpdate,
+                                  currentMainBrightnessPercent = forceUpdate, 
                                   currentSideBrightnessPercent = forceUpdate, 
                                   currentWarmthPercent = forceUpdate, 
                                   currentBarLightChecked = forceUpdate, 
@@ -1444,6 +1468,7 @@ class Application(Frame):
 
     def saveConfig(self):
         JSONString = '{'
+        JSONString = JSONString + '"currentTimeout": "'+str(self.currentTimeout)+'",'
         JSONString = JSONString + '"currentMainBrightnessPercent": "'+str(self.currentMainBrightnessPercent)+'",'
         JSONString = JSONString + '"currentSideBrightnessPercent": "'+str(self.currentSideBrightnessPercent)+'",'
         JSONString = JSONString + '"currentWarmthPercent": "'+str(self.currentWarmthPercent)+'",'
@@ -1456,7 +1481,8 @@ class Application(Frame):
         f.write(JSONString)
         f.close()
 
-        self.configChanges = dict(currentMainBrightnessPercent = 0, 
+        self.configChanges = dict(currentTimeout = 0,
+                                  currentMainBrightnessPercent = 0, 
                                   currentSideBrightnessPercent = 0, 
                                   currentWarmthPercent = 0, 
                                   currentBarLightChecked = 0, 
