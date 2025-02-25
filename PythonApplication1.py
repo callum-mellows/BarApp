@@ -21,12 +21,13 @@ from difflib import SequenceMatcher
 from PIL import Image, ImageEnhance, ImageTk
 from pathlib import Path
 import time
-
+import statistics
 import pygame
 import math
 import random
 import serial
 import threading
+import colorsys
 
 root = Tk()
 
@@ -591,7 +592,6 @@ class Application(Frame):
         if(unit == 'oz'):
             num = 0.1
             for i in str(quant):
-
                 if(i.isdigit()):
                     num += float(i)
                 elif(i == '½'):
@@ -615,7 +615,12 @@ class Application(Frame):
             return float(num)
         return 0.5
 
+    def ingredientColorNormalizedVibrancy(self, colour):
+        colour = HexToRGB(colour)
+        return max(min((statistics.stdev(colour) / 128), 1.0), 0.1)
+
     def getRecipeColour(self, recipe):
+        print("")
         RGB = [0, 0, 0]
         ingredientsCount = 0
         d = dict()
@@ -634,8 +639,11 @@ class Application(Frame):
                         strength = 0.15
 
                 strength = strength * self.getNormalizedQuantity(ingredient['quantity'], ingredient['unit'])
+                vibrancy = self.ingredientColorNormalizedVibrancy(self.ingredientsColour.get(ingredient['name']))
+                strength = strength * vibrancy
+                alteredSaturation = HexSetSaturation(self.ingredientsColour.get(ingredient['name']), vibrancy)
+                d[alteredSaturation[1:]] = strength
 
-                d[self.ingredientsColour.get(ingredient['name'])[1:]] = strength
 
         d_items = sorted(d.items())
         tot_weight = sum(d.values())
@@ -643,6 +651,8 @@ class Application(Frame):
         green = int(sum([int(k[2:4], 16)*v for k, v in d_items])/tot_weight)
         blue = int(sum([int(k[4:6], 16)*v for k, v in d_items])/tot_weight)
         zpad = lambda x: x if len(x)==2 else '0' + x
+
+        #return HexSetSaturation("#" + zpad(hex(red)[2:]) + zpad(hex(green)[2:]) + zpad(hex(blue)[2:]), 1)
         return "#" + zpad(hex(red)[2:]) + zpad(hex(green)[2:]) + zpad(hex(blue)[2:])
 
     recipeButtons = dict()
@@ -1933,8 +1943,8 @@ class Application(Frame):
             self.pages[self.currentPageIndex]()
 
             recipeColour = self.getRecipeColour(recipe)
-
-            self.sendMessageToArduino("RGB"+recipeColour)
+            #self.sendMessageToArduino("RGB"+recipeColour)
+            self.sendMessageToArduino("RGB"+HexSetSaturation(recipeColour, 1))
 
             ingredientsLights = dict()
             ingredientsLightsString = ''
@@ -2123,6 +2133,13 @@ def HexToRGB(rgb):
         return (0, 0, 0)
     rgb = str.lstrip(rgb, '#')
     return tuple(int(rgb[i:i+2], 16) for i in (0, 2, 4))
+
+def HexSetSaturation(oldHex, newSat):
+    rgb = HexToRGB(oldHex)
+    hsv = colorsys.rgb_to_hsv((rgb[0]/255), (rgb[1]/255), (rgb[2]/255))
+    hsv = (hsv[0], newSat, hsv[2])
+    rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])
+    return RGBToHex(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255))
 
 def RGBToHex(r, g, b):
     return "#{:02x}{:02x}{:02x}".format(r,g,b)
