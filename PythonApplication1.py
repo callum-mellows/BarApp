@@ -87,6 +87,8 @@ class Application(Frame):
     ingredientsInStock = dict()
     ingredientsLEDPosition = dict()
     ingredientsColour = dict()
+    ingredientsAlcohol = dict()
+    ingredientsColourStrength = dict()
     ingredientsType = dict()
     glassTypes = set([])
     garnishes = ([])
@@ -137,6 +139,8 @@ class Application(Frame):
             self.ingredientsInStock.update({ingredient['name']:ingredient['inStock']})
             self.ingredientsLEDPosition.update({ingredient['name']:(ingredient['LEDStrip'], ingredient['LEDIndex'])})
             self.ingredientsColour.update({ingredient['name']:ingredient['Colour']})
+            self.ingredientsAlcohol.update({ingredient['name']:ingredient['alcohol']})
+            self.ingredientsColourStrength.update({ingredient['name']:ingredient['colourStrength']})
             self.ingredientsType.update({ingredient['name']:ingredient['type']})
             
         checkGarnishImagesExist(self.recipes)
@@ -641,6 +645,14 @@ class Application(Frame):
                 strength = strength * self.getNormalizedQuantity(ingredient['quantity'], ingredient['unit'])
                 vibrancy = self.ingredientColorNormalizedVibrancy(self.ingredientsColour.get(ingredient['name']))
                 strength = strength * vibrancy
+                match self.ingredientsColourStrength.get(ingredient['name']):
+                    case "0":
+                        strength = strength * 0.1
+                    case "1":
+                        strength = strength * 0.4
+                    case "2":
+                        strength = strength * 1
+                #strength = strength * (int(self.ingredientsColourStrength.get(ingredient['name'])) + 1) / 3
                 alteredSaturation = HexSetSaturation(self.ingredientsColour.get(ingredient['name']), vibrancy)
                 d[alteredSaturation[1:]] = strength
 
@@ -671,6 +683,8 @@ class Application(Frame):
             sortedRecipes = sorted(recipes, key=lambda x: x['stars'], reverse=True)
         elif(self.currentSortIndex == 2): #lastOpened
             sortedRecipes = sorted(recipes, key=lambda x: x['lastAccessed'], reverse=True)
+        elif(self.currentSortIndex == 3): #strength
+            sortedRecipes = sorted(recipes, key=lambda x: x['strength'], reverse=True)
         return sortedRecipes
 
     
@@ -732,7 +746,7 @@ class Application(Frame):
 
             self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=img)
             self.recipeTextBacks[recipe['name']] = self.midPayne.create_text(self.left + 17, self.top + 17, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill='#000000', text=recipe['name'])
-            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name'])
+            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']+' ('+recipe['strength']+')')
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
             self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
 
@@ -961,7 +975,7 @@ class Application(Frame):
 
     
     menuString = StringVar()
-    sortingOptions = ['Name', 'Rating', 'Last Opened']
+    sortingOptions = ['Name', 'Rating', 'Last Opened', 'strength']
     currentSortIndex = 0
     def openMenu(self):
         overrideStr = '|OFF'
@@ -1222,8 +1236,11 @@ class Application(Frame):
                 ledIndex = self.ingredientsLEDPosition.get(ingredient, (0,0))[1]
                 colour = self.ingredientsColour.get(ingredient, '#ffffff')
                 ingType = self.ingredientsType.get(ingredient, 3)
+                alcohol = self.ingredientsAlcohol.get(ingredient, "1")
+                colourStrength = self.ingredientsColourStrength.get(ingredient, "1")
+                
 
-                tpl = (ingredient, checked, ledStrip, ledIndex, colour, ingType)
+                tpl = (ingredient, checked, ledStrip, ledIndex, colour, ingType, alcohol, colourStrength)
                 self.ingredientsData.append(tpl)
 
                 self.drawIngredientRow(ingredient, itemYPos, self.itemHeight)
@@ -1551,6 +1568,9 @@ class Application(Frame):
                 LEDIndex = i[3]
                 colour = i[4]
                 ingType = i[5]
+                alcohol = i[6]
+                colourStrength = i[7]
+                
 
         if checked == '1':
             img = self.checkImage
@@ -1652,7 +1672,7 @@ class Application(Frame):
                     temp = '0'
                 else:
                     temp = '1'
-                tpl = (i[0], temp, i[2], i[3], i[4], i[5])
+                tpl = (i[0], temp, i[2], i[3], i[4], i[5], i[6], i[7])
                 self.ingredientsData[x] = tpl
                 self.updateIngredientsFile()
                 self.drawIngredientRow(clickArea[1], clickArea[0][1], clickArea[0][3])
@@ -1667,7 +1687,7 @@ class Application(Frame):
         x = 0
         for i in self.ingredientsData:
             if (i[0] == name):
-                tpl = (i[0], i[1], value, i[3], i[4], i[5])
+                tpl = (i[0], i[1], value, i[3], i[4], i[5], i[6], i[7])
                 self.ingredientsData[x] = tpl
                 self.updateIngredientsFile()
                 self.drawIngredientRow(name, rowYPos, rowHeight)
@@ -1678,7 +1698,7 @@ class Application(Frame):
         x = 0
         for i in self.ingredientsData:
             if (i[0] == name):
-                tpl = (i[0], i[1], i[2], value, i[4], i[5])
+                tpl = (i[0], i[1], i[2], value, i[4], i[5], i[6], i[7])
                 self.ingredientsData[x] = tpl
                 self.updateIngredientsFile()
                 self.drawIngredientRow(name, rowYPos, rowHeight)
@@ -1758,8 +1778,11 @@ class Application(Frame):
         self.ingredientsInStock.clear()
         self.ingredientsLEDPosition.clear()
         self.ingredientsColour.clear()
+        self.ingredientsAlcohol.clear()
+        self.ingredientsColourStrength.clear()
         JSONString = '{"ingredients": ['
         for i in self.ingredientsData:
+            print(i)
             temp = i[4]
             if type(temp) != str:
                 temp = '#ffffff'
@@ -1768,11 +1791,15 @@ class Application(Frame):
             JSONString = JSONString + '"LEDStrip": "' + str(i[2]) + '",'
             JSONString = JSONString + '"LEDIndex": "' + str(i[3]) + '",'
             JSONString = JSONString + '"Colour": "' + temp + '",'
+            JSONString = JSONString + '"alcohol": "' + str(i[6]) + '",'
+            JSONString = JSONString + '"colourStrength": "' + str(i[7]) + '",'
             JSONString = JSONString + '"type": "' + str(i[5]) + '"},'
 
             self.ingredientsInStock.update({str(i[0]):str(i[1])})
             self.ingredientsLEDPosition.update({str(i[0]):(str(i[2]), str(i[3]))})
             self.ingredientsColour.update({str(i[0]):temp})
+            self.ingredientsAlcohol.update({str(i[0]):str(i[6])})
+            self.ingredientsColourStrength.update({str(i[0]):str(i[7])})
         JSONString = JSONString[:-1]
         JSONString = JSONString + ']}'
         f = open(os.path.join(dirname, "ingredients.JSON"), "w", encoding='utf-8')
@@ -1943,8 +1970,8 @@ class Application(Frame):
             self.pages[self.currentPageIndex]()
 
             recipeColour = self.getRecipeColour(recipe)
-            #self.sendMessageToArduino("RGB"+recipeColour)
-            self.sendMessageToArduino("RGB"+HexSetSaturation(recipeColour, 1))
+            self.sendMessageToArduino("RGB"+recipeColour)
+            #self.sendMessageToArduino("RGB"+HexSetSaturation(recipeColour, 1))
 
             ingredientsLights = dict()
             ingredientsLightsString = ''
