@@ -746,7 +746,7 @@ class Application(Frame):
 
             self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=img)
             self.recipeTextBacks[recipe['name']] = self.midPayne.create_text(self.left + 17, self.top + 17, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill='#000000', text=recipe['name'])
-            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']+' ('+recipe['strength']+')')
+            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']+' ('+str(round(float(recipe['strength']),1))+')')
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
             self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
 
@@ -1782,7 +1782,6 @@ class Application(Frame):
         self.ingredientsColourStrength.clear()
         JSONString = '{"ingredients": ['
         for i in self.ingredientsData:
-            print(i)
             temp = i[4]
             if type(temp) != str:
                 temp = '#ffffff'
