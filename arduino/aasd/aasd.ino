@@ -1,7 +1,7 @@
 #include <FastLED.h>
 #include <string.h>
 
-#define NUM_SIDE_LIGHTS 5
+#define NUM_BAR_LIGHTS 20
 #define PIN_BAR_LIGHTS 3
 
 #define NUM_SCREEN_LIGHTS 5
@@ -52,7 +52,7 @@ CRGB currentColour = CRGB::Black;
 CRGB nextColour = defaultColour;
 int colourChangeAlpha = 255;
 
-CRGB barLeds[NUM_SIDE_LIGHTS];
+CRGB barLeds[NUM_BAR_LIGHTS];
 CRGB screenLeds[NUM_SCREEN_LIGHTS];
 CRGB ingredientLeds1[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 CRGB ingredientLeds2[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
@@ -66,11 +66,11 @@ void setup() {
   Serial.setTimeout(5000);
   FastLED.setBrightness(255);
   
-  FastLED.addLeds<WS2811, PIN_BAR_LIGHTS, BRG>(barLeds, NUM_SIDE_LIGHTS);
+  FastLED.addLeds<WS2811, PIN_BAR_LIGHTS, RGB>(barLeds, NUM_BAR_LIGHTS);
   FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
   
-  FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_1, GRB>(ingredientLeds1, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
-  FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_2, GRB>(ingredientLeds2, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
+  FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_1, BRG>(ingredientLeds1, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
+  FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_2, BRG>(ingredientLeds2, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
   
   for(int i = 0; i < NUM_INGREDIENT_LIGHTS_PER_STRIP; i++)
   {
@@ -117,11 +117,12 @@ void setIngredientOn(int strip, int index)
 
 void updateSideAndScreenLEDs()
 {
-    for(int i = 0; i < NUM_SIDE_LIGHTS; i++)
+    for(int i = 0; i < NUM_BAR_LIGHTS; i++)
     {
       if(barLightsOn == true)
       {
         barLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
+        //barLeds[i] = currentColour;
       }
       else
       {
@@ -299,19 +300,22 @@ void checkSerialData(String serialData)
       else
       {
         //colour
-        sendSerialData("Custom colour");
-        
+        sendSerialData("Custom Colour");
+
         int r, g, b;
-        String rStr = String(serialData).substring(4,6);
-        String gStr = String(serialData).substring(6,8);
-        String bStr = String(serialData).substring(8,10);
-        const char* rCha = rStr.c_str();
-        const char* gCha = gStr.c_str();
-        const char* bCha = bStr.c_str();
-        r = (int)strtol(rCha, NULL, 16);
-        g = (int)strtol(gCha, NULL, 16);
-        b = (int)strtol(bCha, NULL, 16);
+        String rStr = String(serialData[4]) + String(serialData[5]);
+        String gStr = String(serialData[6]) + String(serialData[7]);  
+        String bStr = String(serialData[8]) + String(serialData[9]);
+        r = min(255, ((int)strtol(rStr.c_str(), NULL, 16) * 4));
+        g = min(255, ((int)strtol(gStr.c_str(), NULL, 16) / 2));
+        b = min(255, ((int)strtol(bStr.c_str(), NULL, 16) / 2));
+        int diff = min(min(255-r, 255-g), 255-g);
+        r += diff;
+        g += diff;
+        b += diff;
         ChangeColour(r, g, b);
+
+        
         return;
       }
     }
@@ -511,7 +515,7 @@ void loop() {
     currentColour.r = map(colourChangeAlpha, 0, 254, previousColour.r, nextColour.r);
     currentColour.g = map(colourChangeAlpha, 0, 254, previousColour.g, nextColour.g);
     currentColour.b = map(colourChangeAlpha, 0, 254, previousColour.b, nextColour.b);
-    colourChangeAlpha++;
+    colourChangeAlpha = min(255, colourChangeAlpha + 4);
   }
 
   for(int i = 0; i < NUM_INGREDIENT_LIGHTS_PER_STRIP; i++)
