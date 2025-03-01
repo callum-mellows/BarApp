@@ -732,8 +732,12 @@ class Application(Frame):
                 img = self.recipeButtonImages.get(recipe['name'])
                 self.recipeCanBeMade[recipe['name']] = 2
                 missingText = ''
+                rgb = interpolateColourRGB((0, 255, 0), (255, 0, 0), float(recipe['strength']))
+                strengthColour = RGBToHex(rgb[0], rgb[1], rgb[2])
             else:
                 missingText = '-'+str(missingIngredients[0])
+                rgb = interpolateColourRGB((0, 64, 0), (64, 0, 0), float(recipe['strength']))
+                strengthColour = RGBToHex(rgb[0], rgb[1], rgb[2])
 
                 if(missingIngredients[1] == 'almost'):
                     img = self.recipeButtonImagesHalfDisabled.get(recipe['name'])
@@ -745,8 +749,10 @@ class Application(Frame):
                     self.recipeCanBeMade[recipe['name']] = 0
 
             self.recipeButtons[recipe['name']] = self.midPayne.create_image(self.left, self.top, anchor='nw', image=img)
-            self.recipeTextBacks[recipe['name']] = self.midPayne.create_text(self.left + 17, self.top + 17, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill='#000000', text=recipe['name'])
-            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text=recipe['name']+' ('+str(round(float(recipe['strength']),1))+')')
+            self.recipeTextBacks[recipe['name']] = self.midPayne.create_text(self.left + 17, self.top + 17, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill='#000000', text='  '+recipe['name'])
+            
+            self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=strengthColour, text='•')
+            self.recipeTexts[recipe['name']] = self.midPayne.create_text(self.left + 15, self.top + 15, width=self.w-25, anchor='nw', justify=LEFT, font=fontBold, fill=colour, text='  '+recipe['name'])
             self.recipeButtonAreas.append(((self.left, self.top, self.w, self.h), recipe))
             self.recipeMissingIngredientsText[recipe['name']] = self.midPayne.create_text(self.left + 170, self.top + 70, width=self.w-25, anchor='ne', justify=LEFT, font=fontBold, fill=colour, text=missingText)
 
@@ -2173,6 +2179,12 @@ def RGBToHex(r, g, b):
 def interpolate(x1: float, x2: float, y1: float, y2: float, x: float):
     """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
     return ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
+
+def interpolateColourRGB(colour1, colour2, alpha):
+    fromColour = pygame.Color(colour1[0], colour1[1], colour1[2])
+    toColour = pygame.Color(colour2[0], colour2[1], colour2[2])
+    newColour = fromColour.lerp(toColour, alpha)
+    return (newColour.r, newColour.g, newColour.b)
 
 def tintImage(image, colour, mask):
     rgb = HexToRGB(colour)
