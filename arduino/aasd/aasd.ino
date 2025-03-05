@@ -1,21 +1,21 @@
 #include <FastLED.h>
 #include <string.h>
 
-#define NUM_BAR_LIGHTS 20
-#define PIN_BAR_LIGHTS 3
+#define NUM_BAR_LIGHTS 34
+#define PIN_BAR_LIGHTS 9
 
-#define NUM_SHELF_LIGHTS 20
-#define PIN_SHELF_LIGHTS 5
+#define NUM_SHELF_LIGHTS 32
+#define PIN_SHELF_LIGHTS 10
 
-#define NUM_SCREEN_LIGHTS 5
-#define PIN_SCREEN_LIGHTS 9
+//#define NUM_SCREEN_LIGHTS 5
+//#define PIN_SCREEN_LIGHTS 9
 
-#define PIN_MAIN_LIGHTS 6
+#define PIN_MAIN_LIGHTS 3
 
 #define NUM_INGREDIENT_LIGHTS_PER_STRIP 15
 #define NUM_LEDS_PER_LIGHT 7
-#define PIN_INGREDIENT_STRIP_1 10
-#define PIN_INGREDIENT_STRIP_2 11
+#define PIN_INGREDIENT_STRIP_1 5
+#define PIN_INGREDIENT_STRIP_2 6
 
 String serialData = "";
 
@@ -56,7 +56,7 @@ int colourChangeAlpha = 255;
 
 CRGB barLeds[NUM_BAR_LIGHTS];
 CRGB shelfLeds[NUM_SHELF_LIGHTS];
-CRGB screenLeds[NUM_SCREEN_LIGHTS];
+//CRGB screenLeds[NUM_SCREEN_LIGHTS];
 CRGB ingredientLeds1[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 CRGB ingredientLeds2[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 
@@ -70,13 +70,13 @@ void setup() {
   pinMode(PIN_MAIN_LIGHTS, OUTPUT);
   pinMode(PIN_BAR_LIGHTS, OUTPUT);
   pinMode(PIN_SHELF_LIGHTS, OUTPUT);
-  pinMode(PIN_SCREEN_LIGHTS, OUTPUT);
+  //pinMode(PIN_SCREEN_LIGHTS, OUTPUT);
   pinMode(PIN_INGREDIENT_STRIP_1, OUTPUT);
   pinMode(PIN_INGREDIENT_STRIP_2, OUTPUT);
 
-  FastLED.addLeds<WS2812, PIN_BAR_LIGHTS, BRG>(barLeds, NUM_BAR_LIGHTS);
-  FastLED.addLeds<WS2812, PIN_SHELF_LIGHTS, RGB>(shelfLeds, NUM_SHELF_LIGHTS);
-  FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
+  FastLED.addLeds<WS2811, PIN_BAR_LIGHTS, RGB>(barLeds, NUM_BAR_LIGHTS);
+  FastLED.addLeds<WS2811, PIN_SHELF_LIGHTS, RGB>(shelfLeds, NUM_SHELF_LIGHTS);
+  //FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
   
   FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_1, BRG>(ingredientLeds1, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
   FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_2, BRG>(ingredientLeds2, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
@@ -91,7 +91,7 @@ void setup() {
   }
   clearAllIngredients();
 
-  updateSideAndScreenLEDs();
+  updateBarAndShelfLEDs();
   //FastLED.setMaxPowerInMilliWatts(12000);
 
   analogWrite(PIN_MAIN_LIGHTS, 0);
@@ -118,7 +118,7 @@ void setIngredientOn(int strip, int index)
   }
 }
 
-void updateSideAndScreenLEDs()
+void updateBarAndShelfLEDs()
 {
     for(int i = 0; i < NUM_SHELF_LIGHTS; i++)
     {
@@ -144,17 +144,17 @@ void updateSideAndScreenLEDs()
         barLeds[i] = CRGB::Black;
       }
     }
-    for(int i = 0; i < NUM_SCREEN_LIGHTS; i++)
-    {
-      if(screenLightsOn == true)
-      {
-        screenLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
-      }
-      else
-      {
-        screenLeds[i] = CRGB::Black;
-      }
-    }
+    //for(int i = 0; i < NUM_SCREEN_LIGHTS; i++)
+    //{
+    //  if(screenLightsOn == true)
+    //  {
+    //    screenLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
+    //  }
+    //  else
+    //  {
+    //    screenLeds[i] = CRGB::Black;
+    //  }
+    //}
 }
 
 CRGB getColourWithBrightness(CRGB colour, int brightness)
@@ -568,7 +568,7 @@ void loop() {
     
   }
 
-  updateSideAndScreenLEDs();
+  updateBarAndShelfLEDs();
   FastLED.show();
 
   if(mainLightsOn == true)
