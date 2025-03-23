@@ -1,21 +1,15 @@
 #include <FastLED.h>
 #include <string.h>
 
-#define NUM_BAR_LIGHTS 20
-#define PIN_BAR_LIGHTS 3
+#define NUM_BAR_LIGHTS 35
+#define PIN_BAR_LIGHTS 10
 
-#define NUM_SHELF_LIGHTS 20
-#define PIN_SHELF_LIGHTS 5
-
-#define NUM_SCREEN_LIGHTS 5
-#define PIN_SCREEN_LIGHTS 9
-
-#define PIN_MAIN_LIGHTS 6
+#define PIN_MAIN_LIGHTS 9
 
 #define NUM_INGREDIENT_LIGHTS_PER_STRIP 15
 #define NUM_LEDS_PER_LIGHT 7
-#define PIN_INGREDIENT_STRIP_1 10
-#define PIN_INGREDIENT_STRIP_2 11
+#define PIN_INGREDIENT_STRIP_1 5
+#define PIN_INGREDIENT_STRIP_2 6
 
 String serialData = "";
 
@@ -55,8 +49,6 @@ CRGB nextColour = defaultColour;
 int colourChangeAlpha = 255;
 
 CRGB barLeds[NUM_BAR_LIGHTS];
-CRGB shelfLeds[NUM_SHELF_LIGHTS];
-CRGB screenLeds[NUM_SCREEN_LIGHTS];
 CRGB ingredientLeds1[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 CRGB ingredientLeds2[NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT];
 
@@ -69,14 +61,10 @@ void setup() {
 
   pinMode(PIN_MAIN_LIGHTS, OUTPUT);
   pinMode(PIN_BAR_LIGHTS, OUTPUT);
-  pinMode(PIN_SHELF_LIGHTS, OUTPUT);
-  pinMode(PIN_SCREEN_LIGHTS, OUTPUT);
   pinMode(PIN_INGREDIENT_STRIP_1, OUTPUT);
   pinMode(PIN_INGREDIENT_STRIP_2, OUTPUT);
 
-  FastLED.addLeds<WS2812, PIN_BAR_LIGHTS, BRG>(barLeds, NUM_BAR_LIGHTS);
-  FastLED.addLeds<WS2812, PIN_SHELF_LIGHTS, RGB>(shelfLeds, NUM_SHELF_LIGHTS);
-  FastLED.addLeds<WS2811, PIN_SCREEN_LIGHTS, BRG>(screenLeds, NUM_SCREEN_LIGHTS);
+  FastLED.addLeds<WS2812, PIN_BAR_LIGHTS, RGB>(barLeds, NUM_BAR_LIGHTS);
   
   FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_1, BRG>(ingredientLeds1, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
   FastLED.addLeds<WS2811, PIN_INGREDIENT_STRIP_2, BRG>(ingredientLeds2, NUM_INGREDIENT_LIGHTS_PER_STRIP * NUM_LEDS_PER_LIGHT);
@@ -120,18 +108,6 @@ void setIngredientOn(int strip, int index)
 
 void updateSideAndScreenLEDs()
 {
-    for(int i = 0; i < NUM_SHELF_LIGHTS; i++)
-    {
-      if(barLightsOn == true)
-      {
-        shelfLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
-        //shelfLeds[i] = CRGB::Red;
-      }
-      else
-      {
-        shelfLeds[i] = CRGB::Black;
-      }
-    }
     for(int i = 0; i < NUM_BAR_LIGHTS; i++)
     {
       if(barLightsOn == true)
@@ -142,17 +118,6 @@ void updateSideAndScreenLEDs()
       else
       {
         barLeds[i] = CRGB::Black;
-      }
-    }
-    for(int i = 0; i < NUM_SCREEN_LIGHTS; i++)
-    {
-      if(screenLightsOn == true)
-      {
-        screenLeds[i] = getColourWithBrightness(currentColour, currentBrightnessSideLight);
-      }
-      else
-      {
-        screenLeds[i] = CRGB::Black;
       }
     }
 }
@@ -333,14 +298,22 @@ void checkSerialData(String serialData)
         String rStr = String(serialData[4]) + String(serialData[5]);
         String gStr = String(serialData[6]) + String(serialData[7]);  
         String bStr = String(serialData[8]) + String(serialData[9]);
-        r = min(255, ((int)strtol(rStr.c_str(), NULL, 16) * 4));
-        g = min(255, ((int)strtol(gStr.c_str(), NULL, 16) / 2));
-        b = min(255, ((int)strtol(bStr.c_str(), NULL, 16) / 2));
-        int diff = min(min(255-r, 255-g), 255-g);
-        r += diff;
-        g += diff;
-        b += diff;
-        ChangeColour(r, g, b);
+        r = min(255, ((int)strtol(rStr.c_str(), NULL, 16) * 2));
+        g = min(255, ((int)strtol(gStr.c_str(), NULL, 16)));
+        b = min(255, ((int)strtol(bStr.c_str(), NULL, 16)));
+        //r = min(255, ((int)strtol(rStr.c_str(), NULL, 16)));
+        //g = min(255, ((int)strtol(gStr.c_str(), NULL, 16)));
+        //b = min(255, ((int)strtol(bStr.c_str(), NULL, 16)));
+        int biggest = max(max(r, g), b);
+        float ratio = 1 - (biggest - 255);
+        float r2 = r * ratio;
+        float g2 = g * ratio;
+        float b2 = b * ratio;
+        //int diff = min(min(255-r, 255-g), 255-b);
+        //r += diff;
+        //g += diff;
+        //b += diff;
+        ChangeColour((int)r2, (int)g2, (int)b2);
 
         
         return;
